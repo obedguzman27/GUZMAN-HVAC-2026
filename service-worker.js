@@ -3,13 +3,15 @@
 // Los datos NO se guardan aquí (eso vive en localStorage / futuro backend),
 // solo el "cascarón" de la app (HTML, íconos).
 
-const CACHE_NAME = 'guzman-hvac-v1';
+const CACHE_NAME = 'guzman-hvac-v2';
 const ARCHIVOS_CACHE = [
   './',
   './index.html',
   './manifest.json',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './browser-storage.js',
+  './supabase-storage.js'
 ];
 
 self.addEventListener('install', (evento) => {
