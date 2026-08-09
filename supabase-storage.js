@@ -5,6 +5,26 @@
 // así que la app usa esto como su almacenamiento principal.
 
 (function () {
+  if (!window.supabase || !window.supabase.createClient) {
+    // El SDK de Supabase no cargó (sin internet, CDN bloqueado, etc.)
+    // Mostrar un aviso claro en vez de dejar que la app abra sin pedir login.
+    document.addEventListener('DOMContentLoaded', () => {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed; inset: 0; z-index: 99999; background: #16233F; color: #fff;
+        display: flex; align-items: center; justify-content: center; text-align: center;
+        font-family: sans-serif; padding: 30px;
+      `;
+      overlay.innerHTML = `
+        <div style="max-width:340px;">
+          <div style="font-size:18px;font-weight:700;margin-bottom:10px;">No se pudo cargar el sistema de acceso</div>
+          <div style="font-size:13.5px;opacity:.85;line-height:1.5;">Revisa que tengas conexión a internet y vuelve a abrir la app. Si el problema sigue, cierra la app por completo (no solo minimizarla) y ábrela de nuevo.</div>
+        </div>`;
+      document.body.appendChild(overlay);
+    });
+    return; // no seguimos: NO se define window.storage aquí (la app no debe abrir sin login)
+  }
+
   const SUPABASE_URL = 'https://cubhmlclqovvmsdskooc.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_drw-q0SBYKj0I3fV0BKvmA_0nmV1DkW';
   const DOMINIO_INTERNO = '@guzmanhvac.app'; // usuario -> "correo" interno, invisible para el usuario
