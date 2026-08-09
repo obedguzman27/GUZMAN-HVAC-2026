@@ -1,9 +1,8 @@
-// Service worker de GUZMAN HVAC — guarda una copia local de la app
+// Service worker de CRA HVAC — guarda una copia local de la app
 // para que abra rápido y funcione aunque no haya internet.
-// Los datos NO se guardan aquí (eso vive en localStorage / futuro backend),
-// solo el "cascarón" de la app (HTML, íconos).
+// Los datos NO se guardan aquí, solo el "cascarón" de la app.
 
-const CACHE_NAME = 'guzman-hvac-v10';
+const CACHE_NAME = 'cra-hvac-v1';
 const ARCHIVOS_CACHE = [
   './',
   './index.html',
@@ -34,7 +33,6 @@ self.addEventListener('activate', (evento) => {
   self.clients.claim();
 });
 
-// Estrategia: red primero, si falla usa la copia guardada (offline).
 self.addEventListener('fetch', (evento) => {
   if (evento.request.method !== 'GET') return;
   evento.respondWith(

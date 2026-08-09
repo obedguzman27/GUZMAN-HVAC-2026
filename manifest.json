@@ -1,7 +1,7 @@
 {
-  "name": "GUZMAN HVAC",
-  "short_name": "GUZMAN HVAC",
-  "description": "Cuentas y reparto - GUZMAN HVAC",
+  "name": "CRA HVAC",
+  "short_name": "CRA HVAC",
+  "description": "Cuentas y reparto - CRA HVAC",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
