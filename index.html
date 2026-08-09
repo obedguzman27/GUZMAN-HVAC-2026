@@ -671,12 +671,16 @@
       </div>
 
       <div class="gc-field" style="margin-bottom:14px;">
-        <label>Días que trabajó (selecciona cada fecha y agrégala)</label>
-        <div style="display:flex;gap:10px;">
-          <input type="date" id="nom-dia-selector" style="flex:1;">
-          <button class="gc-action-btn" id="nom-btn-add-dia" style="white-space:nowrap;">+ Agregar día</button>
+        <label>Días que trabajó (toca todos los días que necesites en el calendario)</label>
+        <div id="nom-calendario" style="background:#F5F8FC;border:1.5px solid var(--border);border-radius:14px;padding:18px;max-width:460px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <button type="button" id="nom-cal-prev" class="gc-action-btn" style="padding:8px 16px;font-size:16px;">‹</button>
+            <div id="nom-cal-titulo" style="font-weight:700;font-size:16px;color:var(--ink);text-transform:capitalize;"></div>
+            <button type="button" id="nom-cal-next" class="gc-action-btn" style="padding:8px 16px;font-size:16px;">›</button>
+          </div>
+          <div id="nom-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:7px;"></div>
         </div>
-        <div id="nom-dias-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;"></div>
+        <div id="nom-dias-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;"></div>
         <p id="nom-dias-info" style="font-size:12px;color:var(--muted);margin-top:6px;"></p>
       </div>
 
@@ -1855,7 +1859,7 @@
       : `<tr><td colspan="4" style="color:#777; font-style:italic;">Sin gastos capturados esta semana</td></tr>`;
 
     return `
-      <h1>CRA HVAC</h1>
+      <h1>GUZMAN HVAC</h1>
       <div class="ps-badge">${escapeHtml(inv.label || '')}${inv.guardadoEn ? ' · guardado el ' + new Date(inv.guardadoEn).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }) : ''}</div>
 
       <h2>Detalle de gastos</h2>
@@ -1909,7 +1913,7 @@
   function imprimirContenido(htmlCuerpo, titulo) {
     const area = document.getElementById('print-area');
     area.innerHTML = `<div class="gc-print-sheet">${htmlCuerpo}</div>`;
-    document.title = titulo || 'CRA HVAC';
+    document.title = titulo || 'GUZMAN HVAC';
     window.print();
     setTimeout(() => { area.innerHTML = ''; }, 500);
   }
@@ -2004,7 +2008,7 @@
 
     const cuerpoHTML = `
       <div style="font-family:Arial,Helvetica,sans-serif;color:#2A2A2A;">
-        <h1 style="font-size:20px;margin:0;">CRA HVAC</h1>
+        <h1 style="font-size:20px;margin:0;">GUZMAN HVAC</h1>
         <h2 style="font-size:14px;margin:20px 0 8px;color:#1B2A4A;">Movimientos</h2>
         <table style="width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:16px;">
           <thead><tr>
@@ -2037,7 +2041,7 @@
     area.innerHTML = `<div class="gc-print-sheet">${cuerpoHTML}</div>`;
     document.title = 'Registro';
     window.print();
-    setTimeout(() => { area.innerHTML = ''; document.title = 'CRA HVAC'; }, 600);
+    setTimeout(() => { area.innerHTML = ''; document.title = 'GUZMAN HVAC'; }, 600);
   });
 
   // ---- Respaldo completo (para guardar en OneDrive) ----
@@ -2056,7 +2060,7 @@
     try { const r = await window.storage.get('gh-recibos-semanales'); recibosData = JSON.parse(r.value); } catch(e){}
 
     const respaldo = {
-      app: 'CRA HVAC',
+      app: 'GUZMAN HVAC',
       version: 3,
       generadoEn: new Date().toISOString(),
       // Cuentas y reparto
@@ -2112,24 +2116,43 @@
         await saveInvoices();
 
         // Empleados
-        if (data.empleados) await window.storage.set('empleados', JSON.stringify(data.empleados));
+        if (data.empleados) {
+          await window.storage.set('empleados', JSON.stringify(data.empleados));
+          try { empleados = data.empleados || []; renderEmpleados(); } catch (e) {}
+        }
         // Facturas y sus catálogos
         if (data.facturas)  await window.storage.set('gh-invoices', JSON.stringify(data.facturas));
         if (data.colonias)  await window.storage.set('gh-colonias', JSON.stringify(data.colonias));
         if (data.clientes)  await window.storage.set('gh-clientes', JSON.stringify(data.clientes));
         if (data.trabajos)  await window.storage.set('gh-trabajos', JSON.stringify(data.trabajos));
+        try {
+          if (data.facturas) invDocs = data.facturas;
+          if (data.colonias) invColonias = data.colonias;
+          if (data.clientes) invClientes = data.clientes;
+          if (data.trabajos) invTrabajos = data.trabajos;
+          invRefreshDlClientes(); invRefreshDlTrabajos();
+          invRenderLista(); invRenderCobros(); invRenderColonias(); invRenderClientes(); invRenderTrabajos();
+        } catch (e) {}
         // Nómina
         if (data.nomina)       await window.storage.set('gh-nomina', JSON.stringify(data.nomina));
         if (data.trabajadores) await window.storage.set('gh-trabajadores', JSON.stringify(data.trabajadores));
         if (data.recibosSemanales) await window.storage.set('gh-recibos-semanales', JSON.stringify(data.recibosSemanales));
+        try {
+          if (data.nomina) nomDocs = data.nomina;
+          if (data.trabajadores) nomTrabajadores = nomNormalizarTrab(data.trabajadores);
+          if (data.recibosSemanales) nomCopias = data.recibosSemanales;
+          nomCargado = true; // ya quedó cargado con lo restaurado; evita que un futuro click lo pise
+          nomRefreshDl();
+          nomRenderRegLedger(); nomRenderHist(); nomRenderTrabajadores(); nomRenderSemanal(); nomRenderCopias();
+        } catch (e) {}
 
         renderCategorias();
         renderCatSelect();
         renderMovimientos();
         renderReparto();
 
-        $('status-restaurar').textContent = 'Respaldo restaurado. Recarga la app para ver todo actualizado.';
-        toast('Respaldo restaurado ✓ — recarga la app', 'success', 4000);
+        $('status-restaurar').textContent = 'Respaldo restaurado — todos los datos (registro, facturas y nómina) ya están actualizados.';
+        toast('Respaldo restaurado ✓ — todo actualizado', 'success', 4000);
         $('input-restaurar-respaldo').value = '';
         // Devolver el foco del teclado a la ventana (Electron lo pierde tras el selector)
         setTimeout(() => { try { window.focus(); document.body.focus(); } catch(e){} }, 60);
@@ -2406,7 +2429,7 @@
           <div style="font-size:13px;color:#555;">${escapeHtml(emp.rol||'')} · <span style="color:${emp.estado==='activo'?'#2E8B84':'#C2622E'};font-weight:600;">${emp.estado==='activo'?'Activo':'Inactivo'}</span></div>
         </div>
         <div style="margin-left:auto;text-align:right;">
-          <div style="font-size:11px;color:#888;">CRA HVAC</div>
+          <div style="font-size:11px;color:#888;">GUZMAN HVAC</div>
         </div>
       </div>
       <table style="width:100%;border-collapse:collapse;">
@@ -3119,10 +3142,22 @@
   }
 
   // Al elegir trabajador, cargar su sueldo por día (como número editable)
+  let nomUltimoTrabajadorResuelto = null;
   $('nom-trabajador').addEventListener('input', () => {
     const t = nomBuscarTrab($('nom-trabajador').value.trim());
     $('nom-sueldo-dia').value = t && t.sueldo ? String(t.sueldo) : '';
     delete $('nom-monto').dataset.editado;
+    // Si se reconoce un trabajador distinto al anterior, limpiar los días/extra
+    // del pago que se estaba armando, para no tener que borrarlos a mano.
+    if (t && t.nombre !== nomUltimoTrabajadorResuelto) {
+      nomDiasSel = [];
+      nomRenderChips();
+      $('nom-extra-desc').value = '';
+      $('nom-extra-monto').value = '';
+      $('nom-monto').value = '';
+      $('nom-nota').value = '';
+    }
+    nomUltimoTrabajadorResuelto = t ? t.nombre : null;
     nomRecalcularMonto();
   });
 
@@ -3132,16 +3167,58 @@
     nomRecalcularMonto();
   });
 
-  // ---- Selección de días (fechas) ----
-  $('nom-btn-add-dia').addEventListener('click', () => {
-    const fecha = $('nom-dia-selector').value;
-    if (!fecha) { toast('Elige una fecha primero', 'info'); return; }
-    if (nomDiasSel.includes(fecha)) { toast('Ese día ya está agregado', 'info'); return; }
-    nomDiasSel.push(fecha);
-    nomDiasSel.sort();
-    nomRenderChips();
-    nomRecalcularMonto();
-  });
+  // ---- Selección de días (calendario, multi-selección) ----
+  let nomCalMes = new Date();
+  nomCalMes.setDate(1);
+
+  function nomCalRender() {
+    const grid = $('nom-cal-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    const y = nomCalMes.getFullYear(), m = nomCalMes.getMonth();
+    const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    $('nom-cal-titulo').textContent = `${meses[m]} ${y}`;
+
+    ['D','L','M','M','J','V','S'].forEach((d) => {
+      const el = document.createElement('div');
+      el.textContent = d;
+      el.style.cssText = 'text-align:center;font-size:11.5px;font-weight:700;color:var(--muted);padding:4px 0;';
+      grid.appendChild(el);
+    });
+
+    const primerDia = new Date(y, m, 1).getDay();
+    const diasEnMes = new Date(y, m + 1, 0).getDate();
+    const hoyStr = nomToday();
+
+    for (let i = 0; i < primerDia; i++) grid.appendChild(document.createElement('div'));
+
+    for (let d = 1; d <= diasEnMes; d++) {
+      const fecha = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const seleccionado = nomDiasSel.includes(fecha);
+      const esHoy = fecha === hoyStr;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = String(d);
+      btn.style.cssText = `
+        height:48px; border-radius:10px; font-size:15.5px; font-weight:600; cursor:pointer;
+        border:1.5px solid ${seleccionado ? 'var(--navy)' : (esHoy ? 'var(--teal)' : 'var(--border)')};
+        background:${seleccionado ? 'var(--navy)' : '#fff'};
+        color:${seleccionado ? '#fff' : 'var(--ink)'};
+        transition: background .1s, color .1s;
+      `;
+      btn.addEventListener('click', () => {
+        const idx = nomDiasSel.indexOf(fecha);
+        if (idx >= 0) nomDiasSel.splice(idx, 1);
+        else { nomDiasSel.push(fecha); nomDiasSel.sort(); }
+        nomRenderChips();
+        nomRecalcularMonto();
+      });
+      grid.appendChild(btn);
+    }
+  }
+  $('nom-cal-prev').addEventListener('click', () => { nomCalMes.setMonth(nomCalMes.getMonth() - 1); nomCalRender(); });
+  $('nom-cal-next').addEventListener('click', () => { nomCalMes.setMonth(nomCalMes.getMonth() + 1); nomCalRender(); });
+  nomCalRender();
 
   function nomRenderChips() {
     const cont = $('nom-dias-chips');
@@ -3163,7 +3240,8 @@
     });
     $('nom-dias-info').textContent = nomDiasSel.length
       ? `${nomDiasSel.length} día(s) seleccionado(s)`
-      : 'Aún no agregas días. Elige una fecha y presiona "Agregar día".';
+      : 'Aún no has tocado ningún día. Toca todos los que necesites en el calendario de arriba.';
+    nomCalRender();
   }
 
   function nomRecalcularMonto() {
@@ -3203,16 +3281,15 @@
     if (nomDiasSel.length === 0) { $('nom-status').textContent = 'Agrega al menos un día trabajado'; setTimeout(()=>{$('nom-status').textContent='';},2000); return; }
     if (monto <= 0) { $('nom-status').textContent = 'El monto no puede ser cero'; setTimeout(()=>{$('nom-status').textContent='';},2000); return; }
 
-    // Si el trabajador es nuevo, agregarlo
+    // Si el trabajador es nuevo, agregarlo con el sueldo capturado ahora.
+    // Si ya existe, su sueldo guardado NO se toca aquí (aunque se edite este
+    // campo solo para este pago) — el sueldo permanente solo se cambia
+    // desde "Trabajadores y sus sueldos".
     let t = nomBuscarTrab(trabajador);
-    const sueldoCampo = nomLeerSueldoCampo();  // sueldo editado en el formulario
+    const sueldoCampo = nomLeerSueldoCampo();  // sueldo usado para ESTE pago (puede diferir del guardado)
     if (!t) {
       t = { nombre: trabajador, sueldo: sueldoCampo };
       nomTrabajadores.push(t);
-      await nomSaveTrab();
-    } else if (sueldoCampo > 0 && sueldoCampo !== t.sueldo) {
-      // El sueldo se editó en el formulario: actualizar el del trabajador en la base de datos
-      t.sueldo = sueldoCampo;
       await nomSaveTrab();
     }
 
@@ -3252,6 +3329,7 @@
   $('nom-btn-limpiar').addEventListener('click', () => {
     $('nom-trabajador').value = '';
     $('nom-sueldo-dia').value = '';
+    nomUltimoTrabajadorResuelto = null;
     nomLimpiar();
     nomEditando = null;
     $('nom-editando').value = '';
@@ -3268,6 +3346,10 @@
     const sueldoMostrar = entrada.sueldoDia != null ? entrada.sueldoDia : (t ? t.sueldo : 0);
     $('nom-sueldo-dia').value = sueldoMostrar ? String(sueldoMostrar) : '';
     nomDiasSel = Array.isArray(entrada.dias) ? [...entrada.dias] : [];
+    if (nomDiasSel.length) {
+      const primerDia = new Date(nomDiasSel[0] + 'T00:00:00');
+      if (!isNaN(primerDia)) { nomCalMes = new Date(primerDia.getFullYear(), primerDia.getMonth(), 1); }
+    }
     nomRenderChips();
     $('nom-extra-desc').value = entrada.extraDesc || '';
     $('nom-extra-monto').value = entrada.extraMonto ? String(entrada.extraMonto) : '';
@@ -3344,6 +3426,8 @@
   function nomMostrarRecibo(n) {
     nomReciboEnVista = n;
     $('nom-recibo-content').innerHTML = nomBuildRecibo(n);
+    $('nom-btn-imprimir-recibo').style.display = '';
+    $('nom-btn-descargar-recibo').style.display = '';
     $('nom-ov').style.display = 'flex';
   }
   $('nom-btn-imprimir-recibo').addEventListener('click', () => {
@@ -3618,7 +3702,7 @@
           try { const r = await window.storage.get(TRAB_NOM_KEY); nomTrabajadores = nomNormalizarTrab(JSON.parse(r.value)); } catch (e) { nomTrabajadores = []; }
           try { const r = await window.storage.get(RECIBOS_KEY); nomCopias = JSON.parse(r.value); } catch (e) { nomCopias = []; }
           nomRefreshDl();
-          $('nom-dia-selector').value = nomToday();
+          nomCalMes = new Date(); nomCalMes.setDate(1);
           nomRenderChips();
           nomRenderRegLedger();
         }
@@ -3807,6 +3891,10 @@
     nomSemReciboWk = wk;
     nomReciboEnVista = { _semanal: true, wk };
     $('nom-recibo-content').innerHTML = nomBuildReciboSemanal(wk);
+    // Esta vista ya tiene sus propios botones de Imprimir/Guardar copia en la tarjeta,
+    // así que no se duplican aquí arriba.
+    $('nom-btn-imprimir-recibo').style.display = 'none';
+    $('nom-btn-descargar-recibo').style.display = 'none';
     $('nom-ov').style.display = 'flex';
   }
 
@@ -3876,6 +3964,8 @@
         if (!c) return;
         nomReciboEnVista = { _copia: true, html: c.html };
         $('nom-recibo-content').innerHTML = c.html;
+        $('nom-btn-imprimir-recibo').style.display = 'none';
+        $('nom-btn-descargar-recibo').style.display = 'none';
         $('nom-ov').style.display = 'flex';
       });
     });

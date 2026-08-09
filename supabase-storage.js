@@ -1,23 +1,34 @@
 // ============================================================
-// GUZMAN HVAC — Conexión con Supabase (Fase 2: usuarios + sincronización)
+// GUZMAN HVAC — Conexión con Supabase (usuario y contraseña)
 // ============================================================
-// Este archivo define window.storage ANTES de que el resto de la app
-// cargue, así que la app usa esto como su almacenamiento principal.
-// Si algo falla (sin internet, sesión no lista, etc.), el propio código
-// de la app ya sabe caer de regreso a almacenamiento local del navegador
-// (ver la función setupStorage() dentro de index.html).
+// Define window.storage ANTES de que el resto de la app cargue,
+// así que la app usa esto como su almacenamiento principal.
 
 (function () {
   const SUPABASE_URL = 'https://cubhmlclqovvmsdskooc.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_drw-q0SBYKj0I3fV0BKvmA_0nmV1DkW';
+  const DOMINIO_INTERNO = '@guzmanhvac.app'; // usuario -> "correo" interno, invisible para el usuario
 
   const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   let resolverSesion;
   const sesionLista = new Promise((r) => { resolverSesion = r; });
 
-  // ---------- Pantalla de código de acceso ----------
-  function mostrarFormularioCodigo(mensajeError) {
+  function usuarioAEmail(usuario) {
+    return usuario.trim().toLowerCase().replace(/\s+/g, '.') + DOMINIO_INTERNO;
+  }
+
+  async function asegurarPerfil(usuario) {
+    const { data: { user } } = await client.auth.getUser();
+    if (!user) return;
+    const { data: perfil } = await client.from('perfiles').select('id').eq('id', user.id).maybeSingle();
+    if (!perfil) {
+      await client.from('perfiles').insert({ id: user.id, nombre: usuario, rol: 'empleado', activo: true });
+    }
+  }
+
+  // ---------- Pantalla de usuario / contraseña ----------
+  function mostrarFormularioLogin(mensajeError) {
     let overlay = document.getElementById('gh-login-overlay');
     if (overlay) overlay.remove();
 
@@ -32,61 +43,93 @@
     overlay.innerHTML = `
       <div style="background:#fff; border-radius:16px; padding:36px 32px; width:90%; max-width:360px; box-shadow:0 12px 40px rgba(0,0,0,.35); text-align:center;">
         <div style="font-family:'Zilla Slab',serif; font-weight:700; font-size:20px; color:#16233F; margin-bottom:4px;">GUZMAN HVAC</div>
-        <div style="font-size:12.5px; color:#5A6A88; margin-bottom:22px;">Ingresa tu código de acceso</div>
-        <input id="gh-codigo-input" type="text" placeholder="Código" autocomplete="off"
-          style="width:100%; padding:12px 14px; border:1.5px solid #D0D8E8; border-radius:9px; font-size:15px; text-align:center; letter-spacing:1px; margin-bottom:14px; box-sizing:border-box;">
-        <div id="gh-codigo-error" style="color:#C8511A; font-size:12.5px; min-height:16px; margin-bottom:10px;">${mensajeError || ''}</div>
-        <button id="gh-codigo-btn" style="width:100%; padding:12px; background:#16233F; color:#fff; border:none; border-radius:9px; font-weight:600; font-size:14px; cursor:pointer;">Entrar</button>
+        <div id="gh-login-subtitulo" style="font-size:12.5px; color:#5A6A88; margin-bottom:22px;">Inicia sesión</div>
+        <input id="gh-usuario-input" type="text" placeholder="Usuario" autocomplete="username"
+          style="width:100%; padding:12px 14px; border:1.5px solid #D0D8E8; border-radius:9px; font-size:15px; margin-bottom:10px; box-sizing:border-box;">
+        <input id="gh-clave-input" type="password" placeholder="Contraseña" autocomplete="current-password"
+          style="width:100%; padding:12px 14px; border:1.5px solid #D0D8E8; border-radius:9px; font-size:15px; margin-bottom:14px; box-sizing:border-box;">
+        <div id="gh-login-error" style="color:#C8511A; font-size:12.5px; min-height:16px; margin-bottom:10px;">${mensajeError || ''}</div>
+        <button id="gh-login-btn" style="width:100%; padding:12px; background:#16233F; color:#fff; border:none; border-radius:9px; font-weight:600; font-size:14px; cursor:pointer; margin-bottom:10px;">Entrar</button>
+        <button id="gh-modo-btn" style="width:100%; padding:10px; background:none; color:#5A6A88; border:none; font-size:12.5px; cursor:pointer; text-decoration:underline;">¿No tienes cuenta? Crear cuenta</button>
       </div>
     `;
     document.body.appendChild(overlay);
 
-    const input = document.getElementById('gh-codigo-input');
-    const btn = document.getElementById('gh-codigo-btn');
-    input.focus();
+    const usuarioInput = document.getElementById('gh-usuario-input');
+    const claveInput = document.getElementById('gh-clave-input');
+    const btn = document.getElementById('gh-login-btn');
+    const modoBtn = document.getElementById('gh-modo-btn');
+    const subtitulo = document.getElementById('gh-login-subtitulo');
+    usuarioInput.focus();
+
+    let modoRegistro = false;
+
+    modoBtn.addEventListener('click', () => {
+      modoRegistro = !modoRegistro;
+      if (modoRegistro) {
+        subtitulo.textContent = 'Crea tu cuenta';
+        btn.textContent = 'Crear cuenta';
+        modoBtn.textContent = '¿Ya tienes cuenta? Entrar';
+      } else {
+        subtitulo.textContent = 'Inicia sesión';
+        btn.textContent = 'Entrar';
+        modoBtn.textContent = '¿No tienes cuenta? Crear cuenta';
+      }
+    });
 
     async function intentar() {
-      const codigo = input.value.trim();
-      if (!codigo) return;
-      btn.disabled = true; btn.textContent = 'Verificando...';
+      const usuario = usuarioInput.value.trim();
+      const clave = claveInput.value;
+      const errorDiv = document.getElementById('gh-login-error');
+      if (!usuario || !clave) {
+        errorDiv.textContent = 'Escribe tu usuario y contraseña.';
+        return;
+      }
+      if (clave.length < 6) {
+        errorDiv.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+        return;
+      }
+      btn.disabled = true; btn.textContent = modoRegistro ? 'Creando...' : 'Entrando...';
+      const email = usuarioAEmail(usuario);
+
       try {
-        const { data, error } = await client.rpc('validar_codigo', { codigo_ingresado: codigo });
-        const fila = Array.isArray(data) ? data[0] : data;
-        if (error || !fila || !fila.ok) {
-          document.getElementById('gh-codigo-error').textContent = 'Código incorrecto. Intenta de nuevo.';
-          btn.disabled = false; btn.textContent = 'Entrar';
+        let resultado;
+        if (modoRegistro) {
+          resultado = await client.auth.signUp({ email, password: clave });
+        } else {
+          resultado = await client.auth.signInWithPassword({ email, password: clave });
+        }
+        if (resultado.error) {
+          errorDiv.textContent = modoRegistro
+            ? 'No se pudo crear la cuenta (¿ese usuario ya existe?).'
+            : 'Usuario o contraseña incorrectos.';
+          btn.disabled = false; btn.textContent = modoRegistro ? 'Crear cuenta' : 'Entrar';
           return;
         }
+        if (modoRegistro) await asegurarPerfil(usuario);
         overlay.remove();
         resolverSesion();
       } catch (e) {
-        document.getElementById('gh-codigo-error').textContent = 'No se pudo conectar. Revisa tu internet.';
-        btn.disabled = false; btn.textContent = 'Entrar';
+        errorDiv.textContent = 'No se pudo conectar. Revisa tu internet.';
+        btn.disabled = false; btn.textContent = modoRegistro ? 'Crear cuenta' : 'Entrar';
       }
     }
 
     btn.addEventListener('click', intentar);
-    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') intentar(); });
+    claveInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') intentar(); });
   }
 
   async function iniciarSesion() {
     try {
-      let { data: { session } } = await client.auth.getSession();
-      if (!session) {
-        const { data, error } = await client.auth.signInAnonymously();
-        if (error) throw error;
-        session = data.session;
+      const { data: { session } } = await client.auth.getSession();
+      if (session) {
+        const { data: perfil } = await client.from('perfiles').select('activo').eq('id', session.user.id).maybeSingle();
+        if (perfil && perfil.activo) { resolverSesion(); return; }
       }
-      const { data: perfil } = await client
-        .from('perfiles')
-        .select('activo')
-        .eq('id', session.user.id)
-        .maybeSingle();
-      if (perfil && perfil.activo) { resolverSesion(); return; }
     } catch (e) {
-      // seguimos y mostramos el formulario de código
+      // seguimos al formulario de login
     }
-    mostrarFormularioCodigo();
+    mostrarFormularioLogin();
   }
 
   if (document.readyState === 'loading') {
