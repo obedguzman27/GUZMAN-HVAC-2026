@@ -69,7 +69,9 @@
     if (!user) throw new Error('No hay sesión activa todavía.');
     const { data: perfil } = await client.from('perfiles').select('id').eq('id', user.id).maybeSingle();
     if (!perfil) {
-      const { error } = await client.from('perfiles').insert({ id: user.id, nombre: usuario, rol: 'empleado', activo: true });
+      // activo: false — el administrador debe aprobar la cuenta en Supabase
+      // (Table Editor → perfiles → cambiar "activo" a true) antes de que pueda entrar.
+      const { error } = await client.from('perfiles').insert({ id: user.id, nombre: usuario, rol: 'empleado', activo: false });
       if (error) throw error;
     }
   }
@@ -152,6 +154,7 @@
           btn.disabled = false; btn.textContent = modoRegistro ? 'Crear cuenta' : 'Entrar';
           return;
         }
+
         if (modoRegistro) {
           try {
             await asegurarPerfil(usuario);
@@ -160,7 +163,26 @@
             btn.disabled = false; btn.textContent = 'Crear cuenta';
             return;
           }
+          // La cuenta queda pendiente de aprobación — no se entra automáticamente.
+          try { await client.auth.signOut(); } catch (e) {}
+          errorDiv.textContent = 'Cuenta creada. Un administrador debe aprobarla antes de que puedas entrar.';
+          modoRegistro = false;
+          subtitulo.textContent = 'Inicia sesión';
+          btn.disabled = false; btn.textContent = 'Entrar';
+          modoBtn.textContent = '¿No tienes cuenta? Crear cuenta';
+          return;
         }
+
+        // Login: verificar que un administrador ya haya aprobado esta cuenta
+        const { data: { user } } = await client.auth.getUser();
+        const { data: perfil } = await client.from('perfiles').select('activo').eq('id', user.id).maybeSingle();
+        if (!perfil || !perfil.activo) {
+          try { await client.auth.signOut(); } catch (e) {}
+          errorDiv.textContent = 'Tu cuenta todavía no ha sido aprobada por un administrador.';
+          btn.disabled = false; btn.textContent = 'Entrar';
+          return;
+        }
+
         overlay.remove();
         programarExpiracion();
         resolverSesion();
