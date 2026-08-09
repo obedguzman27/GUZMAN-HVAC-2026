@@ -8,14 +8,40 @@
   const SUPABASE_URL = 'https://cubhmlclqovvmsdskooc.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_drw-q0SBYKj0I3fV0BKvmA_0nmV1DkW';
   const DOMINIO_INTERNO = '@guzmanhvac.app'; // usuario -> "correo" interno, invisible para el usuario
+  const MINUTOS_SESION = 30; // pedir contraseña de nuevo después de este tiempo
 
-  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      storage: window.sessionStorage, // sesión ligada a esta pestaña/app abierta — al cerrarla, se pierde
+      persistSession: true,
+      autoRefreshToken: true
+    }
+  });
 
-  let resolverSesion;
-  const sesionLista = new Promise((r) => { resolverSesion = r; });
+  // sesionLista es reemplazable: cuando la sesión expira, se crea una nueva
+  // promesa "pendiente" para que window.storage vuelva a esperar el login.
+  let resolverSesion, sesionLista;
+  function nuevaEsperaSesion() {
+    sesionLista = new Promise((r) => { resolverSesion = r; });
+  }
+  nuevaEsperaSesion();
 
+  let temporizadorSesion = null;
+  function programarExpiracion() {
+    if (temporizadorSesion) clearTimeout(temporizadorSesion);
+    temporizadorSesion = setTimeout(async () => {
+      try { await client.auth.signOut(); } catch (e) {}
+      nuevaEsperaSesion();
+      mostrarFormularioLogin('Tu sesión expiró después de ' + MINUTOS_SESION + ' minutos. Vuelve a entrar.');
+    }, MINUTOS_SESION * 60 * 1000);
+  }
+
+  // Convierte lo que la persona escribió en "Usuario" a un correo interno.
+  // Si por error escribe un correo real (con @), solo se usa la parte de
+  // antes del @, para no formar un correo inválido tipo "a@b.com@dominio".
   function usuarioAEmail(usuario) {
-    return usuario.trim().toLowerCase().replace(/\s+/g, '.') + DOMINIO_INTERNO;
+    const limpio = usuario.trim().toLowerCase().split('@')[0].replace(/[^a-z0-9._-]+/g, '.');
+    return limpio + DOMINIO_INTERNO;
   }
 
   async function asegurarPerfil(usuario) {
@@ -44,8 +70,9 @@
     overlay.innerHTML = `
       <div style="background:#fff; border-radius:16px; padding:36px 32px; width:90%; max-width:360px; box-shadow:0 12px 40px rgba(0,0,0,.35); text-align:center;">
         <div style="font-family:'Zilla Slab',serif; font-weight:700; font-size:20px; color:#16233F; margin-bottom:4px;">GUZMAN HVAC</div>
-        <div id="gh-login-subtitulo" style="font-size:12.5px; color:#5A6A88; margin-bottom:22px;">Inicia sesión</div>
-        <input id="gh-usuario-input" type="text" placeholder="Usuario" autocomplete="username"
+        <div id="gh-login-subtitulo" style="font-size:12.5px; color:#5A6A88; margin-bottom:6px;">Inicia sesión</div>
+        <div style="font-size:11px; color:#9AA6BE; margin-bottom:16px;">El usuario NO es tu correo — solo un nombre corto (ej. "juan")</div>
+        <input id="gh-usuario-input" type="text" placeholder="Usuario (no es tu correo)" autocomplete="username"
           style="width:100%; padding:12px 14px; border:1.5px solid #D0D8E8; border-radius:9px; font-size:15px; margin-bottom:10px; box-sizing:border-box;">
         <input id="gh-clave-input" type="password" placeholder="Contraseña" autocomplete="current-password"
           style="width:100%; padding:12px 14px; border:1.5px solid #D0D8E8; border-radius:9px; font-size:15px; margin-bottom:14px; box-sizing:border-box;">
@@ -115,6 +142,7 @@
           }
         }
         overlay.remove();
+        programarExpiracion();
         resolverSesion();
       } catch (e) {
         errorDiv.textContent = 'No se pudo conectar: ' + (e.message || e);
@@ -131,7 +159,7 @@
       const { data: { session } } = await client.auth.getSession();
       if (session) {
         const { data: perfil } = await client.from('perfiles').select('activo').eq('id', session.user.id).maybeSingle();
-        if (perfil && perfil.activo) { resolverSesion(); return; }
+        if (perfil && perfil.activo) { programarExpiracion(); resolverSesion(); return; }
       }
     } catch (e) {
       // seguimos al formulario de login
