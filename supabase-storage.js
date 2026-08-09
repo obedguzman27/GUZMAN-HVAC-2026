@@ -20,10 +20,11 @@
 
   async function asegurarPerfil(usuario) {
     const { data: { user } } = await client.auth.getUser();
-    if (!user) return;
+    if (!user) throw new Error('No hay sesión activa todavía.');
     const { data: perfil } = await client.from('perfiles').select('id').eq('id', user.id).maybeSingle();
     if (!perfil) {
-      await client.from('perfiles').insert({ id: user.id, nombre: usuario, rol: 'empleado', activo: true });
+      const { error } = await client.from('perfiles').insert({ id: user.id, nombre: usuario, rol: 'empleado', activo: true });
+      if (error) throw error;
     }
   }
 
@@ -100,17 +101,23 @@
           resultado = await client.auth.signInWithPassword({ email, password: clave });
         }
         if (resultado.error) {
-          errorDiv.textContent = modoRegistro
-            ? 'No se pudo crear la cuenta (¿ese usuario ya existe?).'
-            : 'Usuario o contraseña incorrectos.';
+          errorDiv.textContent = resultado.error.message || 'Ocurrió un error. Intenta de nuevo.';
           btn.disabled = false; btn.textContent = modoRegistro ? 'Crear cuenta' : 'Entrar';
           return;
         }
-        if (modoRegistro) await asegurarPerfil(usuario);
+        if (modoRegistro) {
+          try {
+            await asegurarPerfil(usuario);
+          } catch (e) {
+            errorDiv.textContent = 'Cuenta creada, pero no se pudo guardar el perfil: ' + (e.message || e);
+            btn.disabled = false; btn.textContent = 'Crear cuenta';
+            return;
+          }
+        }
         overlay.remove();
         resolverSesion();
       } catch (e) {
-        errorDiv.textContent = 'No se pudo conectar. Revisa tu internet.';
+        errorDiv.textContent = 'No se pudo conectar: ' + (e.message || e);
         btn.disabled = false; btn.textContent = modoRegistro ? 'Crear cuenta' : 'Entrar';
       }
     }
