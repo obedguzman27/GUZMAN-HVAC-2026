@@ -433,6 +433,15 @@
           <p style="font-size:11.5px;color:var(--muted);margin-top:8px;">💡 Al sumar/restar dinero a CRA HVAC, se genera un bono del 10% que sale de las taxas (igual que el bono normal). Ej: CRA pagó a un trabajador, compró algo, o le debe algo a GUZMAN.</p>
         </div>
       </div>
+      <div id="ingreso-semana-row" style="display:none;margin-bottom:14px;">
+        <div class="gc-field"><label>¿Qué semana es este ingreso?</label>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button type="button" id="ingreso-semana-prev" class="gc-action-btn" style="padding:8px 14px;">‹</button>
+            <span id="ingreso-semana-label" style="flex:1;text-align:center;font-weight:600;font-size:13.5px;color:var(--ink);"></span>
+            <button type="button" id="ingreso-semana-next" class="gc-action-btn" style="padding:8px 14px;">›</button>
+          </div>
+        </div>
+      </div>
       <div class="gc-form-row">
         <div class="gc-field"><label>Fecha</label><input type="date" id="m-fecha"></div>
         <div class="gc-field" id="cat-field-wrap"><label>Categoría</label><select id="m-cat"></select></div>
@@ -1117,6 +1126,8 @@
   const today = () => new Date().toISOString().slice(0, 10);
   const fmtDia = (iso) => { const [y, m, d] = iso.split('-'); return `${d}/${m}`; };
 
+  const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
   function mondayOf(iso) {
     const d = new Date(iso + 'T00:00:00');
     const day = d.getDay();
@@ -1125,12 +1136,21 @@
     monday.setDate(diff);
     return monday;
   }
+  // Etiqueta "Semana del lunes D al viernes D de mes" (o "de mes1 al ... de mes2" si cruza de mes)
+  function labelSemanaLunesAViernes(monday, friday) {
+    const dM = monday.getDate(), dV = friday.getDate();
+    const mM = MESES_ES[monday.getMonth()], mV = MESES_ES[friday.getMonth()];
+    if (monday.getMonth() === friday.getMonth()) {
+      return `Semana del lunes ${dM} al viernes ${dV} de ${mV}`;
+    }
+    return `Semana del lunes ${dM} de ${mM} al viernes ${dV} de ${mV}`;
+  }
   function weekInfo(iso) {
     const monday = mondayOf(iso);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
+    const friday = new Date(monday);
+    friday.setDate(monday.getDate() + 4);
     const key = monday.toISOString().slice(0, 10);
-    const label = `Semana del ${fmtDia(monday.toISOString().slice(0,10))} al ${fmtDia(sunday.toISOString().slice(0,10))}`;
+    const label = labelSemanaLunesAViernes(monday, friday);
     return { key, label };
   }
 
@@ -1141,6 +1161,19 @@
   }
 
   // ---- Tabs ----
+  // ---- Selector de semana para ingresos: flechas ‹ › + "Semana del lunes D al viernes D de mes" ----
+  let ingresoSemanaOffset = 0; // 0 = semana actual; -1 = semana pasada; +1 = próxima semana
+  function actualizarSemanaIngreso() {
+    const base = new Date();
+    base.setDate(base.getDate() + ingresoSemanaOffset * 7);
+    const baseIso = base.toISOString().slice(0, 10);
+    const monday = mondayOf(baseIso);
+    const friday = new Date(monday);
+    friday.setDate(monday.getDate() + 4);
+    $('m-fecha').value = friday.toISOString().slice(0, 10);
+    $('ingreso-semana-label').textContent = labelSemanaLunesAViernes(monday, friday);
+  }
+
   document.querySelectorAll('.gc-tab').forEach((tab) => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.gc-tab').forEach((t) => t.classList.remove('active'));
@@ -1153,6 +1186,8 @@
   });
 
   $('m-fecha').value = today();
+  $('ingreso-semana-row').style.display = 'block';
+  actualizarSemanaIngreso();
   $('gc-fecha-actual').textContent = new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
 
   // ---- Load ----
@@ -1195,11 +1230,17 @@
       tipoActual = btn.dataset.type;
       // Mostrar/ocultar campos según el tipo
       const esAjuste = tipoActual === 'ajuste';
+      const esIngreso = tipoActual === 'ingreso';
       $('ajuste-direccion-row').style.display = esAjuste ? 'block' : 'none';
       $('cat-field-wrap').style.display = esAjuste ? 'none' : 'block';
+      $('ingreso-semana-row').style.display = esIngreso ? 'block' : 'none';
+      if (esIngreso) actualizarSemanaIngreso();
       renderCatSelect();
     });
   });
+
+  $('ingreso-semana-prev').addEventListener('click', () => { ingresoSemanaOffset--; actualizarSemanaIngreso(); });
+  $('ingreso-semana-next').addEventListener('click', () => { ingresoSemanaOffset++; actualizarSemanaIngreso(); });
 
   // Toggle dirección del ajuste (sumar/restar)
   document.querySelectorAll('.ajuste-dir-btn').forEach((btn) => {
@@ -1274,7 +1315,11 @@
 
   // ---- Guardar movimiento ----
   function limpiarFormularioMov(avisar) {
-    $('m-fecha').value = today();
+    if (tipoActual === 'ingreso') {
+      actualizarSemanaIngreso(); // mantiene la semana seleccionada, no la resetea a hoy
+    } else {
+      $('m-fecha').value = today();
+    }
     $('m-monto').value = '';
     $('m-desc').value = '';
     // El tipo (Ingreso/Gasto/Ajuste) se queda donde el usuario lo dejó — no se resetea
@@ -1305,9 +1350,21 @@
       const idx = movimientos.findIndex((x) => x.id === movEditandoId);
       if (idx >= 0) {
         const orig = movimientos[idx];
+        const fechaCambio = !esAjuste && tipoActual === 'gasto' && orig.tipo === 'gasto' && orig.fecha !== fecha;
         movimientos[idx] = { id: movEditandoId, fecha, tipo: tipoActual, cat, monto, desc,
           ajusteDir: esAjuste ? ajusteDir : (orig.ajusteDir || undefined) };
         if (!esAjuste) delete movimientos[idx].ajusteDir;
+
+        // Si es un gasto y cambió de fecha, mover también los demás gastos activos
+        // de esa misma semana (invoice) a la nueva fecha — sin tocar invoices ya guardados.
+        var otrosMovidos = 0;
+        if (fechaCambio) {
+          const semanaOriginal = weekInfo(orig.fecha).key;
+          movimientos.forEach((m) => {
+            if (m.id === movEditandoId || m.tipo !== 'gasto') return;
+            if (weekInfo(m.fecha).key === semanaOriginal) { m.fecha = fecha; otrosMovidos++; }
+          });
+        }
       }
       movEditandoId = null;
       $('btn-guardar-mov').textContent = 'Guardar movimiento';
@@ -1315,7 +1372,9 @@
       saveMov();
       renderMovimientos();
       renderReparto();
-      toast('Movimiento actualizado ✓', 'success');
+      toast(otrosMovidos > 0
+        ? `Movimiento actualizado ✓ — fecha cambiada también en ${otrosMovidos} gasto(s) más de esa semana`
+        : 'Movimiento actualizado ✓', 'success', otrosMovidos > 0 ? 3800 : undefined);
       return;
     }
 
@@ -1482,8 +1541,10 @@
     });
     // Mostrar/ocultar campos según tipo
     const esAjuste = m.tipo === 'ajuste';
+    const esIngreso = m.tipo === 'ingreso';
     $('ajuste-direccion-row').style.display = esAjuste ? 'block' : 'none';
     $('cat-field-wrap').style.display = esAjuste ? 'none' : 'block';
+    $('ingreso-semana-row').style.display = esIngreso ? 'block' : 'none';
     if (esAjuste) {
       ajusteDir = m.ajusteDir || 'sumar';
       document.querySelectorAll('.ajuste-dir-btn').forEach((b) => {
@@ -1492,6 +1553,16 @@
     }
     renderCatSelect();
     $('m-fecha').value = m.fecha || today();
+    if (esIngreso) {
+      // Calcular a cuántas semanas de diferencia está la fecha guardada, para que
+      // el selector de semana (‹ ›) quede sincronizado con lo que se está editando.
+      const mondayEntrada = mondayOf(m.fecha || today());
+      const mondayHoy = mondayOf(today());
+      ingresoSemanaOffset = Math.round((mondayEntrada - mondayHoy) / (7 * 24 * 60 * 60 * 1000));
+      const friday = new Date(mondayEntrada);
+      friday.setDate(mondayEntrada.getDate() + 4);
+      $('ingreso-semana-label').textContent = labelSemanaLunesAViernes(mondayEntrada, friday);
+    }
     if (!esAjuste) $('m-cat').value = m.cat || '';
     $('m-monto').value = m.monto != null ? String(m.monto) : '';
     $('m-desc').value = m.desc || '';
@@ -2094,7 +2165,13 @@
   $('input-restaurar-respaldo').addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    // Feedback inmediato: si algo falla después de esto, al menos sabemos que
+    // el archivo sí se seleccionó y el problema está en la lectura/procesamiento.
+    $('status-restaurar').textContent = 'Leyendo "' + file.name + '"…';
     const reader = new FileReader();
+    reader.onerror = () => {
+      $('status-restaurar').textContent = 'No se pudo leer el archivo (error al abrirlo). Intenta de nuevo o elige otro archivo.';
+    };
     reader.onload = async () => {
       try {
         const data = JSON.parse(reader.result);
@@ -2103,7 +2180,7 @@
           return;
         }
         const confirmar = confirm('Esto va a reemplazar TODOS los datos actuales (movimientos, invoices, empleados, facturas, colonias, clientes y trabajos) con los del respaldo. ¿Continuar?');
-        if (!confirmar) { $('input-restaurar-respaldo').value = ''; return; }
+        if (!confirmar) { $('status-restaurar').textContent = 'Restauración cancelada.'; $('input-restaurar-respaldo').value = ''; return; }
 
         // Cuentas y reparto
         movimientos       = data.movimientos       || [];
@@ -2157,7 +2234,7 @@
         // Devolver el foco del teclado a la ventana (Electron lo pierde tras el selector)
         setTimeout(() => { try { window.focus(); document.body.focus(); } catch(e){} }, 60);
       } catch (err) {
-        $('status-restaurar').textContent = 'No se pudo leer el archivo — asegúrate de que sea un respaldo válido';
+        $('status-restaurar').textContent = 'No se pudo leer el archivo: ' + (err && err.message ? err.message : 'error desconocido');
         setTimeout(() => { try { window.focus(); } catch(e){} }, 60);
       }
     };
