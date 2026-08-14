@@ -3233,6 +3233,19 @@
       $('nom-extra-monto').value = '';
       $('nom-monto').value = '';
       $('nom-nota').value = '';
+      // Si hay check-ins de este trabajador (solo disponible en la versión con
+      // login de GUZMAN), sugerir automáticamente los días que ya marcó.
+      if (window.checkinAPI && typeof window.checkinAPI.porNombreRecientes === 'function') {
+        window.checkinAPI.porNombreRecientes(t.nombre, 21).then((checkins) => {
+          if (!checkins.length || $('nom-trabajador').value.trim() !== t.nombre) return;
+          const diasEncontrados = [...new Set(checkins.map((c) => c.fecha))].sort();
+          if (!diasEncontrados.length) return;
+          nomDiasSel = diasEncontrados;
+          nomRenderChips();
+          nomRecalcularMonto();
+          toast(`${diasEncontrados.length} día(s) cargado(s) automáticamente desde sus check-ins`, 'info', 3500);
+        }).catch(() => {});
+      }
     }
     nomUltimoTrabajadorResuelto = t ? t.nombre : null;
     nomRecalcularMonto();
@@ -4147,5 +4160,111 @@
   // ---- Carga inicial ----
   // Empleados y papeles se cargan solo al abrir su sección en Ajustes (más rápido el arranque)
   loadAll();
+})();
+</script>
+
+<!-- ============================================================
+     Control de acceso por rol (solo activo en la versión con login
+     de GUZMAN HVAC — en Windows y en CRA esto no hace nada, porque
+     window.GH_ESPERAR_SESION no existe ahí).
+     ============================================================ -->
+<script>
+(function () {
+  if (typeof window.GH_ESPERAR_SESION !== 'function') return; // no aplica (Windows / CRA)
+
+  window.GH_ESPERAR_SESION().then(() => {
+    const rol = window.GH_ROL;
+    if (rol === 'checkin') mostrarPantallaCheckin();
+    else if (rol === 'visor') aplicarModoSoloLectura();
+    // admin (o cualquier otro valor no reconocido): sin cambios, acceso normal
+  });
+
+  function mostrarPantallaCheckin() {
+    document.querySelectorAll('nav, .gc-body').forEach((el) => { el.style.display = 'none'; });
+    const wrap = document.createElement('div');
+    wrap.id = 'gh-checkin-screen';
+    wrap.style.cssText = 'min-height:100vh;background:#F5F8FC;display:flex;flex-direction:column;align-items:center;padding:48px 20px;font-family:Inter,sans-serif;box-sizing:border-box;';
+    wrap.innerHTML = `
+      <div style="font-family:'Zilla Slab',serif;font-weight:700;font-size:22px;color:#16233F;margin-bottom:4px;">GUZMAN HVAC</div>
+      <div style="font-size:13px;color:#5A6A88;margin-bottom:28px;">Hola, ${(window.GH_NOMBRE || '').replace(/</g,'')}</div>
+      <div id="gh-checkin-estado" style="font-size:14px;color:#16233F;margin-bottom:22px;text-align:center;max-width:320px;"></div>
+      <button id="gh-btn-check" style="width:100%;max-width:320px;padding:20px;background:#16233F;color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:700;cursor:pointer;margin-bottom:30px;">✓ Marcar que trabajé hoy</button>
+      <div style="width:100%;max-width:320px;">
+        <div style="font-size:12.5px;font-weight:700;color:#5A6A88;margin-bottom:10px;">Tus últimos días</div>
+        <div id="gh-checkin-historial"></div>
+      </div>
+      <button id="gh-btn-cerrar-sesion" style="margin-top:30px;background:none;border:none;color:#9AA6BE;font-size:12px;text-decoration:underline;cursor:pointer;">Cerrar sesión</button>
+    `;
+    document.body.appendChild(wrap);
+
+    async function refrescar() {
+      let hoy = null;
+      try { hoy = await window.checkinAPI.deHoy(); } catch (e) {}
+      const estado = document.getElementById('gh-checkin-estado');
+      const btnCheck = document.getElementById('gh-btn-check');
+      if (!hoy) {
+        estado.textContent = 'Todavía no marcas hoy.';
+        btnCheck.disabled = false;
+        btnCheck.textContent = '✓ Marcar que trabajé hoy';
+      } else {
+        estado.textContent = `Ya marcaste hoy a las ${hoy.entrada}. ¡Buen trabajo!`;
+        btnCheck.disabled = true;
+        btnCheck.textContent = '✓ Ya marcaste hoy';
+      }
+      let ultimos = [];
+      try { ultimos = await window.checkinAPI.misUltimos(10); } catch (e) {}
+      const hist = document.getElementById('gh-checkin-historial');
+      hist.innerHTML = ultimos.length ? ultimos.map((c) => `
+        <div style="display:flex;justify-content:space-between;padding:10px 12px;background:#fff;border:1px solid #E3E9F2;border-radius:9px;margin-bottom:6px;font-size:13px;color:#16233F;">
+          <span>${c.fecha}</span><span>${c.entrada || '—'}</span>
+        </div>`).join('') : '<div style="font-size:12.5px;color:#9AA6BE;">Aún no tienes días marcados.</div>';
+    }
+
+    document.getElementById('gh-btn-check').addEventListener('click', async (e) => {
+      e.target.disabled = true;
+      try { await window.checkinAPI.marcarEntrada(); await refrescar(); }
+      catch (err) { alert('No se pudo marcar: ' + (err.message || err)); e.target.disabled = false; }
+    });
+    document.getElementById('gh-btn-cerrar-sesion').addEventListener('click', () => { location.reload(); });
+
+    refrescar();
+  }
+
+  function aplicarModoSoloLectura() {
+    document.querySelectorAll('.gc-tab[data-tab="ajustes"]').forEach((t) => { t.style.display = 'none'; });
+    const tabAjustes = document.querySelector('.gc-tab[data-tab="ajustes"]');
+    if (tabAjustes && tabAjustes.classList.contains('active')) {
+      document.querySelector('.gc-tab[data-tab="movimientos"]')?.click();
+    }
+
+    const banner = document.createElement('div');
+    banner.style.cssText = 'background:#EAF3FF;color:#1A4B8C;font-size:12.5px;padding:8px 20px;text-align:center;border-bottom:1px solid #C7DFFB;';
+    banner.textContent = '👁️ Modo solo lectura — puedes ver Registro, Facturas y Nómina, pero no editar ni agregar nada.';
+    document.body.insertBefore(banner, document.body.firstChild);
+
+    document.body.classList.add('gh-modo-visor');
+    const style = document.createElement('style');
+    style.textContent = `
+      body.gh-modo-visor .gc-panel input,
+      body.gh-modo-visor .gc-panel select,
+      body.gh-modo-visor .gc-panel textarea,
+      body.gh-modo-visor .gc-panel button {
+        pointer-events: none !important;
+        opacity: .45 !important;
+      }
+      body.gh-modo-visor .gc-tab,
+      body.gh-modo-visor .inv-subtab,
+      body.gh-modo-visor .aj-subtab,
+      body.gh-modo-visor .nom-subtab,
+      body.gh-modo-visor input[type="search"],
+      body.gh-modo-visor #nom-reg-buscar,
+      body.gh-modo-visor #m-buscar,
+      body.gh-modo-visor .ver-btn {
+        pointer-events: auto !important;
+        opacity: 1 !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
 })();
 </script>

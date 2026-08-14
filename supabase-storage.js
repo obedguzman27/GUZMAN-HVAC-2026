@@ -1,13 +1,13 @@
 // ============================================================
-// GUZMAN HVAC — Conexión con Supabase (usuario y contraseña)
+// GUZMAN HVAC — Conexión con Supabase (usuario y contraseña + roles)
 // ============================================================
 // Define window.storage ANTES de que el resto de la app cargue,
 // así que la app usa esto como su almacenamiento principal.
+// También expone window.GH_ROL / window.GH_NOMBRE (el rol y nombre
+// del usuario que entró) y window.checkinAPI (marcar entrada/salida).
 
 (function () {
   if (!window.supabase || !window.supabase.createClient) {
-    // El SDK de Supabase no cargó (sin internet, CDN bloqueado, etc.)
-    // Mostrar un aviso claro en vez de dejar que la app abra sin pedir login.
     document.addEventListener('DOMContentLoaded', () => {
       const overlay = document.createElement('div');
       overlay.style.cssText = `
@@ -22,28 +22,20 @@
         </div>`;
       document.body.appendChild(overlay);
     });
-    return; // no seguimos: NO se define window.storage aquí (la app no debe abrir sin login)
+    return;
   }
 
   const SUPABASE_URL = 'https://cubhmlclqovvmsdskooc.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_drw-q0SBYKj0I3fV0BKvmA_0nmV1DkW';
-  const DOMINIO_INTERNO = '@guzmanhvac.app'; // usuario -> "correo" interno, invisible para el usuario
-  const MINUTOS_SESION = 30; // pedir contraseña de nuevo después de este tiempo
+  const DOMINIO_INTERNO = '@guzmanhvac.app';
+  const MINUTOS_SESION = 30;
 
   const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: {
-      storage: window.sessionStorage, // sesión ligada a esta pestaña/app abierta — al cerrarla, se pierde
-      persistSession: true,
-      autoRefreshToken: true
-    }
+    auth: { storage: window.sessionStorage, persistSession: true, autoRefreshToken: true }
   });
 
-  // sesionLista es reemplazable: cuando la sesión expira, se crea una nueva
-  // promesa "pendiente" para que window.storage vuelva a esperar el login.
   let resolverSesion, sesionLista;
-  function nuevaEsperaSesion() {
-    sesionLista = new Promise((r) => { resolverSesion = r; });
-  }
+  function nuevaEsperaSesion() { sesionLista = new Promise((r) => { resolverSesion = r; }); }
   nuevaEsperaSesion();
 
   let temporizadorSesion = null;
@@ -56,9 +48,6 @@
     }, MINUTOS_SESION * 60 * 1000);
   }
 
-  // Convierte lo que la persona escribió en "Usuario" a un correo interno.
-  // Si por error escribe un correo real (con @), solo se usa la parte de
-  // antes del @, para no formar un correo inválido tipo "a@b.com@dominio".
   function usuarioAEmail(usuario) {
     const limpio = usuario.trim().toLowerCase().split('@')[0].replace(/[^a-z0-9._-]+/g, '.');
     return limpio + DOMINIO_INTERNO;
@@ -69,11 +58,14 @@
     if (!user) throw new Error('No hay sesión activa todavía.');
     const { data: perfil } = await client.from('perfiles').select('id').eq('id', user.id).maybeSingle();
     if (!perfil) {
-      // activo: false — el administrador debe aprobar la cuenta en Supabase
-      // (Table Editor → perfiles → cambiar "activo" a true) antes de que pueda entrar.
       const { error } = await client.from('perfiles').insert({ id: user.id, nombre: usuario, rol: 'empleado', activo: false });
       if (error) throw error;
     }
+  }
+
+  function aplicarPerfilGlobal(perfil) {
+    window.GH_ROL = perfil && perfil.rol ? perfil.rol : 'admin';
+    window.GH_NOMBRE = perfil && perfil.nombre ? perfil.nombre : '';
   }
 
   // ---------- Pantalla de usuario / contraseña ----------
@@ -131,14 +123,8 @@
       const usuario = usuarioInput.value.trim();
       const clave = claveInput.value;
       const errorDiv = document.getElementById('gh-login-error');
-      if (!usuario || !clave) {
-        errorDiv.textContent = 'Escribe tu usuario y contraseña.';
-        return;
-      }
-      if (clave.length < 6) {
-        errorDiv.textContent = 'La contraseña debe tener al menos 6 caracteres.';
-        return;
-      }
+      if (!usuario || !clave) { errorDiv.textContent = 'Escribe tu usuario y contraseña.'; return; }
+      if (clave.length < 6) { errorDiv.textContent = 'La contraseña debe tener al menos 6 caracteres.'; return; }
       btn.disabled = true; btn.textContent = modoRegistro ? 'Creando...' : 'Entrando...';
       const email = usuarioAEmail(usuario);
 
@@ -163,7 +149,6 @@
             btn.disabled = false; btn.textContent = 'Crear cuenta';
             return;
           }
-          // La cuenta queda pendiente de aprobación — no se entra automáticamente.
           try { await client.auth.signOut(); } catch (e) {}
           errorDiv.textContent = 'Cuenta creada. Un administrador debe aprobarla antes de que puedas entrar.';
           modoRegistro = false;
@@ -173,9 +158,8 @@
           return;
         }
 
-        // Login: verificar que un administrador ya haya aprobado esta cuenta
         const { data: { user } } = await client.auth.getUser();
-        const { data: perfil } = await client.from('perfiles').select('activo').eq('id', user.id).maybeSingle();
+        const { data: perfil } = await client.from('perfiles').select('activo,rol,nombre').eq('id', user.id).maybeSingle();
         if (!perfil || !perfil.activo) {
           try { await client.auth.signOut(); } catch (e) {}
           errorDiv.textContent = 'Tu cuenta todavía no ha sido aprobada por un administrador.';
@@ -183,6 +167,7 @@
           return;
         }
 
+        aplicarPerfilGlobal(perfil);
         overlay.remove();
         programarExpiracion();
         resolverSesion();
@@ -200,12 +185,15 @@
     try {
       const { data: { session } } = await client.auth.getSession();
       if (session) {
-        const { data: perfil } = await client.from('perfiles').select('activo').eq('id', session.user.id).maybeSingle();
-        if (perfil && perfil.activo) { programarExpiracion(); resolverSesion(); return; }
+        const { data: perfil } = await client.from('perfiles').select('activo,rol,nombre').eq('id', session.user.id).maybeSingle();
+        if (perfil && perfil.activo) {
+          aplicarPerfilGlobal(perfil);
+          programarExpiracion();
+          resolverSesion();
+          return;
+        }
       }
-    } catch (e) {
-      // seguimos al formulario de login
-    }
+    } catch (e) {}
     mostrarFormularioLogin();
   }
 
@@ -214,6 +202,10 @@
   } else {
     iniciarSesion();
   }
+
+  // Permite que el resto de la app (index.html) sepa cuándo ya se conoce
+  // el rol del usuario, sin necesidad de tocar window.storage.
+  window.GH_ESPERAR_SESION = () => sesionLista;
 
   // ---------- window.storage respaldado por Supabase ----------
   window.storage = {
@@ -245,6 +237,59 @@
       const { data, error } = await q;
       if (error) throw error;
       return { keys: (data || []).map((r) => r.clave), prefix, shared: false };
+    }
+  };
+
+  // ---------- API de check-in (entrada/salida) para empleados ----------
+  function horaActual() {
+    const d = new Date();
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+  function fechaHoy() { return new Date().toISOString().slice(0, 10); }
+
+  window.checkinAPI = {
+    // Trae el check-in de HOY de la persona (o null si no ha marcado nada)
+    deHoy: async () => {
+      await sesionLista;
+      const { data: { user } } = await client.auth.getUser();
+      const { data } = await client.from('checkins').select('*')
+        .eq('usuario_id', user.id).eq('fecha', fechaHoy()).maybeSingle();
+      return data || null;
+    },
+    marcarEntrada: async () => {
+      await sesionLista;
+      const { data: { user } } = await client.auth.getUser();
+      const { error } = await client.from('checkins').insert({
+        usuario_id: user.id, nombre: window.GH_NOMBRE || '', fecha: fechaHoy(), entrada: horaActual()
+      });
+      if (error) throw error;
+    },
+    marcarSalida: async (idCheckin) => {
+      await sesionLista;
+      const { error } = await client.from('checkins').update({ salida: horaActual() }).eq('id', idCheckin);
+      if (error) throw error;
+    },
+    // Últimos check-ins de esta persona (para mostrarle su propio historial)
+    misUltimos: async (limite) => {
+      await sesionLista;
+      const { data: { user } } = await client.auth.getUser();
+      const { data, error } = await client.from('checkins').select('*')
+        .eq('usuario_id', user.id).order('fecha', { ascending: false }).limit(limite || 14);
+      if (error) throw error;
+      return data || [];
+    },
+    // Solo para admin: check-ins de un trabajador por nombre, en días recientes
+    // (usado en Nómina para sugerir automáticamente los días trabajados)
+    porNombreRecientes: async (nombre, dias) => {
+      await sesionLista;
+      const desde = new Date();
+      desde.setDate(desde.getDate() - (dias || 21));
+      const { data, error } = await client.from('checkins').select('*')
+        .ilike('nombre', nombre.trim())
+        .gte('fecha', desde.toISOString().slice(0, 10))
+        .order('fecha', { ascending: true });
+      if (error) return [];
+      return data || [];
     }
   };
 })();
