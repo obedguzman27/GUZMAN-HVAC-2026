@@ -58,7 +58,7 @@
     if (!user) throw new Error('No hay sesión activa todavía.');
     const { data: perfil } = await client.from('perfiles').select('id').eq('id', user.id).maybeSingle();
     if (!perfil) {
-      const { error } = await client.from('perfiles').insert({ id: user.id, nombre: usuario, rol: 'empleado', activo: false });
+      const { error } = await client.from('perfiles').insert({ id: user.id, nombre: usuario, rol: 'checkin', activo: false });
       if (error) throw error;
     }
   }
