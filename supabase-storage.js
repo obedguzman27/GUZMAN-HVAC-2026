@@ -204,6 +204,7 @@
         confirmarBtn.disabled = true; confirmarBtn.textContent = 'Guardando...';
         try {
           await crearPerfilConNombre(nombreFinal);
+          try { await client.rpc('agregar_trabajador_si_no_existe', { nombre_nuevo: nombreFinal }); } catch (e) {}
           const { data: { user } } = await client.auth.getUser();
           const { data: perfil } = await client.from('perfiles').select('activo,rol,nombre').eq('id', user.id).maybeSingle();
           aplicarPerfilGlobal(perfil);
@@ -352,10 +353,14 @@
     marcarEntrada: async (tipo) => {
       await sesionLista;
       const { data: { user } } = await client.auth.getUser();
+      const hoy = fechaHoy();
       const { error } = await client.from('checkins').insert({
-        usuario_id: user.id, nombre: window.GH_NOMBRE || '', fecha: fechaHoy(), entrada: horaActual(), tipo: tipo || null
+        usuario_id: user.id, nombre: window.GH_NOMBRE || '', fecha: hoy, entrada: horaActual(), tipo: tipo || null
       });
       if (error) throw error;
+      // Reflejar el día en el recibo semanal de Nómina automáticamente.
+      // Si esto falla, no debe impedir que el check-in ya quedó guardado.
+      try { await client.rpc('registrar_checkin_en_nomina', { p_nombre: window.GH_NOMBRE || '', p_fecha: hoy }); } catch (e) {}
     },
     marcarSalida: async (idCheckin) => {
       await sesionLista;

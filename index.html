@@ -4224,21 +4224,20 @@
     document.querySelectorAll('nav, .gc-body').forEach((el) => { el.style.display = 'none'; });
     const wrap = document.createElement('div');
     wrap.id = 'gh-checkin-screen';
-    wrap.style.cssText = 'min-height:100vh;background:#F5F8FC;display:flex;flex-direction:column;align-items:center;padding:16px 20px;font-family:Inter,sans-serif;box-sizing:border-box;';
+    wrap.style.cssText = 'min-height:100vh;background:#F5F8FC;display:flex;flex-direction:column;align-items:center;padding:10px 18px;font-family:Inter,sans-serif;box-sizing:border-box;';
     wrap.innerHTML = `
-      <div style="font-family:'Zilla Slab',serif;font-weight:700;font-size:17px;color:#16233F;margin-bottom:2px;">GUZMAN HVAC</div>
-      <div style="font-size:12px;color:#5A6A88;margin-bottom:10px;">Hola, ${(window.GH_NOMBRE || '').replace(/</g,'')}</div>
-      <div id="gh-checkin-estado" style="font-size:13px;color:#16233F;margin-bottom:10px;text-align:center;max-width:320px;"></div>
-      <div style="font-size:12px;color:#5A6A88;margin-bottom:6px;">Tipo de turno</div>
-      <div id="gh-checkin-tipos" style="display:flex;gap:8px;width:100%;max-width:320px;margin-bottom:14px;">
-        <button type="button" class="gh-tipo-btn" data-tipo="Entrada" style="flex:1;padding:10px 4px;border-radius:9px;border:1.5px solid #D0D8E8;background:#fff;color:#16233F;font-size:12.5px;font-weight:600;cursor:pointer;">Entrada</button>
-        <button type="button" class="gh-tipo-btn" data-tipo="Airtron" style="flex:1;padding:10px 4px;border-radius:9px;border:1.5px solid #D0D8E8;background:#fff;color:#16233F;font-size:12.5px;font-weight:600;cursor:pointer;">Airtron</button>
-        <button type="button" class="gh-tipo-btn" data-tipo="Otro" style="flex:1;padding:10px 4px;border-radius:9px;border:1.5px solid #D0D8E8;background:#fff;color:#16233F;font-size:12.5px;font-weight:600;cursor:pointer;">Otro</button>
+      <div style="font-family:'Zilla Slab',serif;font-weight:700;font-size:15px;color:#16233F;">GUZMAN HVAC — ${(window.GH_NOMBRE || '').replace(/</g,'')}</div>
+      <div id="gh-checkin-estado" style="font-size:12px;color:#5A6A88;margin:6px 0 10px;text-align:center;max-width:320px;"></div>
+      <div style="font-size:11px;color:#5A6A88;margin-bottom:5px;align-self:flex-start;max-width:320px;width:100%;">Tipo de turno</div>
+      <div id="gh-checkin-tipos" style="display:flex;gap:6px;width:100%;max-width:320px;margin-bottom:10px;">
+        <button type="button" class="gh-tipo-btn" data-tipo="Entrada" style="flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid #D0D8E8;background:#fff;color:#16233F;font-size:12px;font-weight:600;cursor:pointer;">Entrada</button>
+        <button type="button" class="gh-tipo-btn" data-tipo="Airtron" style="flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid #D0D8E8;background:#fff;color:#16233F;font-size:12px;font-weight:600;cursor:pointer;">Airtron</button>
+        <button type="button" class="gh-tipo-btn" data-tipo="Otro" style="flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid #D0D8E8;background:#fff;color:#16233F;font-size:12px;font-weight:600;cursor:pointer;">Otro</button>
       </div>
-      <button id="gh-btn-check" style="width:100%;max-width:320px;padding:16px;background:#16233F;color:#fff;border:none;border-radius:12px;font-size:15.5px;font-weight:700;cursor:pointer;margin-bottom:14px;" disabled>✓ Marcar que trabajé hoy</button>
-      <button id="gh-btn-ver-historial" style="background:none;border:none;color:#5A6A88;font-size:12px;text-decoration:underline;cursor:pointer;margin-bottom:6px;">Ver mis últimos días</button>
-      <div id="gh-checkin-historial" style="display:none;width:100%;max-width:320px;margin-top:6px;"></div>
-      <button id="gh-btn-cerrar-sesion" style="margin-top:16px;background:none;border:none;color:#9AA6BE;font-size:12px;text-decoration:underline;cursor:pointer;">Cerrar sesión</button>
+      <button id="gh-btn-check" style="width:100%;max-width:320px;padding:14px;background:#16233F;color:#fff;border:none;border-radius:11px;font-size:14.5px;font-weight:700;cursor:pointer;margin-bottom:10px;" disabled>✓ Marcar que trabajé hoy</button>
+      <button id="gh-btn-ver-historial" style="background:none;border:none;color:#5A6A88;font-size:11.5px;text-decoration:underline;cursor:pointer;margin-bottom:4px;">Ver mis últimos días</button>
+      <div id="gh-checkin-historial" style="display:none;width:100%;max-width:320px;margin-top:4px;"></div>
+      <button id="gh-btn-cerrar-sesion" style="margin-top:10px;background:none;border:none;color:#9AA6BE;font-size:11px;text-decoration:underline;cursor:pointer;">Cerrar sesión</button>
     `;
     document.body.appendChild(wrap);
 
