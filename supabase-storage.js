@@ -353,14 +353,10 @@
     marcarEntrada: async (tipo) => {
       await sesionLista;
       const { data: { user } } = await client.auth.getUser();
-      const hoy = fechaHoy();
       const { error } = await client.from('checkins').insert({
-        usuario_id: user.id, nombre: window.GH_NOMBRE || '', fecha: hoy, entrada: horaActual(), tipo: tipo || null
+        usuario_id: user.id, nombre: window.GH_NOMBRE || '', fecha: fechaHoy(), entrada: horaActual(), tipo: tipo || null
       });
       if (error) throw error;
-      // Reflejar el día en el recibo semanal de Nómina automáticamente.
-      // Si esto falla, no debe impedir que el check-in ya quedó guardado.
-      try { await client.rpc('registrar_checkin_en_nomina', { p_nombre: window.GH_NOMBRE || '', p_fecha: hoy }); } catch (e) {}
     },
     marcarSalida: async (idCheckin) => {
       await sesionLista;
@@ -385,6 +381,20 @@
         .order('fecha', { ascending: true });
       if (error) throw error;
       return data || [];
+    },
+    // Solo para admin: todos los check-ins de todos los empleados (para el
+    // apartado de revisión "Check-ins").
+    todosLosCheckins: async () => {
+      await sesionLista;
+      const { data, error } = await client.from('checkins').select('*').order('fecha', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    // Solo para admin: marca un check-in como ya enviado a Nómina.
+    marcarEnviado: async (idCheckin) => {
+      await sesionLista;
+      const { error } = await client.from('checkins').update({ enviado: true }).eq('id', idCheckin);
+      if (error) throw error;
     }
   };
 })();

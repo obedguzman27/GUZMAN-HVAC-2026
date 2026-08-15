@@ -396,6 +396,7 @@
     <button class="gc-tab" data-tab="reparto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg>Registro</button>
     <button class="gc-tab" data-tab="facturas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Facturas</button>
     <button class="gc-tab" data-tab="nomina"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Nómina</button>
+    <button class="gc-tab" id="gc-tab-checkins" data-tab="checkins" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Check-ins</button>
     <button class="gc-tab" data-tab="buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Buscar</button>
     <button class="gc-tab" data-tab="respaldo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Ajustes</button>
   </nav>
@@ -496,6 +497,22 @@
 
     <div id="reparto-semanas" style="display:none;"></div>
     <div class="gc-empty" id="empty-reparto" style="display:none;"></div>
+  </div>
+
+  <!-- ===== CHECK-INS (solo disponible en la versión con login de GUZMAN) ===== -->
+  <div class="gc-panel" id="panel-checkins">
+    <div class="gc-card" style="margin-bottom:16px;">
+      <h2 style="margin:0 0 4px;">Check-ins de empleados</h2>
+      <p style="font-size:12.5px;color:var(--muted);margin:0;">Revisa los check-ins que han marcado tus empleados y decide cuáles enviar a Nómina. Nada se agrega a Nómina hasta que tú le des "Enviar a nómina".</p>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:14px;">
+      <button class="gc-action-btn active" id="chk-filtro-pendientes" data-filtro="pendientes">Pendientes</button>
+      <button class="gc-action-btn" id="chk-filtro-todos" data-filtro="todos">Todos</button>
+      <div style="flex:1;"></div>
+      <button class="gc-save-btn" id="chk-btn-enviar-todos">Enviar todos los pendientes a Nómina</button>
+    </div>
+    <div id="chk-lista"></div>
+    <div class="gc-empty" id="chk-empty" style="display:none;">No hay check-ins que mostrar.</div>
   </div>
 
   <!-- ===== BUSCAR / ANUAL ===== -->
@@ -1191,6 +1208,7 @@
       $('panel-' + tab.dataset.tab).classList.add('active');
       if (tab.dataset.tab === 'reparto') renderReparto();
       if (tab.dataset.tab === 'buscar') { renderAnios(); renderBusqueda(); renderResumenTaxas(); }
+      if (tab.dataset.tab === 'checkins' && typeof chkRenderLista === 'function') chkRenderLista();
     });
   });
 
@@ -4189,6 +4207,154 @@
   // FIN MÓDULO NÓMINA
   // ====================================================================
 
+  // ====================================================================
+  // MÓDULO CHECK-INS (revisar y enviar a Nómina manualmente)
+  // Solo funciona en la versión con login de GUZMAN (window.checkinAPI).
+  // ====================================================================
+  let chkFiltroActual = 'pendientes';
+  let chkCache = [];
+
+  function chkMondayOf(iso) {
+    const d = new Date(iso + 'T00:00:00');
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    const m = new Date(d);
+    m.setDate(diff);
+    return m.toISOString().slice(0, 10);
+  }
+
+  // Agrega (o actualiza) el día de un check-in dentro del pago de esa semana
+  // en Nómina. Esto SOLO se ejecuta cuando el admin le da "Enviar a nómina" —
+  // nunca automáticamente.
+  async function chkAgregarDiaANomina(nombreTrab, fecha) {
+    const [rNom, rTrab] = await Promise.all([
+      window.storage.get(NOM_KEY).catch(() => null),
+      window.storage.get(TRAB_NOM_KEY).catch(() => null),
+    ]);
+    let lista = [];
+    try { lista = rNom && rNom.value ? JSON.parse(rNom.value) : []; } catch (e) { lista = []; }
+    let trabs = [];
+    try { trabs = rTrab && rTrab.value ? JSON.parse(rTrab.value) : []; } catch (e) { trabs = []; }
+
+    const t = trabs.find((x) => (x.nombre || '').trim().toLowerCase() === nombreTrab.trim().toLowerCase());
+    const sueldoDia = t ? (t.sueldo || 0) : 0;
+    const lunes = chkMondayOf(fecha);
+    const idDeterministico = 'auto-' + nombreTrab.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + lunes;
+
+    const idx = lista.findIndex((e) => e.id === idDeterministico);
+    if (idx >= 0) {
+      const dias = Array.isArray(lista[idx].dias) ? [...lista[idx].dias] : [];
+      if (!dias.includes(fecha)) dias.push(fecha);
+      const sueldoUsado = lista[idx].sueldoDia || sueldoDia;
+      lista[idx] = { ...lista[idx], dias, monto: sueldoUsado * dias.length + (lista[idx].extraMonto || 0) };
+    } else {
+      lista.push({
+        id: idDeterministico,
+        trabajador: nombreTrab,
+        dias: [fecha],
+        sueldoDia,
+        extraDesc: '', extraMonto: 0,
+        monto: sueldoDia,
+        nota: 'Enviado desde Check-ins',
+        creadoEn: new Date().toISOString()
+      });
+    }
+    await window.storage.set(NOM_KEY, JSON.stringify(lista), false);
+    // Si el módulo de Nómina ya está cargado en memoria, mantenerlo sincronizado
+    if (typeof nomDocs !== 'undefined') {
+      const i2 = nomDocs.findIndex((e) => e.id === idDeterministico);
+      const actualizado = lista.find((e) => e.id === idDeterministico);
+      if (i2 >= 0) nomDocs[i2] = actualizado; else nomDocs.push(actualizado);
+    }
+  }
+
+  function chkRenderFila(c) {
+    const enviado = !!c.enviado;
+    return `
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:160px;">
+          <div style="font-weight:600;font-size:14px;color:var(--ink);">${escapeHtml(c.nombre || '')}</div>
+          <div style="font-size:12px;color:var(--muted);">${escapeHtml(c.fecha)} — ${escapeHtml(c.tipo || 'sin tipo')} — ${escapeHtml(c.entrada || '')}</div>
+        </div>
+        <div style="font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:999px;background:${enviado ? '#E3F5EC' : '#FDEEE6'};color:${enviado ? '#1E7A4C' : '#8A4A22'};">${enviado ? 'Enviado' : 'Pendiente'}</div>
+        ${enviado ? '' : `<button class="gc-action-btn chk-btn-enviar-uno" data-id="${c.id}" style="white-space:nowrap;">Enviar a nómina</button>`}
+      </div>`;
+  }
+
+  async function chkRenderLista() {
+    if (!window.checkinAPI || typeof window.checkinAPI.todosLosCheckins !== 'function') {
+      $('chk-lista').innerHTML = '';
+      $('chk-empty').style.display = 'block';
+      $('chk-empty').textContent = 'Esta función solo está disponible en la versión con login (GUZMAN).';
+      return;
+    }
+    $('chk-lista').innerHTML = '<div style="font-size:12.5px;color:var(--muted);">Cargando…</div>';
+    try {
+      chkCache = await window.checkinAPI.todosLosCheckins();
+    } catch (e) {
+      $('chk-lista').innerHTML = '';
+      $('chk-empty').style.display = 'block';
+      $('chk-empty').textContent = 'No se pudo cargar: ' + (e.message || e);
+      return;
+    }
+    const filtrados = chkFiltroActual === 'pendientes' ? chkCache.filter((c) => !c.enviado) : chkCache;
+    if (!filtrados.length) {
+      $('chk-lista').innerHTML = '';
+      $('chk-empty').style.display = 'block';
+      $('chk-empty').textContent = chkFiltroActual === 'pendientes' ? 'No hay check-ins pendientes.' : 'Todavía no hay check-ins.';
+      return;
+    }
+    $('chk-empty').style.display = 'none';
+    $('chk-lista').innerHTML = filtrados.map(chkRenderFila).join('');
+    $('chk-lista').querySelectorAll('.chk-btn-enviar-uno').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        btn.disabled = true; btn.textContent = 'Enviando...';
+        const c = chkCache.find((x) => x.id === btn.dataset.id);
+        try {
+          await chkAgregarDiaANomina(c.nombre, c.fecha);
+          await window.checkinAPI.marcarEnviado(c.id);
+          toast(`Día de ${c.nombre} enviado a Nómina ✓`, 'success');
+          chkRenderLista();
+        } catch (e) {
+          toast('No se pudo enviar: ' + (e.message || e), 'info', 4000);
+          btn.disabled = false; btn.textContent = 'Enviar a nómina';
+        }
+      });
+    });
+  }
+
+  $('chk-filtro-pendientes').addEventListener('click', () => {
+    chkFiltroActual = 'pendientes';
+    $('chk-filtro-pendientes').classList.add('active');
+    $('chk-filtro-todos').classList.remove('active');
+    chkRenderLista();
+  });
+  $('chk-filtro-todos').addEventListener('click', () => {
+    chkFiltroActual = 'todos';
+    $('chk-filtro-todos').classList.add('active');
+    $('chk-filtro-pendientes').classList.remove('active');
+    chkRenderLista();
+  });
+  $('chk-btn-enviar-todos').addEventListener('click', async () => {
+    const pendientes = chkCache.filter((c) => !c.enviado);
+    if (!pendientes.length) { toast('No hay pendientes por enviar', 'info'); return; }
+    if (!confirm(`¿Enviar ${pendientes.length} check-in(s) pendiente(s) a Nómina?`)) return;
+    $('chk-btn-enviar-todos').disabled = true;
+    for (const c of pendientes) {
+      try {
+        await chkAgregarDiaANomina(c.nombre, c.fecha);
+        await window.checkinAPI.marcarEnviado(c.id);
+      } catch (e) { /* seguir con los demás aunque uno falle */ }
+    }
+    $('chk-btn-enviar-todos').disabled = false;
+    toast('Check-ins enviados a Nómina ✓', 'success');
+    chkRenderLista();
+  });
+
+  // ====================================================================
+  // FIN MÓDULO CHECK-INS
+  // ====================================================================
+
   // ---- Carga inicial ----
   // Empleados y papeles se cargan solo al abrir su sección en Ajustes (más rápido el arranque)
   loadAll();
@@ -4211,6 +4377,10 @@
     } else {
       revelarAppNormal();
       if (rol === 'visor') aplicarModoSoloLectura();
+      if (rol === 'admin') {
+        const tabChk = document.getElementById('gc-tab-checkins');
+        if (tabChk) tabChk.style.display = '';
+      }
     }
     // admin (o cualquier otro valor no reconocido): sin cambios, acceso normal
   });
