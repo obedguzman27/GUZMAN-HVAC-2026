@@ -53,14 +53,24 @@
     return limpio + DOMINIO_INTERNO;
   }
 
+  function esperar(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
   async function asegurarPerfil(usuario) {
-    const { data: { user } } = await client.auth.getUser();
-    if (!user) throw new Error('No hay sesión activa todavía.');
-    const { data: perfil } = await client.from('perfiles').select('id').eq('id', user.id).maybeSingle();
-    if (!perfil) {
-      const { error } = await client.from('perfiles').insert({ id: user.id, nombre: usuario, rol: 'checkin', activo: false });
-      if (error) throw error;
+    // Justo después de signUp() la sesión nueva a veces tarda una fracción de
+    // segundo en quedar lista para las peticiones a la base de datos (RLS la
+    // rechaza si se manda demasiado pronto). Reintentamos unas cuantas veces.
+    let ultimoError = null;
+    for (let intento = 0; intento < 5; intento++) {
+      const { data: { session } } = await client.auth.getSession();
+      if (!session) { await esperar(400); continue; }
+      const { data: perfil } = await client.from('perfiles').select('id').eq('id', session.user.id).maybeSingle();
+      if (perfil) return; // ya existe, nada que hacer
+      const { error } = await client.from('perfiles').insert({ id: session.user.id, nombre: usuario, rol: 'checkin', activo: false });
+      if (!error) return;
+      ultimoError = error;
+      await esperar(500);
     }
+    throw ultimoError || new Error('No hay sesión activa todavía.');
   }
 
   function aplicarPerfilGlobal(perfil) {
