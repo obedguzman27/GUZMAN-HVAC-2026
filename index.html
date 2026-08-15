@@ -4201,11 +4201,32 @@
     document.querySelectorAll('.nom-subtab').forEach((t) => {
       t.style.display = t.dataset.nsub === 'semanal' ? '' : 'none';
     });
-    // Forzar la vista inicial a esas dos secciones permitidas.
-    setTimeout(() => {
-      document.querySelector('.inv-subtab[data-sub="guardadas"]')?.click();
-      document.querySelector('.nom-subtab[data-nsub="semanal"]')?.click();
-    }, 0);
+
+    // Cargar los datos de AMBAS pestañas (antes solo se cargaba Facturas) y
+    // terminar mostrando Facturas → Guardadas. Se usan pausas para dar tiempo
+    // a que las peticiones a la base de datos terminen antes de cambiar de vista.
+    (async () => {
+      const tabFacturas = document.querySelector('.gc-tab[data-tab="facturas"]');
+      const tabNomina = document.querySelector('.gc-tab[data-tab="nomina"]');
+      const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
+
+      if (tabFacturas) {
+        tabFacturas.click();
+        await esperar(900);
+        document.querySelector('.inv-subtab[data-sub="guardadas"]')?.click();
+      }
+      if (tabNomina) {
+        tabNomina.click();
+        await esperar(900);
+        document.querySelector('.nom-subtab[data-nsub="semanal"]')?.click();
+      }
+      // Dejar la vista inicial en Facturas → Guardadas (no vuelve a pedir los
+      // datos porque ya quedaron cargados en memoria).
+      if (tabFacturas) {
+        tabFacturas.click();
+        document.querySelector('.inv-subtab[data-sub="guardadas"]')?.click();
+      }
+    })();
 
     const banner = document.createElement('div');
     banner.style.cssText = 'background:#EAF3FF;color:#1A4B8C;font-size:12.5px;padding:8px 20px;text-align:center;border-bottom:1px solid #C7DFFB;';
