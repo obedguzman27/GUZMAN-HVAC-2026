@@ -55,22 +55,45 @@
 
   function esperar(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
-  async function asegurarPerfil(usuario) {
-    // Justo después de signUp() la sesión nueva a veces tarda una fracción de
-    // segundo en quedar lista para las peticiones a la base de datos (RLS la
-    // rechaza si se manda demasiado pronto). Reintentamos unas cuantas veces.
+  // Espera (con reintentos) a que la sesión recién creada quede lista para
+  // usarse contra la base de datos, y regresa esa sesión.
+  async function esperarSesionLista() {
+    for (let intento = 0; intento < 6; intento++) {
+      const { data: { session } } = await client.auth.getSession();
+      if (session) return session;
+      await esperar(400);
+    }
+    throw new Error('La sesión no quedó lista. Intenta de nuevo.');
+  }
+
+  // Trae la lista de trabajadores (para que la persona elija su nombre al
+  // registrarse). Funciona incluso antes de tener un perfil propio, gracias
+  // a un permiso especial solo para esa llave.
+  async function traerNombresTrabajadores() {
+    try {
+      const { data } = await client.from('datos_app').select('valor').eq('clave', 'gh-trabajadores').maybeSingle();
+      if (!data || !data.valor) return [];
+      const lista = JSON.parse(data.valor);
+      return (lista || []).map((t) => t.nombre).filter(Boolean);
+    } catch (e) { return []; }
+  }
+
+  // Crea el perfil ya con acceso inmediato (sin aprobación) y el nombre elegido.
+  async function crearPerfilConNombre(nombreElegido) {
     let ultimoError = null;
     for (let intento = 0; intento < 5; intento++) {
-      const { data: { session } } = await client.auth.getSession();
+      const session = await esperarSesionLista().catch(() => null);
       if (!session) { await esperar(400); continue; }
-      const { data: perfil } = await client.from('perfiles').select('id').eq('id', session.user.id).maybeSingle();
-      if (perfil) return; // ya existe, nada que hacer
-      const { error } = await client.from('perfiles').insert({ id: session.user.id, nombre: usuario, rol: 'checkin', activo: false });
+      const { data: existente } = await client.from('perfiles').select('id').eq('id', session.user.id).maybeSingle();
+      if (existente) return; // ya existe, nada que hacer
+      const { error } = await client.from('perfiles').insert({
+        id: session.user.id, nombre: nombreElegido, rol: 'checkin', activo: true
+      });
       if (!error) return;
       ultimoError = error;
       await esperar(500);
     }
-    throw ultimoError || new Error('No hay sesión activa todavía.');
+    throw ultimoError || new Error('No se pudo crear el perfil.');
   }
 
   function aplicarPerfilGlobal(perfil) {
@@ -92,7 +115,7 @@
       font-family: 'Inter', sans-serif;
     `;
     overlay.innerHTML = `
-      <div style="background:#fff; border-radius:16px; padding:36px 32px; width:90%; max-width:360px; box-shadow:0 12px 40px rgba(0,0,0,.35); text-align:center;">
+      <div id="gh-login-card" style="background:#fff; border-radius:16px; padding:36px 32px; width:90%; max-width:360px; box-shadow:0 12px 40px rgba(0,0,0,.35); text-align:center;">
         <div style="font-family:'Zilla Slab',serif; font-weight:700; font-size:20px; color:#16233F; margin-bottom:4px;">GUZMAN HVAC</div>
         <div id="gh-login-subtitulo" style="font-size:12.5px; color:#5A6A88; margin-bottom:6px;">Inicia sesión</div>
         <div style="font-size:11px; color:#9AA6BE; margin-bottom:16px;">El usuario NO es tu correo — solo un nombre corto (ej. "juan")</div>
@@ -129,6 +152,71 @@
       }
     });
 
+    // ---- Paso 2 del registro: elegir el nombre (una sola vez) ----
+    async function mostrarSelectorNombre() {
+      const card = document.getElementById('gh-login-card');
+      card.innerHTML = `
+        <div style="font-family:'Zilla Slab',serif; font-weight:700; font-size:20px; color:#16233F; margin-bottom:4px;">GUZMAN HVAC</div>
+        <div style="font-size:12.5px; color:#5A6A88; margin-bottom:4px;">¿Cuál es tu nombre?</div>
+        <div style="font-size:11px; color:#9AA6BE; margin-bottom:16px;">Elígelo con cuidado — no podrás cambiarlo después.</div>
+        <div id="gh-nombre-lista" style="max-height:220px;overflow-y:auto;margin-bottom:12px;"></div>
+        <div style="font-size:11.5px;color:#9AA6BE;margin:10px 0 8px;">¿No apareces en la lista?</div>
+        <input id="gh-nombre-otro" type="text" placeholder="Escribe tu nombre" autocomplete="off"
+          style="width:100%; padding:12px 14px; border:1.5px solid #D0D8E8; border-radius:9px; font-size:15px; margin-bottom:10px; box-sizing:border-box;">
+        <div id="gh-nombre-error" style="color:#C8511A; font-size:12.5px; min-height:16px; margin-bottom:8px;"></div>
+        <button id="gh-nombre-btn" style="width:100%; padding:12px; background:#16233F; color:#fff; border:none; border-radius:9px; font-weight:600; font-size:14px; cursor:pointer;">Confirmar y entrar</button>
+      `;
+      const lista = document.getElementById('gh-nombre-lista');
+      const otroInput = document.getElementById('gh-nombre-otro');
+      const errorDiv = document.getElementById('gh-nombre-error');
+      const confirmarBtn = document.getElementById('gh-nombre-btn');
+      let elegido = null;
+
+      const nombres = await traerNombresTrabajadores();
+      if (nombres.length) {
+        nombres.forEach((n) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.textContent = n;
+          b.style.cssText = 'display:block;width:100%;text-align:left;padding:10px 14px;margin-bottom:6px;background:#F5F8FC;border:1.5px solid #D0D8E8;border-radius:9px;font-family:Inter,sans-serif;font-size:14px;color:#16233F;cursor:pointer;';
+          b.addEventListener('click', () => {
+            elegido = n;
+            otroInput.value = '';
+            lista.querySelectorAll('button').forEach((x) => { x.style.background = '#F5F8FC'; x.style.borderColor = '#D0D8E8'; });
+            b.style.background = '#E8F0FE'; b.style.borderColor = '#16233F';
+          });
+          lista.appendChild(b);
+        });
+      } else {
+        lista.innerHTML = '<div style="font-size:12px;color:#9AA6BE;">Todavía no hay trabajadores en la lista.</div>';
+      }
+
+      otroInput.addEventListener('input', () => {
+        if (otroInput.value.trim()) {
+          elegido = null;
+          lista.querySelectorAll('button').forEach((x) => { x.style.background = '#F5F8FC'; x.style.borderColor = '#D0D8E8'; });
+        }
+      });
+
+      confirmarBtn.addEventListener('click', async () => {
+        const nombreFinal = elegido || otroInput.value.trim();
+        if (!nombreFinal) { errorDiv.textContent = 'Elige un nombre de la lista o escríbelo abajo.'; return; }
+        confirmarBtn.disabled = true; confirmarBtn.textContent = 'Guardando...';
+        try {
+          await crearPerfilConNombre(nombreFinal);
+          const { data: { user } } = await client.auth.getUser();
+          const { data: perfil } = await client.from('perfiles').select('activo,rol,nombre').eq('id', user.id).maybeSingle();
+          aplicarPerfilGlobal(perfil);
+          overlay.remove();
+          programarExpiracion();
+          resolverSesion();
+        } catch (e) {
+          errorDiv.textContent = 'No se pudo guardar: ' + (e.message || e);
+          confirmarBtn.disabled = false; confirmarBtn.textContent = 'Confirmar y entrar';
+        }
+      });
+    }
+
     async function intentar() {
       const usuario = usuarioInput.value.trim();
       const clave = claveInput.value;
@@ -152,19 +240,9 @@
         }
 
         if (modoRegistro) {
-          try {
-            await asegurarPerfil(usuario);
-          } catch (e) {
-            errorDiv.textContent = 'Cuenta creada, pero no se pudo guardar el perfil: ' + (e.message || e);
-            btn.disabled = false; btn.textContent = 'Crear cuenta';
-            return;
-          }
-          try { await client.auth.signOut(); } catch (e) {}
-          errorDiv.textContent = 'Cuenta creada. Un administrador debe aprobarla antes de que puedas entrar.';
-          modoRegistro = false;
-          subtitulo.textContent = 'Inicia sesión';
-          btn.disabled = false; btn.textContent = 'Entrar';
-          modoBtn.textContent = '¿No tienes cuenta? Crear cuenta';
+          // Acceso inmediato: en vez de "pendiente de aprobación", pasamos
+          // directo a que elija su nombre y ya queda dentro de la app.
+          await mostrarSelectorNombre();
           return;
         }
 
@@ -172,7 +250,7 @@
         const { data: perfil } = await client.from('perfiles').select('activo,rol,nombre').eq('id', user.id).maybeSingle();
         if (!perfil || !perfil.activo) {
           try { await client.auth.signOut(); } catch (e) {}
-          errorDiv.textContent = 'Tu cuenta todavía no ha sido aprobada por un administrador.';
+          errorDiv.textContent = 'Tu cuenta no está activa. Contacta al administrador.';
           btn.disabled = false; btn.textContent = 'Entrar';
           return;
         }
@@ -258,7 +336,6 @@
   function fechaHoy() { return new Date().toISOString().slice(0, 10); }
 
   window.checkinAPI = {
-    // Trae el check-in de HOY de la persona (o null si no ha marcado nada)
     deHoy: async () => {
       await sesionLista;
       const { data: { user } } = await client.auth.getUser();
@@ -279,7 +356,6 @@
       const { error } = await client.from('checkins').update({ salida: horaActual() }).eq('id', idCheckin);
       if (error) throw error;
     },
-    // Últimos check-ins de esta persona (para mostrarle su propio historial)
     misUltimos: async (limite) => {
       await sesionLista;
       const { data: { user } } = await client.auth.getUser();
@@ -288,8 +364,6 @@
       if (error) throw error;
       return data || [];
     },
-    // Solo para admin: check-ins de un trabajador por nombre, en días recientes
-    // (usado en Nómina para sugerir automáticamente los días trabajados)
     porNombreRecientes: async (nombre, dias) => {
       await sesionLista;
       const desde = new Date();
