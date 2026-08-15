@@ -4183,54 +4183,39 @@
   }
 
   function aplicarModoSoloLectura() {
-    // Ocultar todas las pestañas del menú excepto Facturas y Nómina.
+    // Ocultar todas las pestañas del menú excepto Registro y Nómina.
     document.querySelectorAll('.gc-tab').forEach((t) => {
-      const permitido = t.dataset.tab === 'facturas' || t.dataset.tab === 'nomina';
+      const permitido = t.dataset.tab === 'reparto' || t.dataset.tab === 'nomina';
       t.style.display = permitido ? '' : 'none';
     });
-    // Si por alguna razón una pestaña no permitida quedó activa, mandarlo a Facturas.
+    // Si por alguna razón una pestaña no permitida quedó activa, mandarlo a Registro.
     const activa = document.querySelector('.gc-tab.active');
-    if (activa && activa.dataset.tab !== 'facturas' && activa.dataset.tab !== 'nomina') {
-      document.querySelector('.gc-tab[data-tab="facturas"]')?.click();
+    if (activa && activa.dataset.tab !== 'reparto' && activa.dataset.tab !== 'nomina') {
+      document.querySelector('.gc-tab[data-tab="reparto"]')?.click();
     }
 
-    // Dentro de Facturas: solo "Guardadas". Dentro de Nómina: solo "Recibo semanal".
-    document.querySelectorAll('.inv-subtab').forEach((t) => {
-      t.style.display = t.dataset.sub === 'guardadas' ? '' : 'none';
-    });
-    document.querySelectorAll('.nom-subtab').forEach((t) => {
-      t.style.display = t.dataset.nsub === 'semanal' ? '' : 'none';
-    });
+    // Dentro de Nómina: todas sus secciones quedan visibles (nada se oculta).
 
-    // Cargar los datos de AMBAS pestañas (antes solo se cargaba Facturas) y
-    // terminar mostrando Facturas → Guardadas. Se usan pausas para dar tiempo
-    // a que las peticiones a la base de datos terminen antes de cambiar de vista.
+    // Cargar los datos de Registro y Nómina, y terminar mostrando Registro.
     (async () => {
-      const tabFacturas = document.querySelector('.gc-tab[data-tab="facturas"]');
+      const tabReparto = document.querySelector('.gc-tab[data-tab="reparto"]');
       const tabNomina = document.querySelector('.gc-tab[data-tab="nomina"]');
       const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
 
-      if (tabFacturas) {
-        tabFacturas.click();
-        await esperar(900);
-        document.querySelector('.inv-subtab[data-sub="guardadas"]')?.click();
-      }
       if (tabNomina) {
         tabNomina.click();
         await esperar(900);
-        document.querySelector('.nom-subtab[data-nsub="semanal"]')?.click();
       }
-      // Dejar la vista inicial en Facturas → Guardadas (no vuelve a pedir los
-      // datos porque ya quedaron cargados en memoria).
-      if (tabFacturas) {
-        tabFacturas.click();
-        document.querySelector('.inv-subtab[data-sub="guardadas"]')?.click();
+      // Registro (reparto) se queda como vista inicial visible al terminar.
+      if (tabReparto) {
+        tabReparto.click();
+        await esperar(300);
       }
     })();
 
     const banner = document.createElement('div');
     banner.style.cssText = 'background:#EAF3FF;color:#1A4B8C;font-size:12.5px;padding:8px 20px;text-align:center;border-bottom:1px solid #C7DFFB;';
-    banner.textContent = '👁️ Modo solo lectura — Facturas guardadas y Recibo semanal de Nómina. Puedes ver y descargar, no editar.';
+    banner.textContent = '👁️ Modo solo lectura — Registro y Nómina (todas sus secciones). Puedes ver y descargar, no editar.';
     document.body.insertBefore(banner, document.body.firstChild);
 
     document.body.classList.add('gh-modo-visor');
@@ -4252,6 +4237,7 @@
       body.gh-modo-visor #nom-reg-buscar,
       body.gh-modo-visor #m-buscar,
       body.gh-modo-visor .ver-btn,
+      body.gh-modo-visor .gc-ver-invoice-btn,
       body.gh-modo-visor [id*="ver-"],
       body.gh-modo-visor [id*="descargar"],
       body.gh-modo-visor [id*="imprimir"],
