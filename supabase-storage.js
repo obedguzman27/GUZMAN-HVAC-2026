@@ -295,6 +295,12 @@
   // el rol del usuario, sin necesidad de tocar window.storage.
   window.GH_ESPERAR_SESION = () => sesionLista;
 
+  // Cierre de sesión real (no solo recargar la página).
+  window.GH_CERRAR_SESION = async () => {
+    try { await client.auth.signOut(); } catch (e) {}
+    location.reload();
+  };
+
   // ---------- window.storage respaldado por Supabase ----------
   window.storage = {
     get: async (key) => {
@@ -372,7 +378,7 @@
         .ilike('nombre', nombre.trim())
         .gte('fecha', desde.toISOString().slice(0, 10))
         .order('fecha', { ascending: true });
-      if (error) return [];
+      if (error) throw error;
       return data || [];
     }
   };

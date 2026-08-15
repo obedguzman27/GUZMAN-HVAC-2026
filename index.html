@@ -691,6 +691,7 @@
         </div>
         <div id="nom-dias-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;"></div>
         <p id="nom-dias-info" style="font-size:12px;color:var(--muted);margin-top:6px;"></p>
+        <button type="button" id="nom-btn-cargar-checkins" style="display:none;margin-top:10px;padding:9px 14px;background:#fff;border:1.5px solid var(--border);border-radius:9px;font-size:12.5px;cursor:pointer;color:var(--ink);">🔄 Cargar días desde sus check-ins</button>
       </div>
 
       <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px;padding:14px;background:#FDEEE6;border-radius:10px;border:1px solid #F0C9B4;">
@@ -1037,6 +1038,14 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="supabase-storage.js"></script>
+<script>
+  if (typeof window.GH_ESPERAR_SESION === 'function') {
+    var ghOcultarInicial = document.createElement('style');
+    ghOcultarInicial.id = 'gh-oculto-inicial';
+    ghOcultarInicial.textContent = 'nav, .gc-body { display: none !important; }';
+    document.head.appendChild(ghOcultarInicial);
+  }
+</script>
 <script src="browser-storage.js"></script>
 <script>
   // Registrar el service worker (instalación PWA + funcionamiento sin internet)
@@ -3220,10 +3229,41 @@
 
   // Al elegir trabajador, cargar su sueldo por día (como número editable)
   let nomUltimoTrabajadorResuelto = null;
+  let nomTrabajadorActualParaCheckins = null;
+
+  async function nomCargarDesdeCheckins(nombreTrab, avisarSiVacio) {
+    if (!window.checkinAPI || typeof window.checkinAPI.porNombreRecientes !== 'function') {
+      if (avisarSiVacio) toast('Esta función solo está disponible en la versión con login (GUZMAN)', 'info');
+      return;
+    }
+    try {
+      const checkins = await window.checkinAPI.porNombreRecientes(nombreTrab, 21);
+      if ($('nom-trabajador').value.trim() !== nombreTrab) return; // cambiaron de trabajador mientras cargaba
+      const diasEncontrados = [...new Set(checkins.map((c) => c.fecha))].sort();
+      if (!diasEncontrados.length) {
+        if (avisarSiVacio) toast(`"${nombreTrab}" no tiene check-ins registrados en los últimos 21 días. Revisa que el nombre coincida exactamente con el que usó al crear su cuenta.`, 'info', 4500);
+        return;
+      }
+      const nuevos = diasEncontrados.filter((f) => !nomDiasSel.includes(f));
+      nomDiasSel = [...new Set([...nomDiasSel, ...diasEncontrados])].sort();
+      nomRenderChips();
+      nomRecalcularMonto();
+      toast(nuevos.length ? `${nuevos.length} día(s) cargado(s) desde sus check-ins ✓` : 'Esos días ya estaban seleccionados', 'success', 3500);
+    } catch (e) {
+      toast('No se pudieron leer los check-ins: ' + (e.message || e), 'info', 4000);
+    }
+  }
+
+  $('nom-btn-cargar-checkins').addEventListener('click', () => {
+    if (nomTrabajadorActualParaCheckins) nomCargarDesdeCheckins(nomTrabajadorActualParaCheckins, true);
+  });
+
   $('nom-trabajador').addEventListener('input', () => {
     const t = nomBuscarTrab($('nom-trabajador').value.trim());
     $('nom-sueldo-dia').value = t && t.sueldo ? String(t.sueldo) : '';
     delete $('nom-monto').dataset.editado;
+    nomTrabajadorActualParaCheckins = t ? t.nombre : null;
+    $('nom-btn-cargar-checkins').style.display = (t && window.checkinAPI) ? 'inline-block' : 'none';
     // Si se reconoce un trabajador distinto al anterior, limpiar los días/extra
     // del pago que se estaba armando, para no tener que borrarlos a mano.
     if (t && t.nombre !== nomUltimoTrabajadorResuelto) {
@@ -3235,21 +3275,12 @@
       $('nom-nota').value = '';
       // Si hay check-ins de este trabajador (solo disponible en la versión con
       // login de GUZMAN), sugerir automáticamente los días que ya marcó.
-      if (window.checkinAPI && typeof window.checkinAPI.porNombreRecientes === 'function') {
-        window.checkinAPI.porNombreRecientes(t.nombre, 21).then((checkins) => {
-          if (!checkins.length || $('nom-trabajador').value.trim() !== t.nombre) return;
-          const diasEncontrados = [...new Set(checkins.map((c) => c.fecha))].sort();
-          if (!diasEncontrados.length) return;
-          nomDiasSel = diasEncontrados;
-          nomRenderChips();
-          nomRecalcularMonto();
-          toast(`${diasEncontrados.length} día(s) cargado(s) automáticamente desde sus check-ins`, 'info', 3500);
-        }).catch(() => {});
-      }
+      nomCargarDesdeCheckins(t.nombre, false);
     }
     nomUltimoTrabajadorResuelto = t ? t.nombre : null;
     nomRecalcularMonto();
   });
+
 
   // Al editar el sueldo directamente, recalcular el total
   $('nom-sueldo-dia').addEventListener('input', () => {
@@ -4174,10 +4205,19 @@
 
   window.GH_ESPERAR_SESION().then(() => {
     const rol = window.GH_ROL;
-    if (rol === 'checkin') mostrarPantallaCheckin();
-    else if (rol === 'visor') aplicarModoSoloLectura();
+    if (rol === 'checkin') {
+      mostrarPantallaCheckin();
+    } else {
+      revelarAppNormal();
+      if (rol === 'visor') aplicarModoSoloLectura();
+    }
     // admin (o cualquier otro valor no reconocido): sin cambios, acceso normal
   });
+
+  function revelarAppNormal() {
+    const oculto = document.getElementById('gh-oculto-inicial');
+    if (oculto) oculto.remove();
+  }
 
   function mostrarPantallaCheckin() {
     document.querySelectorAll('nav, .gc-body').forEach((el) => { el.style.display = 'none'; });
@@ -4225,7 +4265,10 @@
       try { await window.checkinAPI.marcarEntrada(); await refrescar(); }
       catch (err) { alert('No se pudo marcar: ' + (err.message || err)); e.target.disabled = false; }
     });
-    document.getElementById('gh-btn-cerrar-sesion').addEventListener('click', () => { location.reload(); });
+    document.getElementById('gh-btn-cerrar-sesion').addEventListener('click', () => {
+      if (typeof window.GH_CERRAR_SESION === 'function') window.GH_CERRAR_SESION();
+      else location.reload();
+    });
 
     refrescar();
   }
