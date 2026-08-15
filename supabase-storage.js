@@ -349,11 +349,11 @@
         .eq('usuario_id', user.id).eq('fecha', fechaHoy()).maybeSingle();
       return data || null;
     },
-    marcarEntrada: async () => {
+    marcarEntrada: async (tipo) => {
       await sesionLista;
       const { data: { user } } = await client.auth.getUser();
       const { error } = await client.from('checkins').insert({
-        usuario_id: user.id, nombre: window.GH_NOMBRE || '', fecha: fechaHoy(), entrada: horaActual()
+        usuario_id: user.id, nombre: window.GH_NOMBRE || '', fecha: fechaHoy(), entrada: horaActual(), tipo: tipo || null
       });
       if (error) throw error;
     },

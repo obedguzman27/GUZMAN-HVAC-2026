@@ -3273,9 +3273,10 @@
       $('nom-extra-monto').value = '';
       $('nom-monto').value = '';
       $('nom-nota').value = '';
-      // Si hay check-ins de este trabajador (solo disponible en la versión con
-      // login de GUZMAN), sugerir automáticamente los días que ya marcó.
-      nomCargarDesdeCheckins(t.nombre, false);
+      // Cargar automáticamente sus días desde check-ins (solo disponible en la
+      // versión con login de GUZMAN) — avisa el resultado sin que haya que
+      // darle clic a ningún botón.
+      nomCargarDesdeCheckins(t.nombre, true);
     }
     nomUltimoTrabajadorResuelto = t ? t.nombre : null;
     nomRecalcularMonto();
@@ -4223,31 +4224,58 @@
     document.querySelectorAll('nav, .gc-body').forEach((el) => { el.style.display = 'none'; });
     const wrap = document.createElement('div');
     wrap.id = 'gh-checkin-screen';
-    wrap.style.cssText = 'min-height:100vh;background:#F5F8FC;display:flex;flex-direction:column;align-items:center;padding:48px 20px;font-family:Inter,sans-serif;box-sizing:border-box;';
+    wrap.style.cssText = 'min-height:100vh;background:#F5F8FC;display:flex;flex-direction:column;align-items:center;padding:16px 20px;font-family:Inter,sans-serif;box-sizing:border-box;';
     wrap.innerHTML = `
-      <div style="font-family:'Zilla Slab',serif;font-weight:700;font-size:22px;color:#16233F;margin-bottom:4px;">GUZMAN HVAC</div>
-      <div style="font-size:13px;color:#5A6A88;margin-bottom:28px;">Hola, ${(window.GH_NOMBRE || '').replace(/</g,'')}</div>
-      <div id="gh-checkin-estado" style="font-size:14px;color:#16233F;margin-bottom:22px;text-align:center;max-width:320px;"></div>
-      <button id="gh-btn-check" style="width:100%;max-width:320px;padding:20px;background:#16233F;color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:700;cursor:pointer;margin-bottom:30px;">✓ Marcar que trabajé hoy</button>
-      <div style="width:100%;max-width:320px;">
-        <div style="font-size:12.5px;font-weight:700;color:#5A6A88;margin-bottom:10px;">Tus últimos días</div>
-        <div id="gh-checkin-historial"></div>
+      <div style="font-family:'Zilla Slab',serif;font-weight:700;font-size:17px;color:#16233F;margin-bottom:2px;">GUZMAN HVAC</div>
+      <div style="font-size:12px;color:#5A6A88;margin-bottom:10px;">Hola, ${(window.GH_NOMBRE || '').replace(/</g,'')}</div>
+      <div id="gh-checkin-estado" style="font-size:13px;color:#16233F;margin-bottom:10px;text-align:center;max-width:320px;"></div>
+      <div style="font-size:12px;color:#5A6A88;margin-bottom:6px;">Tipo de turno</div>
+      <div id="gh-checkin-tipos" style="display:flex;gap:8px;width:100%;max-width:320px;margin-bottom:14px;">
+        <button type="button" class="gh-tipo-btn" data-tipo="Entrada" style="flex:1;padding:10px 4px;border-radius:9px;border:1.5px solid #D0D8E8;background:#fff;color:#16233F;font-size:12.5px;font-weight:600;cursor:pointer;">Entrada</button>
+        <button type="button" class="gh-tipo-btn" data-tipo="Airtron" style="flex:1;padding:10px 4px;border-radius:9px;border:1.5px solid #D0D8E8;background:#fff;color:#16233F;font-size:12.5px;font-weight:600;cursor:pointer;">Airtron</button>
+        <button type="button" class="gh-tipo-btn" data-tipo="Otro" style="flex:1;padding:10px 4px;border-radius:9px;border:1.5px solid #D0D8E8;background:#fff;color:#16233F;font-size:12.5px;font-weight:600;cursor:pointer;">Otro</button>
       </div>
-      <button id="gh-btn-cerrar-sesion" style="margin-top:30px;background:none;border:none;color:#9AA6BE;font-size:12px;text-decoration:underline;cursor:pointer;">Cerrar sesión</button>
+      <button id="gh-btn-check" style="width:100%;max-width:320px;padding:16px;background:#16233F;color:#fff;border:none;border-radius:12px;font-size:15.5px;font-weight:700;cursor:pointer;margin-bottom:14px;" disabled>✓ Marcar que trabajé hoy</button>
+      <button id="gh-btn-ver-historial" style="background:none;border:none;color:#5A6A88;font-size:12px;text-decoration:underline;cursor:pointer;margin-bottom:6px;">Ver mis últimos días</button>
+      <div id="gh-checkin-historial" style="display:none;width:100%;max-width:320px;margin-top:6px;"></div>
+      <button id="gh-btn-cerrar-sesion" style="margin-top:16px;background:none;border:none;color:#9AA6BE;font-size:12px;text-decoration:underline;cursor:pointer;">Cerrar sesión</button>
     `;
     document.body.appendChild(wrap);
+
+    let tipoElegido = null;
+    document.querySelectorAll('.gh-tipo-btn').forEach((b) => {
+      b.addEventListener('click', () => {
+        tipoElegido = b.dataset.tipo;
+        document.querySelectorAll('.gh-tipo-btn').forEach((x) => {
+          x.style.background = '#fff'; x.style.borderColor = '#D0D8E8'; x.style.color = '#16233F';
+        });
+        b.style.background = '#16233F'; b.style.borderColor = '#16233F'; b.style.color = '#fff';
+        const btnCheck = document.getElementById('gh-btn-check');
+        if (!yaMarcoHoy) btnCheck.disabled = false;
+      });
+    });
+
+    document.getElementById('gh-btn-ver-historial').addEventListener('click', () => {
+      const h = document.getElementById('gh-checkin-historial');
+      const mostrando = h.style.display !== 'none';
+      h.style.display = mostrando ? 'none' : 'block';
+      document.getElementById('gh-btn-ver-historial').textContent = mostrando ? 'Ver mis últimos días' : 'Ocultar';
+    });
+
+    let yaMarcoHoy = false;
 
     async function refrescar() {
       let hoy = null;
       try { hoy = await window.checkinAPI.deHoy(); } catch (e) {}
       const estado = document.getElementById('gh-checkin-estado');
       const btnCheck = document.getElementById('gh-btn-check');
+      yaMarcoHoy = !!hoy;
       if (!hoy) {
-        estado.textContent = 'Todavía no marcas hoy.';
-        btnCheck.disabled = false;
+        estado.textContent = 'Elige tu turno y marca que trabajaste hoy.';
+        btnCheck.disabled = !tipoElegido;
         btnCheck.textContent = '✓ Marcar que trabajé hoy';
       } else {
-        estado.textContent = `Ya marcaste hoy a las ${hoy.entrada}. ¡Buen trabajo!`;
+        estado.textContent = `Ya marcaste hoy (${hoy.tipo || 'sin tipo'}) a las ${hoy.entrada}. ¡Buen trabajo!`;
         btnCheck.disabled = true;
         btnCheck.textContent = '✓ Ya marcaste hoy';
       }
@@ -4256,13 +4284,14 @@
       const hist = document.getElementById('gh-checkin-historial');
       hist.innerHTML = ultimos.length ? ultimos.map((c) => `
         <div style="display:flex;justify-content:space-between;padding:10px 12px;background:#fff;border:1px solid #E3E9F2;border-radius:9px;margin-bottom:6px;font-size:13px;color:#16233F;">
-          <span>${c.fecha}</span><span>${c.entrada || '—'}</span>
+          <span>${c.fecha} — ${c.tipo || 'sin tipo'}</span><span>${c.entrada || '—'}</span>
         </div>`).join('') : '<div style="font-size:12.5px;color:#9AA6BE;">Aún no tienes días marcados.</div>';
     }
 
     document.getElementById('gh-btn-check').addEventListener('click', async (e) => {
+      if (!tipoElegido) { alert('Primero elige el tipo de turno.'); return; }
       e.target.disabled = true;
-      try { await window.checkinAPI.marcarEntrada(); await refrescar(); }
+      try { await window.checkinAPI.marcarEntrada(tipoElegido); await refrescar(); }
       catch (err) { alert('No se pudo marcar: ' + (err.message || err)); e.target.disabled = false; }
     });
     document.getElementById('gh-btn-cerrar-sesion').addEventListener('click', () => {
