@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GUZMAN HVAC</title>
+  <title>Kontaly</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -13,7 +13,7 @@
   <meta name="theme-color" content="#16233F">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="GUZMAN HVAC">
+  <meta name="apple-mobile-web-app-title" content="Kontaly">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="icon" href="icon-192.png">
 </head>
@@ -463,25 +463,29 @@
   <header class="gc-header">
     <div class="gc-brand">
       <svg class="gc-logo-badge" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
-        <!-- Emblema circular navy -->
-        <circle cx="80" cy="80" r="74" fill="#0F1930"/>
-        <circle cx="80" cy="80" r="74" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="2"/>
-        <circle cx="80" cy="80" r="63" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="1.5"/>
-        <!-- Copo de nieve (frío) arriba-izquierda, pequeño -->
-        <g stroke="#2E8B84" stroke-width="4" stroke-linecap="round">
-          <line x1="46" y1="34" x2="46" y2="58"/>
-          <line x1="36" y1="40" x2="56" y2="52"/>
-          <line x1="36" y1="52" x2="56" y2="40"/>
+        <defs>
+          <linearGradient id="kontaly-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#0E8F82"/>
+            <stop offset="1" stop-color="#1E2D48"/>
+          </linearGradient>
+        </defs>
+        <!-- Cuadro redondeado (squircle) con gradiente -->
+        <rect x="8" y="8" width="144" height="144" rx="40" fill="url(#kontaly-grad)"/>
+        <rect x="8" y="8" width="144" height="144" rx="40" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
+        <!-- Letra K con flecha de crecimiento -->
+        <g fill="#fff">
+          <rect x="52" y="44" width="13" height="72" rx="6.5"/>
         </g>
-        <!-- Llama (calor) arriba-derecha, pequeña -->
-        <path d="M114 34 C122 42 121 50 116 55 C119 53 120 49 118 45 C121 51 119 60 112 62 C105 60 104 52 108 47 C108 51 110 53 112 52 C108 48 110 40 114 34 Z" fill="#C2622E"/>
-        <!-- Letra G central (monograma) -->
-        <text x="80" y="108" font-family="Georgia, 'Times New Roman', serif" font-size="76" font-weight="700" fill="#fff" text-anchor="middle">G</text>
-        <!-- Línea de aire inferior -->
-        <path d="M44 128 Q80 118 116 128" stroke="rgba(255,255,255,0.14)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <g stroke="#fff" stroke-width="13" stroke-linecap="round">
+          <line x1="61" y1="80" x2="108" y2="46"/>
+          <line x1="61" y1="80" x2="110" y2="116"/>
+        </g>
+        <!-- Punta de flecha (crecimiento) -->
+        <path d="M108 46 L93 49 L105 61 Z" fill="#fff"/>
+        <path d="M108 46 L97 49 L105 57 Z" fill="#1CB8A8"/>
       </svg>
       <div class="gc-brand-text">
-        <span class="gc-company">GUZMAN HVAC</span>
+        <span class="gc-company">Kontaly</span>
       </div>
     </div>
     <span class="gc-date-badge" id="gc-fecha-actual"></span>
@@ -738,7 +742,7 @@
       <div class="gc-card" style="margin-top:16px;">
         <p class="gc-card-title">ℹ️ Acerca de</p>
         <p style="font-size:13px;color:var(--muted);line-height:1.7;">
-          <strong>GUZMAN HVAC</strong> — Sistema de cuentas, facturas y nómina.<br>
+          <strong>Kontaly</strong> — Sistema de cuentas, facturas y nómina.<br>
           Tus datos se guardan localmente y se sincronizan por OneDrive. Recuerda descargar un respaldo de vez en cuando.
         </p>
       </div>
@@ -2456,7 +2460,7 @@
     area.innerHTML = `<div class="gc-print-sheet">${cuerpoHTML}</div>`;
     document.title = 'Registro';
     window.print();
-    setTimeout(() => { area.innerHTML = ''; document.title = 'GUZMAN HVAC'; }, 600);
+    setTimeout(() => { area.innerHTML = ''; document.title = 'Kontaly'; }, 600);
   });
 
   // ---- Respaldo completo (para guardar en OneDrive) ----
@@ -2475,7 +2479,7 @@
     try { const r = await window.storage.get('gh-recibos-semanales'); recibosData = JSON.parse(r.value); } catch(e){}
 
     const respaldo = {
-      app: 'GUZMAN HVAC',
+      app: 'Kontaly',
       version: 3,
       generadoEn: new Date().toISOString(),
       // Cuentas y reparto

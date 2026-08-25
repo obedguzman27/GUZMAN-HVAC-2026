@@ -1,9 +1,9 @@
-// Service worker de GUZMAN HVAC — guarda una copia local de la app
+// Service worker de Kontaly — guarda una copia local de la app
 // para que abra rápido y funcione aunque no haya internet.
 // Los datos NO se guardan aquí (eso vive en localStorage / futuro backend),
 // solo el "cascarón" de la app (HTML, íconos).
 
-const CACHE_NAME = 'guzman-hvac-v35';
+const CACHE_NAME = 'kontaly-v1';
 const ARCHIVOS_CACHE = [
   './',
   './index.html',
