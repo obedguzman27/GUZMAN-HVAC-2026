@@ -41,6 +41,9 @@
     --gold-bg:   #FAF0D6;
     --blue:      #4F6FA8;
     --blue-bg:   #EAF0FB;
+    --copper:    #C46E20;
+    --copper-dk: #A2560F;
+    --copper-bg: #FBEBD8;
     --bg:        #EEF2F8;
     --card:      #FFFFFF;
     --border:    #DCE3EF;
@@ -51,11 +54,20 @@
     --shadow:    0 2px 6px rgba(19,28,46,.05), 0 10px 28px rgba(19,28,46,.08);
     --shadow-sm: 0 1px 2px rgba(19,28,46,.05), 0 2px 8px rgba(19,28,46,.05);
     --shadow-lg: 0 12px 32px rgba(19,28,46,.14), 0 4px 12px rgba(19,28,46,.08);
-    --r:         16px;
-    --r-sm:      10px;
-    --r-lg:      22px;
+    --r:         20px;
+    --r-sm:      12px;
+    --r-lg:      26px;
     --ease:      cubic-bezier(.2,.7,.3,1);
+    /* Acento seleccionable en Ajustes → Apariencia (por defecto: cobre) */
+    --accent:    var(--copper);
+    --accent-dk: var(--copper-dk);
+    --accent-bg: var(--copper-bg);
   }
+  /* Presets de acento — en :root (no en #gc-app) para que también apliquen a
+     modales/toasts, que se insertan fuera de #gc-app. */
+  :root[data-accent="teal"]   { --accent: var(--teal);   --accent-dk: var(--teal-dk); --accent-bg: var(--teal-bg); }
+  :root[data-accent="indigo"] { --accent: var(--blue);    --accent-dk: #3A5486;        --accent-bg: var(--blue-bg); }
+  :root[data-accent="verde"]  { --accent: #4E9350;        --accent-dk: #397239;        --accent-bg: #E3F0E3; }
   #gc-app {
     width: 100%; min-height: 100vh; background: var(--bg);
     color: var(--ink); font-family: 'Inter', sans-serif;
@@ -76,28 +88,29 @@
   /* ── HEADER ────────────────────────────── */
   .gc-header {
     background:
-      radial-gradient(1100px 140px at 15% -40%, rgba(14,143,130,.35), transparent 60%),
-      radial-gradient(900px 160px at 90% 140%, rgba(198,85,30,.22), transparent 60%),
+      radial-gradient(1100px 160px at 12% -50%, rgba(14,143,130,.4), transparent 60%),
+      radial-gradient(900px 200px at 92% 160%, rgba(196,110,32,.4), transparent 60%),
       linear-gradient(120deg, var(--navy) 0%, var(--navy2) 55%, var(--navy3) 100%);
     padding: 0 40px;
     display: flex; align-items: center; justify-content: space-between;
-    height: 68px; position: sticky; top: 0; z-index: 50;
-    box-shadow: 0 4px 20px rgba(10,16,28,.35);
+    height: 72px; position: sticky; top: 0; z-index: 50;
+    box-shadow: 0 4px 20px rgba(10,16,28,.4);
+    border-bottom: 3px solid var(--accent);
   }
-  .gc-brand { display: flex; align-items: center; gap: 13px; }
-  .gc-logo-badge { width: 40px; height: 40px; filter: drop-shadow(0 2px 6px rgba(0,0,0,.35)); }
+  .gc-brand { display: flex; align-items: center; gap: 14px; }
+  .gc-logo-badge { width: 46px; height: 46px; filter: drop-shadow(0 2px 8px rgba(0,0,0,.4)); }
   .gc-brand-text { display: flex; flex-direction: column; }
-  .gc-company { font-family: 'Zilla Slab', serif; font-size: 18px; font-weight: 700; color: #fff; line-height: 1.2; letter-spacing: .2px; }
+  .gc-company { font-family: 'Zilla Slab', serif; font-size: 20px; font-weight: 700; color: #fff; line-height: 1.2; letter-spacing: .3px; }
   .gc-address { font-size: 10.5px; color: rgba(255,255,255,.5); }
   .gc-header-right { display: flex; align-items: center; gap: 10px; }
   .gc-date-badge { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(255,255,255,.78); background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.16); padding: 6px 14px; border-radius: 20px; backdrop-filter: blur(4px); }
 
-  /* ── NAV TABS ───────────────────────────── */
-  .gc-nav { background: rgba(255,255,255,.85); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; gap: 2px; overflow-x: auto; flex-wrap: nowrap; position: sticky; top: 68px; z-index: 40; }
+  /* ── NAV TABS (segmented pills) ─────────── */
+  .gc-nav { background: rgba(255,255,255,.9); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); padding: 10px 24px; display: flex; gap: 6px; overflow-x: auto; flex-wrap: nowrap; position: sticky; top: 72px; z-index: 40; }
   .gc-nav::-webkit-scrollbar { display: none; }
-  .gc-tab { display: flex; align-items: center; gap: 6px; padding: 13px 15px; font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; color: var(--muted); background: none; border: none; border-bottom: 2.5px solid transparent; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: color .18s var(--ease), border-color .18s var(--ease); position: relative; }
-  .gc-tab:hover { color: var(--ink); }
-  .gc-tab.active { color: var(--navy); border-bottom-color: var(--teal); }
+  .gc-tab { display: flex; align-items: center; gap: 7px; padding: 9px 16px; font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 700; color: var(--muted); background: #F0F3FA; border: 1.5px solid transparent; border-radius: 999px; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: all .18s var(--ease); position: relative; }
+  .gc-tab:hover { color: var(--ink); background: #E7ECF8; }
+  .gc-tab.active { color: #fff; background: linear-gradient(120deg, var(--accent), var(--accent-dk)); box-shadow: 0 4px 14px rgba(0,0,0,.22); }
   .gc-tab svg { width: 14.5px; height: 14.5px; flex-shrink: 0; }
 
   /* ── PANELS ─────────────────────────────── */
@@ -110,20 +123,20 @@
 
   /* ── STATS ROW ──────────────────────────── */
   .gc-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
-  .gc-stat { background: var(--card); border-radius: var(--r); padding: 17px 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-soft); display: flex; align-items: center; gap: 14px; position: relative; overflow: hidden; transition: box-shadow .2s var(--ease), transform .2s var(--ease); }
-  .gc-stat:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
-  .gc-stat::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--border); }
+  .gc-stat { background: var(--card); border-radius: var(--r); padding: 18px 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-soft); display: flex; align-items: center; gap: 15px; position: relative; overflow: hidden; transition: box-shadow .2s var(--ease), transform .2s var(--ease); }
+  .gc-stat:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+  .gc-stat::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--border); }
   .gc-stat.ing::before { background: var(--teal); }
   .gc-stat.gas::before { background: var(--ember); }
-  .gc-stat.net::before { background: var(--navy); }
+  .gc-stat.net::before { background: var(--accent); }
   .gc-stat.inv::before { background: var(--gold); }
-  .gc-stat-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-  .gc-stat.ing .gc-stat-icon  { background: var(--teal-bg); }
-  .gc-stat.gas .gc-stat-icon  { background: var(--ember-bg); }
-  .gc-stat.net .gc-stat-icon  { background: #E9EDF6; }
-  .gc-stat.inv .gc-stat-icon  { background: var(--gold-bg); }
+  .gc-stat-icon { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,.03); }
+  .gc-stat.ing .gc-stat-icon  { background: linear-gradient(140deg, var(--teal-bg), #C4EDE8); }
+  .gc-stat.gas .gc-stat-icon  { background: linear-gradient(140deg, var(--ember-bg), #F6D5C2); }
+  .gc-stat.net .gc-stat-icon  { background: linear-gradient(140deg, var(--accent-bg), rgba(0,0,0,.06)); }
+  .gc-stat.inv .gc-stat-icon  { background: linear-gradient(140deg, var(--gold-bg), #F3E2AE); }
   .gc-stat-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-bottom: 4px; }
-  .gc-stat-val { font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 600; color: var(--ink); letter-spacing: -.2px; }
+  .gc-stat-val { font-family: 'IBM Plex Mono', monospace; font-size: 23px; font-weight: 700; color: var(--ink); letter-spacing: -.3px; }
   .gc-stat.ing .gc-stat-val { color: var(--teal-dk); }
   .gc-stat.gas .gc-stat-val { color: var(--ember); }
 
@@ -147,10 +160,10 @@
 
   /* ── BUTTONS ────────────────────────────── */
   .gc-btn-row { display: flex; gap: 10px; align-items: center; margin-top: 4px; flex-wrap: wrap; }
-  .gc-save-btn { background: linear-gradient(135deg, var(--navy2), var(--navy)); color: #fff; border: none; padding: 11px 22px; border-radius: var(--r-sm); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: transform .14s var(--ease), box-shadow .14s var(--ease), filter .14s; box-shadow: 0 2px 8px rgba(19,28,46,.22); }
-  .gc-save-btn:hover { filter: brightness(1.08); box-shadow: 0 4px 14px rgba(19,28,46,.3); transform: translateY(-1px); }
+  .gc-save-btn { background: linear-gradient(135deg, var(--accent), var(--accent-dk)); color: #fff; border: none; padding: 11px 22px; border-radius: 999px; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: transform .14s var(--ease), box-shadow .14s var(--ease), filter .14s; box-shadow: 0 3px 10px rgba(0,0,0,.22); }
+  .gc-save-btn:hover { filter: brightness(1.08); box-shadow: 0 5px 16px rgba(162,86,15,.42); transform: translateY(-1px); }
   .gc-save-btn:active { transform: translateY(0); }
-  .gc-save-btn.danger { background: linear-gradient(135deg, #D2571A, var(--ember)); box-shadow: 0 2px 8px rgba(198,85,30,.28); }
+  .gc-save-btn.danger { background: linear-gradient(135deg, #D6473F, #B23333); box-shadow: 0 3px 10px rgba(178,51,51,.35); }
   .gc-action-btn { background: #fff; color: var(--ink); border: 1.5px solid var(--border); padding: 10px 18px; border-radius: var(--r-sm); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .16s var(--ease); }
   .gc-action-btn:hover { border-color: var(--navy); color: var(--navy); background: #F7F9FD; }
   .gc-del { background: none; border: none; color: var(--muted-soft); cursor: pointer; font-size: 16px; padding: 4px 8px; border-radius: 7px; transition: all .16s var(--ease); }
@@ -351,6 +364,12 @@
   /* ── ERROR / OFFLINE BANNER ─────────────── */
   .gc-banner { font-size: 12.5px; padding: 9px 20px; text-align: center; border-bottom: 1px solid; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .gc-banner.offline { background: var(--ember-bg); color: #8A3A11; border-color: #F0C9B4; }
+
+  /* ── APARIENCIA (selector de acento) ─────── */
+  .aj-accent-sw { position: relative; transition: transform .15s var(--ease); }
+  .aj-accent-sw:hover { transform: scale(1.08); }
+  .aj-accent-sw.active { border-color: var(--ink) !important; box-shadow: 0 0 0 3px rgba(19,28,46,.12); }
+  .aj-accent-sw.active::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 15px; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,.4); }
 
   /* ── MINI CHARTS ────────────────────────── */
   .gc-chart-card { background: var(--card); border-radius: var(--r); box-shadow: var(--shadow-sm); border: 1px solid var(--border-soft); padding: 22px 24px 18px; margin-bottom: 20px; }
@@ -694,6 +713,25 @@
         <div style="display:flex;justify-content:flex-end;margin-top:12px;">
           <button class="gc-save-btn" id="aj-btn-guardar-direccion">Guardar dirección</button>
         </div>
+      </div>
+
+      <!-- Apariencia -->
+      <div class="gc-card" style="margin-top:16px;">
+        <p class="gc-card-title">🎨 Apariencia</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Elige el color de acento de la app (botones y pestañas activas). Se guarda en este dispositivo.</p>
+        <div id="aj-accent-picker" style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button type="button" class="aj-accent-sw" data-accent="cobre" title="Cobre" style="width:38px;height:38px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;background:linear-gradient(135deg,#C46E20,#A2560F);"></button>
+          <button type="button" class="aj-accent-sw" data-accent="teal" title="Teal" style="width:38px;height:38px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;background:linear-gradient(135deg,#0E8F82,#0B6F65);"></button>
+          <button type="button" class="aj-accent-sw" data-accent="indigo" title="Índigo" style="width:38px;height:38px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;background:linear-gradient(135deg,#4F6FA8,#3A5486);"></button>
+          <button type="button" class="aj-accent-sw" data-accent="verde" title="Verde" style="width:38px;height:38px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;background:linear-gradient(135deg,#4E9350,#397239);"></button>
+        </div>
+      </div>
+
+      <!-- Mi cuenta -->
+      <div class="gc-card" style="margin-top:16px;" id="aj-card-cuenta">
+        <p class="gc-card-title">👤 Mi cuenta</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Conectado como <strong id="aj-cuenta-nombre">—</strong> <span id="aj-cuenta-rol" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);"></span></p>
+        <button class="gc-action-btn" id="btn-cerrar-sesion" style="display:none;">Cerrar sesión</button>
       </div>
 
       <!-- Info de la app -->
@@ -1580,11 +1618,20 @@
           <td>${escapeHtml(m.desc || '')}</td>
           <td class="gc-num" style="color:${tipoColor}">${fmt(m.monto)}</td>
           <td style="white-space:nowrap;">
-            <button class="gc-action-btn gc-edit-mov" data-id="${m.id}" style="padding:3px 9px;font-size:11px;">✎</button>
+            <button class="gc-action-btn gc-dup-mov" data-id="${m.id}" title="Repetir este movimiento" style="padding:3px 9px;font-size:11px;">⧉</button>
+            <button class="gc-action-btn gc-edit-mov" data-id="${m.id}" style="padding:3px 9px;font-size:11px;margin-left:2px;">✎</button>
             <button class="gc-del" data-id="${m.id}" style="margin-left:2px;">✕</button>
           </td>
         `;
         tbody.appendChild(tr);
+      });
+    });
+
+    tbody.querySelectorAll('.gc-dup-mov').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const m = movimientos.find((x) => x.id === Number(btn.dataset.id));
+        if (!m) return;
+        duplicarMovimiento(m);
       });
     });
 
@@ -1759,6 +1806,37 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
     $('m-monto').focus();
     toast('Editando movimiento — cambia los datos y guarda', 'info', 3000);
+  }
+
+  // ---- Repetir movimiento (duplicar con la fecha de hoy, para gastos/ingresos recurrentes) ----
+  function duplicarMovimiento(m) {
+    movEditandoId = null; // aunque se parezca a editar, al Guardar crea uno NUEVO
+    tipoActual = m.tipo;
+    document.querySelectorAll('.gc-type-toggle > .gc-type-btn').forEach((b) => {
+      b.classList.toggle('active', b.dataset.type === m.tipo);
+    });
+    const esAjuste = m.tipo === 'ajuste';
+    const esIngreso = m.tipo === 'ingreso';
+    $('ajuste-direccion-row').style.display = esAjuste ? 'block' : 'none';
+    $('cat-field-wrap').style.display = esAjuste ? 'none' : 'block';
+    $('ingreso-semana-row').style.display = esIngreso ? 'block' : 'none';
+    if (esAjuste) {
+      ajusteDir = m.ajusteDir || 'sumar';
+      document.querySelectorAll('.ajuste-dir-btn').forEach((b) => {
+        b.classList.toggle('active', b.dataset.dir === ajusteDir);
+      });
+    }
+    renderCatSelect();
+    if (esIngreso) { ingresoSemanaOffset = 0; actualizarSemanaIngreso(); } // semana actual, no la del original
+    else { $('m-fecha').value = today(); }
+    if (!esAjuste) $('m-cat').value = m.cat || '';
+    $('m-monto').value = m.monto != null ? String(m.monto) : '';
+    $('m-desc').value = m.desc || '';
+    $('btn-guardar-mov').textContent = 'Guardar movimiento';
+    document.querySelector('.gc-tab[data-tab="movimientos"]').click();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    $('m-monto').focus();
+    toast('Movimiento repetido con la fecha de hoy — revisa el monto y guarda', 'info', 3200);
   }
 
   // ---- Reparto semanal ----
@@ -2669,6 +2747,47 @@
     if (invDir) invDir.value = dir;
     toast('Dirección guardada ✓', 'success');
   });
+
+  // ---- Apariencia: color de acento (se guarda solo en este dispositivo) ----
+  function aplicarAcento(nombre) {
+    if (nombre === 'cobre') document.documentElement.removeAttribute('data-accent');
+    else document.documentElement.setAttribute('data-accent', nombre);
+    document.querySelectorAll('.aj-accent-sw').forEach((sw) => {
+      sw.classList.toggle('active', sw.dataset.accent === nombre);
+    });
+  }
+  (function initAcento() {
+    let guardado = 'cobre';
+    try { guardado = localStorage.getItem('gh-accent') || 'cobre'; } catch (e) {}
+    aplicarAcento(guardado);
+  })();
+  document.querySelectorAll('.aj-accent-sw').forEach((sw) => {
+    sw.addEventListener('click', () => {
+      const nombre = sw.dataset.accent;
+      aplicarAcento(nombre);
+      try { localStorage.setItem('gh-accent', nombre); } catch (e) {}
+      toast('Color de acento actualizado ✓', 'success', 1800);
+    });
+  });
+
+  // ---- Mi cuenta: solo aplica en la versión con login (GH_ESPERAR_SESION) ----
+  (function initCuenta() {
+    if (typeof window.GH_ESPERAR_SESION !== 'function') {
+      const card = $('aj-card-cuenta');
+      if (card) card.style.display = 'none'; // versión de escritorio / sin login: no aplica
+      return;
+    }
+    window.GH_ESPERAR_SESION().then(() => {
+      $('aj-cuenta-nombre').textContent = window.GH_NOMBRE || 'usuario';
+      $('aj-cuenta-rol').textContent = window.GH_ROL ? `(${window.GH_ROL})` : '';
+      const btn = $('btn-cerrar-sesion');
+      btn.style.display = 'inline-block';
+      btn.addEventListener('click', async () => {
+        if (!await gcConfirm('¿Cerrar tu sesión?', { okText: 'Cerrar sesión' })) return;
+        if (typeof window.GH_CERRAR_SESION === 'function') window.GH_CERRAR_SESION();
+      });
+    });
+  })();
 
   // ====================================================================
   // MÓDULO: EMPLEADOS Y DOCUMENTOS
