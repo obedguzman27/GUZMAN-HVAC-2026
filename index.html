@@ -514,7 +514,7 @@
     </div>
     <!-- Stats acumulados de invoices guardados -->
     <div class="gc-stats" style="grid-template-columns:1fr; margin-top:-8px;">
-      <div class="gc-stat" style="border-color:#6A89CC;"><div class="gc-stat-icon" style="background:#EEF2FF;">🏠</div><div><div class="gc-stat-label">Taxas de GUZMAN HVAC</div><div class="gc-stat-val" id="stat-tax-guzman" style="color:#4A6FA8;">$0.00</div></div></div>
+      <div class="gc-stat" style="border-color:#6A89CC;"><div class="gc-stat-icon" style="background:#EEF2FF;">🏠</div><div><div class="gc-stat-label">Taxas de <span class="socio-mitad">GUZMAN HVAC</span></div><div class="gc-stat-val" id="stat-tax-guzman" style="color:#4A6FA8;">$0.00</div></div></div>
     </div>
 
     <!-- Gráfica de tendencia semanal (ingresos vs gastos) -->
@@ -539,12 +539,12 @@
         <button class="gc-type-btn" data-type="ajuste">± Ajuste CRA</button>
       </div>
       <div id="ajuste-direccion-row" style="display:none;margin-bottom:14px;">
-        <div class="gc-field"><label>Tipo de ajuste a CRA HVAC</label>
+        <div class="gc-field"><label>Tipo de ajuste a <span class="socio-bonus">CRA HVAC</span></label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
             <button type="button" class="gc-type-btn ajuste-dir-btn active" data-dir="sumar" style="grid-template-columns:none;">+ Sumar a CRA</button>
             <button type="button" class="gc-type-btn ajuste-dir-btn" data-dir="restar">− Restar a CRA</button>
           </div>
-          <p style="font-size:11.5px;color:var(--muted);margin-top:8px;">💡 Al sumar/restar dinero a CRA HVAC, se genera un bono del 10% que sale de las taxas (igual que el bono normal). Ej: CRA pagó a un trabajador, compró algo, o le debe algo a GUZMAN.</p>
+          <p style="font-size:11.5px;color:var(--muted);margin-top:8px;">💡 Al sumar/restar dinero a <span class="socio-bonus">CRA HVAC</span>, se genera un bono del 10% que sale de las taxas (igual que el bono normal). Ej: el socio pagó a un trabajador, compró algo, o le debe algo al otro.</p>
         </div>
       </div>
       <div id="ingreso-semana-row" style="display:none;margin-bottom:14px;">
@@ -594,7 +594,7 @@
 
   <!-- ===== REGISTRO SEMANAL ===== -->
   <div class="gc-panel" id="panel-reparto">
-    <div class="gc-note"><strong>Registro de invoices guardados.</strong> Aquí solo aparecen las semanas que ya guardaste como invoice desde Movimientos. Cada uno muestra el reparto CRA HVAC / GUZMAN HVAC. Usa "Ver" para el detalle o "Editar" para reabrirlo.</div>
+    <div class="gc-note"><strong>Registro de invoices guardados.</strong> Aquí solo aparecen las semanas que ya guardaste como invoice desde Movimientos. Cada uno muestra el reparto <span class="socio-bonus">CRA HVAC</span> / <span class="socio-mitad">GUZMAN HVAC</span>. Usa "Ver" para el detalle o "Editar" para reabrirlo.</div>
 
     <!-- Invoice Save -->
     <div class="gc-card" style="margin-top:8px;">
@@ -602,7 +602,7 @@
       <div class="gc-empty" id="empty-invoices-guardados" style="display:none;">No hay invoices guardados. Ve a Movimientos y guarda una semana.</div>
       <table class="gc-inv-table" id="tabla-invoices-guardados" style="display:none;">
         <thead><tr>
-          <th>Semana</th><th>Guardado</th><th class="num">Gastos</th><th class="num">CRA HVAC</th><th class="num">GUZMAN HVAC</th><th></th>
+          <th>Semana</th><th>Guardado</th><th class="num">Gastos</th><th class="num socio-bonus">CRA HVAC</th><th class="num socio-mitad">GUZMAN HVAC</th><th></th>
         </tr></thead>
         <tbody id="tbody-invoices-guardados"></tbody>
       </table>
@@ -691,7 +691,7 @@
 
     <!-- General: respaldo + opciones -->
     <div class="aj-subpanel active" id="aj-sub-general">
-      <div class="gc-note">Los datos se guardan en <strong>datos-guzman-hvac.json</strong> dentro de tu carpeta de OneDrive automáticamente. Descarga aquí un respaldo extra en cualquier momento.</div>
+      <div class="gc-note">Tus datos se guardan y sincronizan <strong>en la nube</strong> automáticamente con tu usuario. Aquí puedes descargar un respaldo extra (.json) en cualquier momento.</div>
       <div class="gc-resp-grid">
         <div class="gc-card">
           <p class="gc-card-title">💾 Descargar respaldo</p>
@@ -707,15 +707,39 @@
         </div>
       </div>
 
-      <!-- Opciones de la empresa -->
+      <!-- Nombres de los socios (reparto) -->
       <div class="gc-card" style="margin-top:16px;">
-        <p class="gc-card-title">🏢 Datos de la empresa (para facturas)</p>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">La dirección se guarda y aparece automáticamente en tus facturas nuevas.</p>
-        <div class="gc-field"><label>Dirección de GUZMAN HVAC</label>
+        <p class="gc-card-title">🤝 Nombres de los socios (reparto)</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Estos nombres aparecen en el reparto de cada semana. El <strong>Socio 1</strong> recibe la mitad + el bono; el <strong>Socio 2</strong> recibe solo su mitad. Puedes intercambiarlos o usar un solo nombre.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;" id="aj-socios-grid">
+          <div class="gc-field"><label>Socio 1 (mitad + bono)</label>
+            <input type="text" id="aj-socio-bonus" placeholder="Ej. CRA HVAC" autocomplete="off">
+          </div>
+          <div class="gc-field" id="aj-socio-mitad-wrap"><label>Socio 2 (solo mitad)</label>
+            <input type="text" id="aj-socio-mitad" placeholder="Ej. GUZMAN HVAC" autocomplete="off">
+          </div>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:var(--ink);cursor:pointer;">
+          <input type="checkbox" id="aj-un-socio" style="width:16px;height:16px;"> Usar un solo nombre para los dos
+        </label>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:10px;flex-wrap:wrap;">
+          <button class="gc-action-btn" id="aj-btn-swap-socios">⇄ Intercambiar los dos nombres</button>
+          <button class="gc-save-btn" id="aj-btn-guardar-socios">Guardar nombres</button>
+        </div>
+      </div>
+
+      <!-- Datos de la factura -->
+      <div class="gc-card" style="margin-top:16px;">
+        <p class="gc-card-title">🧾 Datos de la factura y recibos</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">El nombre y la dirección aparecen en las facturas y recibos. Se guardan en la nube — ya <strong>no se borran</strong> al cerrar sesión.</p>
+        <div class="gc-field" style="margin-bottom:12px;"><label>Nombre en la factura / recibos</label>
+          <input type="text" id="aj-factura-nombre" placeholder="Ej. GUZMAN HVAC" autocomplete="off">
+        </div>
+        <div class="gc-field"><label>Dirección (aparece en la factura)</label>
           <input type="text" id="aj-direccion-empresa" placeholder="Ej. 1234 Main St, Nashville, TN 37201" autocomplete="off">
         </div>
         <div style="display:flex;justify-content:flex-end;margin-top:12px;">
-          <button class="gc-save-btn" id="aj-btn-guardar-direccion">Guardar dirección</button>
+          <button class="gc-save-btn" id="aj-btn-guardar-factura">Guardar datos de factura</button>
         </div>
       </div>
 
@@ -743,7 +767,7 @@
         <p class="gc-card-title">ℹ️ Acerca de</p>
         <p style="font-size:13px;color:var(--muted);line-height:1.7;">
           <strong>Kontaly</strong> — Sistema de cuentas, facturas y nómina.<br>
-          Tus datos se guardan localmente y se sincronizan por OneDrive. Recuerda descargar un respaldo de vez en cuando.
+          Tus datos se sincronizan en la nube y están disponibles en todos tus dispositivos con tu usuario. Aun así, puedes descargar un respaldo cuando quieras.
         </p>
       </div>
     </div>
@@ -981,7 +1005,7 @@
           <datalist id="dl-clientes"></datalist>
         </div>
       </div>
-      <div class="gc-field"><label>Dirección de GUZMAN HVAC (opcional — aparece en la factura)</label>
+      <div class="gc-field"><label>Dirección (opcional — aparece en la factura)</label>
         <input type="text" id="inv-direccion-emisor" placeholder="Ej. 1234 Main St, Nashville, TN 37201" autocomplete="off">
       </div>
     </div>
@@ -1303,6 +1327,44 @@
   // Debounce: evita re-renderizar en cada tecla (más rápido y fluido)
   const debounce = (fn, ms = 180) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
   const today = () => new Date().toISOString().slice(0, 10);
+
+  // ============================================================
+  // CONFIGURACIÓN DE NOMBRES (socios + factura) — se guarda en la nube
+  // ============================================================
+  // Socio BONUS = quien recibe mitad + bono (pagoCra). Por defecto "CRA HVAC".
+  // Socio MITAD = quien recibe solo la mitad (pagoGuzman). Por defecto "GUZMAN HVAC".
+  const CFG_KEY = 'kontaly-config';
+  let cfgSocioBonus = 'CRA HVAC';
+  let cfgSocioMitad = 'GUZMAN HVAC';
+  let cfgFacturaNombre = 'GUZMAN HVAC';
+  let cfgFacturaDireccion = '';
+
+  async function cargarConfig() {
+    try {
+      const r = await window.storage.get(CFG_KEY);
+      const c = JSON.parse(r.value);
+      if (c.socioBonus) cfgSocioBonus = c.socioBonus;
+      if (c.socioMitad) cfgSocioMitad = c.socioMitad;
+      if (c.facturaNombre) cfgFacturaNombre = c.facturaNombre;
+      if (typeof c.facturaDireccion === 'string') cfgFacturaDireccion = c.facturaDireccion;
+    } catch (e) {
+      // Migración: si había una dirección vieja en localStorage, usarla
+      try { const d = localStorage.getItem('cra-direccion'); if (d) cfgFacturaDireccion = d; } catch (e2) {}
+    }
+    aplicarNombresEstaticos();
+  }
+  async function guardarConfig() {
+    const c = {
+      socioBonus: cfgSocioBonus, socioMitad: cfgSocioMitad,
+      facturaNombre: cfgFacturaNombre, facturaDireccion: cfgFacturaDireccion
+    };
+    try { await window.storage.set(CFG_KEY, JSON.stringify(c)); } catch (e) {}
+  }
+  // Actualiza los textos fijos del HTML que muestran los nombres de los socios
+  function aplicarNombresEstaticos() {
+    document.querySelectorAll('.socio-bonus').forEach((e) => { e.textContent = cfgSocioBonus; });
+    document.querySelectorAll('.socio-mitad').forEach((e) => { e.textContent = cfgSocioMitad; });
+  }
   const fmtDia = (iso) => { const [y, m, d] = iso.split('-'); return `${d}/${m}`; };
 
   const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
@@ -1377,12 +1439,14 @@
       window.storage.get(KEY_CAT_GASTO, false).catch(() => null),
       window.storage.get(KEY_CAT_INGRESO, false).catch(() => null),
       window.storage.get(KEY_INVOICES, false).catch(() => null),
+      cargarConfig(),  // nombres de socios + factura (nube)
     ]);
     try { movimientos = rMov && rMov.value ? JSON.parse(rMov.value) : []; } catch (e) { movimientos = []; }
     try { catGastos = rGas && rGas.value ? JSON.parse(rGas.value) : DEFAULT_GASTOS.slice(); } catch (e) { catGastos = DEFAULT_GASTOS.slice(); }
     try { catIngresos = rIng && rIng.value ? JSON.parse(rIng.value) : DEFAULT_INGRESOS.slice(); } catch (e) { catIngresos = DEFAULT_INGRESOS.slice(); }
     try { invoicesGuardados = rInv && rInv.value ? JSON.parse(rInv.value) : []; } catch (e) { invoicesGuardados = []; }
 
+    aplicarNombresEstaticos();
     renderCategorias();
     renderCatSelect();
     renderMovimientos();
@@ -2135,12 +2199,12 @@
         lista.push({ id: 'inv-ing-' + inv.id, fecha: fechaInv, tipo: 'ingreso', cat: 'Ingresos semanales', monto: inv.ingresos, desc: inv.label || '', _invId: inv.id, _archivado: true });
       }
       // Pago a GUZMAN HVAC
-      if (inv.pagoCra != null && !lista.find((m) => m._invId === inv.id && m.cat === 'Pago CRA HVAC')) {
-        lista.push({ id: 'inv-cra-' + inv.id, fecha: fechaInv, tipo: 'gasto', cat: 'Pago CRA HVAC', monto: inv.pagoCra, desc: inv.label || '', _invId: inv.id, _archivado: true });
+      if (inv.pagoCra != null && !lista.find((m) => m._invId === inv.id && m.cat === 'Pago ' + cfgSocioBonus)) {
+        lista.push({ id: 'inv-cra-' + inv.id, fecha: fechaInv, tipo: 'gasto', cat: 'Pago ' + cfgSocioBonus, monto: inv.pagoCra, desc: inv.label || '', _invId: inv.id, _archivado: true });
       }
       // Pago a CRA HVAC
-      if (inv.pagoGuzman != null && !lista.find((m) => m._invId === inv.id && m.cat === 'Pago GUZMAN HVAC')) {
-        lista.push({ id: 'inv-guz-' + inv.id, fecha: fechaInv, tipo: 'gasto', cat: 'Pago GUZMAN HVAC', monto: inv.pagoGuzman, desc: inv.label || '', _invId: inv.id, _archivado: true });
+      if (inv.pagoGuzman != null && !lista.find((m) => m._invId === inv.id && m.cat === 'Pago ' + cfgSocioMitad)) {
+        lista.push({ id: 'inv-guz-' + inv.id, fecha: fechaInv, tipo: 'gasto', cat: 'Pago ' + cfgSocioMitad, monto: inv.pagoGuzman, desc: inv.label || '', _invId: inv.id, _archivado: true });
       }
       // Ajuste a CRA HVAC (desglosado) — solo si hubo ajuste en la semana
       if (inv.ajusteGuzman && !lista.find((m) => m._invId === inv.id && m.cat && m.cat.startsWith('Ajuste'))) {
@@ -2149,7 +2213,7 @@
           id: 'inv-aj-' + inv.id,
           fecha: fechaInv,
           tipo: 'ajuste',
-          cat: esSuma ? 'Ajuste + CRA HVAC' : 'Ajuste − CRA HVAC',
+          cat: esSuma ? ('Ajuste + ' + cfgSocioBonus) : ('Ajuste − ' + cfgSocioBonus),
           monto: Math.abs(inv.ajusteGuzman),
           desc: inv.label || '',
           _invId: inv.id, _archivado: true
@@ -2278,7 +2342,7 @@
       : `<tr><td colspan="4" style="color:#777; font-style:italic;">Sin gastos capturados esta semana</td></tr>`;
 
     return `
-      <h1>GUZMAN HVAC</h1>
+      <h1>${cfgFacturaNombre}</h1>
       <div class="ps-badge">${escapeHtml(inv.label || '')}${inv.guardadoEn ? ' · guardado el ' + new Date(inv.guardadoEn).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }) : ''}</div>
 
       <h2>Detalle de gastos</h2>
@@ -2298,21 +2362,21 @@
           <tr><td>Ingresos</td><td class="num">${fmt(inv.ingresos)}</td></tr>
           <tr><td>Total gastos (incluye taxas)</td><td class="num">${fmt(inv.gastosTotales)}</td></tr>
           <tr><td>Neto a repartir</td><td class="num">${fmt(inv.neto)}</td></tr>
-          ${inv.ajusteGuzman ? `<tr><td>Ajuste a CRA HVAC ${inv.ajusteGuzman > 0 ? '(+)' : '(−)'}</td><td class="num">${fmt(inv.ajusteGuzman)}</td></tr>` : ''}
+          ${inv.ajusteGuzman ? `<tr><td>Ajuste a ${cfgSocioBonus} ${inv.ajusteGuzman > 0 ? '(+)' : '(−)'}</td><td class="num">${fmt(inv.ajusteGuzman)}</td></tr>` : ''}
           ${inv.bonoAjuste ? `<tr><td>Bono 10% del ajuste (sale de taxas)</td><td class="num">${fmt(inv.bonoAjuste)}</td></tr>` : ''}
-          <tr><td>Tax de GUZMAN HVAC</td><td class="num">${fmt(inv.taxGuzman)}</td></tr>
+          <tr><td>Tax de ${cfgSocioMitad}</td><td class="num">${fmt(inv.taxGuzman)}</td></tr>
         </tbody>
       </table>
 
       <h2>Reparto</h2>
       <div class="ps-split">
         <div class="ps-split-box">
-          <div class="ps-name">CRA HVAC</div>
+          <div class="ps-name">${cfgSocioBonus}</div>
           <div class="ps-total">${fmt(inv.pagoCra)}</div>
           <div class="ps-note">mitad ${fmt(inv.mitad)} + bono (${fmt(inv.bonoCra)})${inv.ajusteGuzman ? ` + ajuste ${fmt(inv.ajusteGuzman)}` : ''}</div>
         </div>
         <div class="ps-split-box">
-          <div class="ps-name">GUZMAN HVAC</div>
+          <div class="ps-name">${cfgSocioMitad}</div>
           <div class="ps-total">${fmt(inv.pagoGuzman)}</div>
           <div class="ps-note">mitad del neto</div>
         </div>
@@ -2332,7 +2396,7 @@
   function imprimirContenido(htmlCuerpo, titulo) {
     const area = document.getElementById('print-area');
     area.innerHTML = `<div class="gc-print-sheet">${htmlCuerpo}</div>`;
-    document.title = titulo || 'GUZMAN HVAC';
+    document.title = titulo || cfgFacturaNombre;
     window.print();
     setTimeout(() => { area.innerHTML = ''; }, 500);
   }
@@ -2427,7 +2491,7 @@
 
     const cuerpoHTML = `
       <div style="font-family:Arial,Helvetica,sans-serif;color:#2A2A2A;">
-        <h1 style="font-size:20px;margin:0;">GUZMAN HVAC</h1>
+        <h1 style="font-size:20px;margin:0;">${cfgFacturaNombre}</h1>
         <h2 style="font-size:14px;margin:20px 0 8px;color:#1B2A4A;">Movimientos</h2>
         <table style="width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:16px;">
           <thead><tr>
@@ -2447,8 +2511,8 @@
             <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">Gastos</th>
             <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">Taxas</th>
             <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">Neto</th>
-            <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">CRA HVAC</th>
-            <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">GUZMAN HVAC</th>
+            <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">${cfgSocioBonus}</th>
+            <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">${cfgSocioMitad}</th>
             <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">Tax Guzman</th>
           </tr></thead>
           <tbody>${filasReparto || '<tr><td colspan="8" style="padding:6px;">Sin datos</td></tr>'}</tbody>
@@ -2735,21 +2799,64 @@
       if (sub === 'empleados') { loadEmpleados().then(() => renderEmpleados()); }
       if (sub === 'papeles') { renderPapeles(); }
       if (sub === 'categorias') { renderCategorias(); }
-      if (sub === 'general') { cargarDireccionEmpresa(); }
+      if (sub === 'general') { cargarFormAjustes(); }
     });
   });
 
-  // Opciones: dirección de la empresa
-  function cargarDireccionEmpresa() {
-    try { $('aj-direccion-empresa').value = localStorage.getItem('cra-direccion') || ''; } catch(e){}
+  // ---- Opciones: nombres de socios + datos de factura (en la nube) ----
+  function cargarFormAjustes() {
+    $('aj-socio-bonus').value = cfgSocioBonus;
+    $('aj-socio-mitad').value = cfgSocioMitad;
+    $('aj-factura-nombre').value = cfgFacturaNombre;
+    $('aj-direccion-empresa').value = cfgFacturaDireccion;
+    // Detectar si ambos socios son iguales (modo "un solo nombre")
+    const unSolo = cfgSocioBonus === cfgSocioMitad;
+    $('aj-un-socio').checked = unSolo;
+    aplicarModoUnSocio(unSolo);
   }
-  $('aj-btn-guardar-direccion').addEventListener('click', () => {
-    const dir = $('aj-direccion-empresa').value.trim();
-    try { localStorage.setItem('cra-direccion', dir); } catch(e){}
-    // Reflejar en el campo de facturas si existe
+  function aplicarModoUnSocio(activo) {
+    $('aj-socio-mitad-wrap').style.display = activo ? 'none' : 'block';
+    $('aj-socios-grid').style.gridTemplateColumns = activo ? '1fr' : '1fr 1fr';
+    if (activo) {
+      $('aj-socio-mitad').value = $('aj-socio-bonus').value;
+      $('aj-btn-swap-socios').style.display = 'none';
+    } else {
+      $('aj-btn-swap-socios').style.display = '';
+    }
+  }
+  $('aj-un-socio').addEventListener('change', () => aplicarModoUnSocio($('aj-un-socio').checked));
+
+  // Intercambiar los dos nombres
+  $('aj-btn-swap-socios').addEventListener('click', () => {
+    const a = $('aj-socio-bonus').value;
+    $('aj-socio-bonus').value = $('aj-socio-mitad').value;
+    $('aj-socio-mitad').value = a;
+  });
+
+  // Guardar nombres de socios
+  $('aj-btn-guardar-socios').addEventListener('click', async () => {
+    const bonus = $('aj-socio-bonus').value.trim();
+    const unSolo = $('aj-un-socio').checked;
+    const mitad = unSolo ? bonus : $('aj-socio-mitad').value.trim();
+    if (!bonus || !mitad) { toast('Escribe el nombre de los socios', 'error'); return; }
+    cfgSocioBonus = bonus;
+    cfgSocioMitad = mitad;
+    await guardarConfig();
+    aplicarNombresEstaticos();
+    renderReparto();
+    if (typeof renderBusqueda === 'function') renderBusqueda();
+    toast('Nombres de socios guardados ✓', 'success');
+  });
+
+  // Guardar datos de factura (nombre + dirección) — en la nube
+  $('aj-btn-guardar-factura').addEventListener('click', async () => {
+    cfgFacturaNombre = $('aj-factura-nombre').value.trim() || cfgFacturaNombre;
+    cfgFacturaDireccion = $('aj-direccion-empresa').value.trim();
+    await guardarConfig();
+    // Reflejar la dirección en el formulario de factura si existe
     const invDir = $('inv-direccion-emisor');
-    if (invDir) invDir.value = dir;
-    toast('Dirección guardada ✓', 'success');
+    if (invDir) invDir.value = cfgFacturaDireccion;
+    toast('Datos de factura guardados ✓', 'success');
   });
 
   // ---- Apariencia: color de acento (se guarda solo en este dispositivo) ----
@@ -2895,7 +3002,7 @@
           <div style="font-size:13px;color:#555;">${escapeHtml(emp.rol||'')} · <span style="color:${emp.estado==='activo'?'#2E8B84':'#C2622E'};font-weight:600;">${emp.estado==='activo'?'Activo':'Inactivo'}</span></div>
         </div>
         <div style="margin-left:auto;text-align:right;">
-          <div style="font-size:11px;color:#888;">GUZMAN HVAC</div>
+          <div style="font-size:11px;color:#888;">${cfgFacturaNombre}</div>
         </div>
       </div>
       <table style="width:100%;border-collapse:collapse;">
@@ -3210,7 +3317,7 @@
     $('inv-num').value = invAutoNum();
     $('inv-fecha').value = invToday();
     $('inv-cliente').value = '';
-    $('inv-direccion-emisor').value = localStorage.getItem('cra-direccion') || '';
+    $('inv-direccion-emisor').value = cfgFacturaDireccion || '';
     $('inv-notas').value = '';
     $('inv-tax').value = '0';
     $('inv-tbody').innerHTML = '';
@@ -3240,7 +3347,7 @@
     };
     const idx = invDocs.findIndex(i => i.id===inv.id);
     if (idx>=0) invDocs[idx]=inv; else invDocs.push(inv);
-    if (inv.direccionEmisor) localStorage.setItem('cra-direccion', inv.direccionEmisor);
+    if (inv.direccionEmisor && inv.direccionEmisor !== cfgFacturaDireccion) { cfgFacturaDireccion = inv.direccionEmisor; guardarConfig(); }
     await invSaveInv();
     toast(idx>=0 ? 'Factura actualizada ✓' : 'Factura guardada ✓');
     invLimpiar();
@@ -3252,7 +3359,7 @@
     $('inv-num').value = inv.numero;
     $('inv-fecha').value = inv.fecha||invToday();
     $('inv-cliente').value = inv.cliente||'';
-    $('inv-direccion-emisor').value = inv.direccionEmisor||localStorage.getItem('cra-direccion')||'';
+    $('inv-direccion-emisor').value = inv.direccionEmisor||cfgFacturaDireccion||'';
     $('inv-notas').value = inv.notas||'';
     $('inv-tax').value = inv.taxPct||0;
     $('inv-tbody').innerHTML = '';
@@ -3274,7 +3381,7 @@
     return `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;border-bottom:3px solid #16233F;padding-bottom:20px;">
         <div>
-          <div style="font-size:24px;font-weight:700;color:#16233F;font-family:Georgia,serif;">GUZMAN HVAC</div>
+          <div style="font-size:24px;font-weight:700;color:#16233F;font-family:Georgia,serif;">${escapeHtml(cfgFacturaNombre)}</div>
           ${inv.direccionEmisor ? `<div style="font-size:12px;color:#666;margin-top:3px;">${escapeHtml(inv.direccionEmisor)}</div>` : ''}
         </div>
         <div style="text-align:right;">
@@ -3302,7 +3409,7 @@
         </table>
       </div>
       ${inv.notas?`<div style="margin-top:24px;padding:12px 16px;background:#F5F8FC;border-left:3px solid #16233F;border-radius:6px;font-size:12.5px;color:#444;line-height:1.6;"><strong>Notes:</strong> ${escapeHtml(inv.notas)}</div>`:''}
-      <div style="margin-top:28px;padding-top:14px;border-top:1px solid #eee;text-align:center;font-size:11px;color:#aaa;">Thank you for your business · GUZMAN HVAC</div>`;
+      <div style="margin-top:28px;padding-top:14px;border-top:1px solid #eee;text-align:center;font-size:11px;color:#aaa;">Thank you for your business · ${escapeHtml(cfgFacturaNombre)}</div>`;
   }
 
   function invMostrarVista(inv) {
@@ -3849,7 +3956,7 @@
     return `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;border-bottom:3px solid #16233F;padding-bottom:18px;">
         <div>
-          <div style="font-size:22px;font-weight:700;color:#16233F;font-family:Georgia,serif;">GUZMAN HVAC</div>
+          <div style="font-size:22px;font-weight:700;color:#16233F;font-family:Georgia,serif;">${escapeHtml(cfgFacturaNombre)}</div>
           <div style="font-size:12px;color:#666;margin-top:3px;">Recibo de pago a trabajador</div>
         </div>
         <div style="text-align:right;">
@@ -3885,9 +3992,9 @@
 
       <div style="margin-top:40px;display:flex;justify-content:space-between;gap:40px;">
         <div style="flex:1;border-top:1px solid #999;padding-top:6px;text-align:center;font-size:11px;color:#888;">Firma del trabajador</div>
-        <div style="flex:1;border-top:1px solid #999;padding-top:6px;text-align:center;font-size:11px;color:#888;">Firma de GUZMAN HVAC</div>
+        <div style="flex:1;border-top:1px solid #999;padding-top:6px;text-align:center;font-size:11px;color:#888;">Firma de ${escapeHtml(cfgFacturaNombre)}</div>
       </div>
-      <div style="margin-top:22px;padding-top:12px;border-top:1px solid #eee;text-align:center;font-size:11px;color:#aaa;">GUZMAN HVAC · Recibo de pago</div>`;
+      <div style="margin-top:22px;padding-top:12px;border-top:1px solid #eee;text-align:center;font-size:11px;color:#aaa;">${escapeHtml(cfgFacturaNombre)} · Recibo de pago</div>`;
   }
 
   let nomReciboEnVista = null;
@@ -4324,7 +4431,7 @@
     return `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;border-bottom:3px solid #16233F;padding-bottom:18px;">
         <div>
-          <div style="font-size:22px;font-weight:700;color:#16233F;font-family:Georgia,serif;">GUZMAN HVAC</div>
+          <div style="font-size:22px;font-weight:700;color:#16233F;font-family:Georgia,serif;">${escapeHtml(cfgFacturaNombre)}</div>
           <div style="font-size:12px;color:#666;margin-top:3px;">Recibo de nómina semanal</div>
         </div>
         <div style="text-align:right;">
@@ -4351,7 +4458,7 @@
         </table>
       </div>
 
-      <div style="margin-top:34px;padding-top:12px;border-top:1px solid #eee;text-align:center;font-size:11px;color:#aaa;">GUZMAN HVAC · Nómina semanal · Semana del ${nomFechaCortaTexto(rango.inicio)} al ${nomFechaCortaTexto(rango.fin)}</div>`;
+      <div style="margin-top:34px;padding-top:12px;border-top:1px solid #eee;text-align:center;font-size:11px;color:#aaa;">${escapeHtml(cfgFacturaNombre)} · Nómina semanal · Semana del ${nomFechaCortaTexto(rango.inicio)} al ${nomFechaCortaTexto(rango.fin)}</div>`;
   }
 
   let nomSemReciboWk = null;
