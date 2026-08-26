@@ -790,24 +790,39 @@
 
       <!-- Cuentas (información separada) -->
       <div class="gc-card" style="margin-top:16px;" id="aj-card-cuentas">
-        <p class="gc-card-title">🗂️ Cuentas (información separada)</p>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Cada cuenta guarda su <strong>propia</strong> información: movimientos, invoices, nómina, trabajadores y categorías. Cambia de cuenta para trabajar con otra información distinta. Para que <strong>dos cuentas compartan</strong> la misma información, usa el <strong>mismo código</strong> en ambas.</p>
-        <div class="gc-field" style="margin-bottom:12px;"><label>Cuenta actual</label>
+        <p class="gc-card-title">🗂️ Base de datos que estás viendo</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Cada base de datos guarda su <strong>propia</strong> información (movimientos, invoices, nómina, trabajadores, categorías). Estás viendo la marcada abajo.</p>
+        <div class="gc-field" style="margin-bottom:12px;"><label>Base de datos actual</label>
           <input type="text" id="aj-cuenta-actual" readonly style="font-weight:600;background:#EEF2FF;">
         </div>
-        <div class="gc-field"><label>Cambiar o crear cuenta (escribe un código)</label>
-          <input type="text" id="aj-cuenta-nueva" placeholder="Ej. principal, cuenta2, taller-norte…" autocomplete="off">
+        <div id="aj-switch-wrap" style="display:none;">
+          <div class="gc-field"><label>Cambiar a otra base de datos</label>
+            <select id="aj-cuenta-select"></select>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+            <button class="gc-save-btn" id="aj-btn-cambiar-cuenta">Ver esta base de datos</button>
+          </div>
+          <p style="font-size:11px;color:var(--muted);margin-top:10px;">💡 Al cambiar, la app se recargará para mostrar esa base de datos.</p>
         </div>
-        <div style="display:flex;justify-content:flex-end;margin-top:12px;">
-          <button class="gc-save-btn" id="aj-btn-cambiar-cuenta">Cambiar de cuenta</button>
-        </div>
-        <p style="font-size:11px;color:var(--muted);margin-top:10px;">💡 Escribe <strong>principal</strong> para volver a tu información original. Al cambiar, la app se recargará para mostrar esa cuenta.</p>
       </div>
 
-      <!-- Administrar usuarios y cuentas (solo admin) -->
+      <!-- Bases de datos con nombre (solo admin) -->
+      <div class="gc-card" style="margin-top:16px;display:none;" id="aj-card-bd">
+        <p class="gc-card-title">🗄️ Bases de datos</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Crea las bases de datos con el nombre que quieras (ej. <em>Guzman HVAC Airton</em>, <em>Guzman HVAC Estrada</em>). Luego, abajo, asignas cada usuario a una de ellas.</p>
+        <div id="aj-bd-lista" style="margin-bottom:14px;"></div>
+        <div class="gc-field"><label>Nombre de la nueva base de datos</label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="aj-bd-nueva" placeholder="Ej. Guzman HVAC Airton" autocomplete="off" style="flex:1;">
+            <button type="button" class="gc-action-btn" id="aj-btn-add-bd">+ Crear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Administrar usuarios (solo admin) -->
       <div class="gc-card" style="margin-top:16px;display:none;" id="aj-card-admin">
-        <p class="gc-card-title">🛠️ Administrar usuarios y cuentas</p>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Aquí eliges qué cuenta ve cada usuario, apruebas cuentas nuevas y defines el rol. <strong>Los usuarios con la misma cuenta ven la misma información.</strong></p>
+        <p class="gc-card-title">🛠️ Usuarios y a qué base de datos entran</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Elige a qué base de datos entra cada usuario, apruébalos y define su rol. <strong>Los usuarios en la misma base de datos ven la misma información.</strong></p>
         <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
           <button class="gc-action-btn" id="aj-btn-refrescar-usuarios">🔄 Actualizar lista</button>
         </div>
@@ -1410,7 +1425,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v6 · 26 ago';
+  const APP_VERSION = 'v7 · 26 ago';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -2929,16 +2944,21 @@
     aplicarFacturaSigueSocio(cfgFacturaSigueSocio);
     // Cuenta actual (información separada)
     if (typeof window.GH_GET_CUENTA === 'function') {
-      $('aj-cuenta-actual').value = window.GH_GET_CUENTA();
+      $('aj-cuenta-actual').value = 'cargando…';
+      ajCargarCuentas().then(() => {
+        const actual = window.GH_GET_CUENTA();
+        $('aj-cuenta-actual').value = ajNombreDe(actual);
+        const esAdmin = (window.GH_ROL || 'admin') === 'admin';
+        // Menú para cambiar de base de datos (solo admin)
+        $('aj-switch-wrap').style.display = esAdmin ? 'block' : 'none';
+        if (esAdmin) ajLlenarSelect($('aj-cuenta-select'), actual);
+        // Tarjetas de admin
+        const cardBD = $('aj-card-bd'); if (cardBD) cardBD.style.display = esAdmin ? 'block' : 'none';
+        const cardAdmin = $('aj-card-admin'); if (cardAdmin) cardAdmin.style.display = (esAdmin && typeof window.GH_LISTAR_USUARIOS === 'function') ? 'block' : 'none';
+        if (esAdmin) { ajRenderBD(); if (typeof window.GH_LISTAR_USUARIOS === 'function') ajCargarUsuarios(); }
+      });
     } else {
       const wrap = $('aj-card-cuentas'); if (wrap) wrap.style.display = 'none';
-    }
-    // Panel de administración: solo para admin
-    const cardAdmin = $('aj-card-admin');
-    if (cardAdmin) {
-      const esAdmin = (window.GH_ROL || 'admin') === 'admin' && typeof window.GH_LISTAR_USUARIOS === 'function';
-      cardAdmin.style.display = esAdmin ? 'block' : 'none';
-      if (esAdmin) ajCargarUsuarios();
     }
   }
   function aplicarModoUnSocio(activo) {
@@ -2998,27 +3018,88 @@
     toast('Datos de factura guardados ✓', 'success');
   });
 
-  // Cambiar de cuenta (información separada)
-  if ($('aj-btn-cambiar-cuenta')) {
-    $('aj-btn-cambiar-cuenta').addEventListener('click', async () => {
-      if (typeof window.GH_SET_CUENTA !== 'function') { toast('Las cuentas solo funcionan con sesión en la nube', 'info'); return; }
-      const codigo = ($('aj-cuenta-nueva').value || '').trim();
-      if (!codigo) { toast('Escribe un código de cuenta', 'error'); return; }
-      const actual = window.GH_GET_CUENTA();
-      const limpio = codigo.toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || 'principal';
-      if (limpio === actual) { toast('Ya estás en esa cuenta', 'info'); return; }
-      const msg = limpio === 'principal'
-        ? '¿Volver a tu cuenta principal (tu información original)?'
-        : `¿Cambiar a la cuenta "${limpio}"? Verás la información de esa cuenta (vacía si es nueva). Podrás regresar escribiendo "principal".`;
-      if (!await gcConfirm(msg, { okText: 'Cambiar' })) return;
-      await window.GH_SET_CUENTA(limpio);
-      toast('Cambiando de cuenta…', 'success');
-      setTimeout(() => location.reload(), 700);
+  // ---- Bases de datos con nombre + administración (solo admin) ----
+  let ajCuentas = [];  // [{codigo, nombre}]
+
+  function ajSlug(nombre) {
+    return (nombre || '').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || ('bd-' + Date.now());
+  }
+  function ajNombreDe(codigo) {
+    const c = ajCuentas.find((x) => x.codigo === codigo);
+    return c ? c.nombre : codigo;
+  }
+
+  async function ajCargarCuentas() {
+    ajCuentas = [{ codigo: 'principal', nombre: 'Principal (información original)' }];
+    try {
+      const r = await window.storage.get('__cuentas_lista');
+      const guardadas = JSON.parse(r.value);
+      if (Array.isArray(guardadas)) guardadas.forEach((c) => { if (c && c.codigo && c.codigo !== 'principal') ajCuentas.push({ codigo: c.codigo, nombre: c.nombre || c.codigo }); });
+    } catch (e) {}
+    return ajCuentas;
+  }
+  async function ajGuardarCuentas() {
+    const guardar = ajCuentas.filter((c) => c.codigo !== 'principal');
+    await window.storage.set('__cuentas_lista', JSON.stringify(guardar));
+  }
+
+  // Rellena un <select> con las bases de datos
+  function ajLlenarSelect(sel, seleccionado) {
+    if (!sel) return;
+    sel.innerHTML = ajCuentas.map((c) => `<option value="${escapeHtml(c.codigo)}"${c.codigo === seleccionado ? ' selected' : ''}>${escapeHtml(c.nombre)}</option>`).join('');
+  }
+
+  // Render de la lista de bases de datos (admin)
+  function ajRenderBD() {
+    const cont = $('aj-bd-lista');
+    if (!cont) return;
+    cont.innerHTML = ajCuentas.map((c) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+        <div><span style="font-weight:600;">${escapeHtml(c.nombre)}</span> <span style="font-size:11px;color:var(--muted);">(${escapeHtml(c.codigo)})</span></div>
+        ${c.codigo === 'principal' ? '<span style="font-size:11px;color:var(--muted);">fija</span>' : `<button class="gc-del aj-bd-del" data-codigo="${escapeHtml(c.codigo)}">✕</button>`}
+      </div>`).join('');
+    cont.querySelectorAll('.aj-bd-del').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!await gcConfirm(`¿Quitar la base de datos "${ajNombreDe(btn.dataset.codigo)}" de la lista? La información no se borra, pero dejará de aparecer para asignar.`, { okText: 'Quitar', danger: true })) return;
+        ajCuentas = ajCuentas.filter((c) => c.codigo !== btn.dataset.codigo);
+        await ajGuardarCuentas();
+        ajRenderBD();
+        ajLlenarSelect($('aj-cuenta-select'), window.GH_GET_CUENTA && window.GH_GET_CUENTA());
+        toast('Base de datos quitada de la lista', 'info');
+      });
     });
   }
 
-  // ---- Panel de administración de usuarios y cuentas (solo admin) ----
-  function ajEsAdmin() { return (window.GH_ROL || 'admin') === 'admin'; }
+  // Crear una base de datos nueva con nombre
+  if ($('aj-btn-add-bd')) {
+    $('aj-btn-add-bd').addEventListener('click', async () => {
+      const nombre = ($('aj-bd-nueva').value || '').trim();
+      if (!nombre) { toast('Escribe un nombre para la base de datos', 'error'); return; }
+      const codigo = ajSlug(nombre);
+      if (ajCuentas.some((c) => c.codigo === codigo)) { toast('Ya existe una base de datos con ese nombre', 'info'); return; }
+      ajCuentas.push({ codigo, nombre });
+      await ajGuardarCuentas();
+      $('aj-bd-nueva').value = '';
+      ajRenderBD();
+      ajLlenarSelect($('aj-cuenta-select'), window.GH_GET_CUENTA && window.GH_GET_CUENTA());
+      ajCargarUsuarios();
+      toast('Base de datos creada ✓', 'success');
+    });
+  }
+
+  // Cambiar la base de datos que ve el usuario actual (menú)
+  if ($('aj-btn-cambiar-cuenta')) {
+    $('aj-btn-cambiar-cuenta').addEventListener('click', async () => {
+      if (typeof window.GH_SET_CUENTA !== 'function') { toast('Solo funciona con sesión en la nube', 'info'); return; }
+      const codigo = $('aj-cuenta-select').value;
+      const actual = window.GH_GET_CUENTA();
+      if (codigo === actual) { toast('Ya estás en esa base de datos', 'info'); return; }
+      if (!await gcConfirm(`¿Ver la base de datos "${ajNombreDe(codigo)}"?`, { okText: 'Cambiar' })) return;
+      await window.GH_SET_CUENTA(codigo);
+      toast('Cambiando…', 'success');
+      setTimeout(() => location.reload(), 700);
+    });
+  }
 
   async function ajCargarUsuarios() {
     const cont = $('aj-usuarios-lista');
@@ -3032,9 +3113,14 @@
     catch (e) { cont.innerHTML = ''; msg.textContent = 'No se pudo leer la lista de usuarios. Puede que Supabase no permita al admin ver a los demás (hay que ajustar permisos). Detalle: ' + (e.message || e); return; }
     if (!usuarios || usuarios.length === 0) { cont.innerHTML = ''; msg.textContent = 'No hay usuarios para mostrar.'; return; }
     if (usuarios.length === 1) msg.textContent = 'Solo se ve tu propio usuario. Si esperabas ver más, hay que dar permiso en Supabase para que el admin lea todos los perfiles.';
+    else msg.textContent = '';
 
     cont.innerHTML = '';
     usuarios.forEach((u) => {
+      // Asegurar que la cuenta del usuario aparezca en el menú aunque no esté en la lista
+      const opciones = ajCuentas.slice();
+      if (!opciones.some((c) => c.codigo === u.cuenta)) opciones.push({ codigo: u.cuenta, nombre: u.cuenta });
+      const optsHtml = opciones.map((c) => `<option value="${escapeHtml(c.codigo)}"${c.codigo === u.cuenta ? ' selected' : ''}>${escapeHtml(c.nombre)}</option>`).join('');
       const card = document.createElement('div');
       card.style.cssText = 'border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;';
       card.innerHTML = `
@@ -3043,8 +3129,8 @@
           <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:3px 8px;border-radius:20px;background:${u.activo ? '#E3F5E8' : '#FBEEE6'};color:${u.activo ? '#2E7D46' : '#C6551E'};">${u.activo ? 'activo' : 'pendiente'}</span>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-          <div class="gc-field"><label>Cuenta que ve</label>
-            <input type="text" class="admin-cuenta-inp" data-id="${u.id}" value="${escapeHtml(u.cuenta)}" placeholder="principal" autocomplete="off">
+          <div class="gc-field"><label>Base de datos que ve</label>
+            <select class="admin-cuenta-sel" data-id="${u.id}">${optsHtml}</select>
           </div>
           <div class="gc-field"><label>Rol</label>
             <select class="admin-rol-sel" data-id="${u.id}">
@@ -3060,11 +3146,11 @@
       cont.appendChild(card);
     });
 
-    // Guardar (cuenta + rol)
+    // Guardar (base de datos + rol)
     cont.querySelectorAll('.admin-guardar').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const id = btn.dataset.id;
-        const cuenta = cont.querySelector(`.admin-cuenta-inp[data-id="${id}"]`).value.trim();
+        const cuenta = cont.querySelector(`.admin-cuenta-sel[data-id="${id}"]`).value;
         const rol = cont.querySelector(`.admin-rol-sel[data-id="${id}"]`).value;
         try {
           await window.GH_ASIGNAR_CUENTA(id, cuenta);
