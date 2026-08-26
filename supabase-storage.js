@@ -181,6 +181,7 @@
         }
 
         aplicarPerfilGlobal(perfil);
+        await cargarCuentaActiva();
         overlay.remove();
         programarExpiracion();
         resolverSesion();
@@ -201,6 +202,7 @@
         const { data: perfil } = await client.from('perfiles').select('activo,rol,nombre').eq('id', session.user.id).maybeSingle();
         if (perfil && perfil.activo) {
           aplicarPerfilGlobal(perfil);
+          await cargarCuentaActiva();
           programarExpiracion();
           resolverSesion();
           return;
@@ -227,10 +229,85 @@
   };
 
   // ---------- window.storage respaldado por Supabase ----------
+  // Sistema de CUENTAS: cada cuenta tiene su propia información. La cuenta
+  // "principal" usa las claves tal cual (los datos que ya existían). Otras
+  // cuentas anteponen un prefijo "c:<codigo>::" a cada clave, así su
+  // información queda separada. Dos usuarios con el mismo código de cuenta
+  // comparten la misma información.
+  let cuentaActiva = 'principal';
+  function prefijoActual() {
+    return (cuentaActiva && cuentaActiva !== 'principal') ? ('c:' + cuentaActiva + '::') : '';
+  }
+  // Las claves globales (empiezan con __) NO se prefijan: son del sistema
+  // (por ejemplo, el mapeo de qué cuenta usa cada usuario).
+  function claveConCuenta(key) {
+    if (key.startsWith('__')) return key;
+    return prefijoActual() + key;
+  }
+
+  // Lee qué cuenta tiene asignada el usuario actual (por defecto "principal")
+  async function cargarCuentaActiva() {
+    try {
+      const { data: { user } } = await client.auth.getUser();
+      if (!user) { cuentaActiva = 'principal'; return; }
+      window.GH_USER_ID = user.id;
+      const { data } = await client.from('datos_app').select('valor').eq('clave', '__cuenta::' + user.id).maybeSingle();
+      cuentaActiva = (data && data.valor) ? data.valor : 'principal';
+    } catch (e) { cuentaActiva = 'principal'; }
+  }
+
+  window.GH_GET_CUENTA = () => cuentaActiva;
+  window.GH_SET_CUENTA = async (codigo) => {
+    const c = (codigo || 'principal').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || 'principal';
+    const { data: { user } } = await client.auth.getUser();
+    if (user) {
+      await client.from('datos_app').upsert({
+        clave: '__cuenta::' + user.id, valor: c,
+        actualizado_por: user.id, actualizado_en: new Date().toISOString()
+      });
+    }
+    cuentaActiva = c;
+    return c;
+  };
+
+  // ---------- Administración de usuarios y cuentas (solo admin) ----------
+  const limpiarCodigo = (codigo) => (codigo || 'principal').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || 'principal';
+
+  // Lista todos los usuarios (perfiles) con la cuenta que tienen asignada
+  window.GH_LISTAR_USUARIOS = async () => {
+    await sesionLista;
+    const { data: perfiles, error } = await client.from('perfiles').select('id, nombre, rol, activo');
+    if (error) throw error;
+    const { data: mapeos } = await client.from('datos_app').select('clave, valor').like('clave', '__cuenta::%');
+    const cuentaDe = {};
+    (mapeos || []).forEach((m) => { cuentaDe[m.clave.replace('__cuenta::', '')] = m.valor; });
+    return (perfiles || []).map((p) => ({ id: p.id, nombre: p.nombre, rol: p.rol, activo: p.activo, cuenta: cuentaDe[p.id] || 'principal' }));
+  };
+
+  // Asigna una cuenta a un usuario (por su id)
+  window.GH_ASIGNAR_CUENTA = async (userId, codigo) => {
+    await sesionLista;
+    const c = limpiarCodigo(codigo);
+    const { data: { user } } = await client.auth.getUser();
+    const { error } = await client.from('datos_app').upsert({
+      clave: '__cuenta::' + userId, valor: c,
+      actualizado_por: user ? user.id : null, actualizado_en: new Date().toISOString()
+    });
+    if (error) throw error;
+    return c;
+  };
+
+  // Actualiza rol / activo de un usuario
+  window.GH_ACTUALIZAR_PERFIL = async (userId, cambios) => {
+    await sesionLista;
+    const { error } = await client.from('perfiles').update(cambios).eq('id', userId);
+    if (error) throw error;
+  };
+
   window.storage = {
     get: async (key) => {
       await sesionLista;
-      const { data, error } = await client.from('datos_app').select('valor').eq('clave', key).maybeSingle();
+      const { data, error } = await client.from('datos_app').select('valor').eq('clave', claveConCuenta(key)).maybeSingle();
       if (error || !data) throw new Error('not found');
       return { key, value: data.valor, shared: false };
     },
@@ -238,24 +315,29 @@
       await sesionLista;
       const { data: { user } } = await client.auth.getUser();
       const { error } = await client.from('datos_app').upsert({
-        clave: key, valor: value, actualizado_por: user ? user.id : null, actualizado_en: new Date().toISOString()
+        clave: claveConCuenta(key), valor: value, actualizado_por: user ? user.id : null, actualizado_en: new Date().toISOString()
       });
       if (error) throw error;
       return { key, value, shared: false };
     },
     delete: async (key) => {
       await sesionLista;
-      const { error } = await client.from('datos_app').delete().eq('clave', key);
+      const { error } = await client.from('datos_app').delete().eq('clave', claveConCuenta(key));
       if (error) throw error;
       return { key, deleted: true, shared: false };
     },
     list: async (prefix) => {
       await sesionLista;
+      const pfx = prefijoActual();
       let q = client.from('datos_app').select('clave');
-      if (prefix) q = q.like('clave', prefix + '%');
+      if (pfx) q = q.like('clave', pfx + (prefix || '') + '%');
+      else if (prefix) q = q.like('clave', prefix + '%');
       const { data, error } = await q;
       if (error) throw error;
-      return { keys: (data || []).map((r) => r.clave), prefix, shared: false };
+      let keys = (data || []).map((r) => r.clave);
+      if (pfx) keys = keys.filter((k) => k.startsWith(pfx)).map((k) => k.slice(pfx.length));
+      else keys = keys.filter((k) => !k.startsWith('c:') && !k.startsWith('__'));
+      return { keys, prefix, shared: false };
     }
   };
 })();

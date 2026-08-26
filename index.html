@@ -788,6 +788,33 @@
         <button class="gc-action-btn" id="btn-cerrar-sesion" style="display:none;">Cerrar sesión</button>
       </div>
 
+      <!-- Cuentas (información separada) -->
+      <div class="gc-card" style="margin-top:16px;" id="aj-card-cuentas">
+        <p class="gc-card-title">🗂️ Cuentas (información separada)</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Cada cuenta guarda su <strong>propia</strong> información: movimientos, invoices, nómina, trabajadores y categorías. Cambia de cuenta para trabajar con otra información distinta. Para que <strong>dos cuentas compartan</strong> la misma información, usa el <strong>mismo código</strong> en ambas.</p>
+        <div class="gc-field" style="margin-bottom:12px;"><label>Cuenta actual</label>
+          <input type="text" id="aj-cuenta-actual" readonly style="font-weight:600;background:#EEF2FF;">
+        </div>
+        <div class="gc-field"><label>Cambiar o crear cuenta (escribe un código)</label>
+          <input type="text" id="aj-cuenta-nueva" placeholder="Ej. principal, cuenta2, taller-norte…" autocomplete="off">
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+          <button class="gc-save-btn" id="aj-btn-cambiar-cuenta">Cambiar de cuenta</button>
+        </div>
+        <p style="font-size:11px;color:var(--muted);margin-top:10px;">💡 Escribe <strong>principal</strong> para volver a tu información original. Al cambiar, la app se recargará para mostrar esa cuenta.</p>
+      </div>
+
+      <!-- Administrar usuarios y cuentas (solo admin) -->
+      <div class="gc-card" style="margin-top:16px;display:none;" id="aj-card-admin">
+        <p class="gc-card-title">🛠️ Administrar usuarios y cuentas</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Aquí eliges qué cuenta ve cada usuario, apruebas cuentas nuevas y defines el rol. <strong>Los usuarios con la misma cuenta ven la misma información.</strong></p>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+          <button class="gc-action-btn" id="aj-btn-refrescar-usuarios">🔄 Actualizar lista</button>
+        </div>
+        <div id="aj-usuarios-lista"></div>
+        <p id="aj-usuarios-msg" style="font-size:12px;color:var(--muted);margin-top:10px;"></p>
+      </div>
+
       <!-- Info de la app -->
       <div class="gc-card" style="margin-top:16px;">
         <p class="gc-card-title">ℹ️ Acerca de</p>
@@ -1383,7 +1410,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v4 · 26 ago';
+  const APP_VERSION = 'v6 · 26 ago';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -2900,6 +2927,19 @@
     // Casilla: nombre de factura sigue al Socio 2
     $('aj-factura-sigue-socio').checked = cfgFacturaSigueSocio;
     aplicarFacturaSigueSocio(cfgFacturaSigueSocio);
+    // Cuenta actual (información separada)
+    if (typeof window.GH_GET_CUENTA === 'function') {
+      $('aj-cuenta-actual').value = window.GH_GET_CUENTA();
+    } else {
+      const wrap = $('aj-card-cuentas'); if (wrap) wrap.style.display = 'none';
+    }
+    // Panel de administración: solo para admin
+    const cardAdmin = $('aj-card-admin');
+    if (cardAdmin) {
+      const esAdmin = (window.GH_ROL || 'admin') === 'admin' && typeof window.GH_LISTAR_USUARIOS === 'function';
+      cardAdmin.style.display = esAdmin ? 'block' : 'none';
+      if (esAdmin) ajCargarUsuarios();
+    }
   }
   function aplicarModoUnSocio(activo) {
     $('aj-socio-mitad-wrap').style.display = activo ? 'none' : 'block';
@@ -2957,6 +2997,99 @@
     if (invDir) invDir.value = cfgFacturaDireccion;
     toast('Datos de factura guardados ✓', 'success');
   });
+
+  // Cambiar de cuenta (información separada)
+  if ($('aj-btn-cambiar-cuenta')) {
+    $('aj-btn-cambiar-cuenta').addEventListener('click', async () => {
+      if (typeof window.GH_SET_CUENTA !== 'function') { toast('Las cuentas solo funcionan con sesión en la nube', 'info'); return; }
+      const codigo = ($('aj-cuenta-nueva').value || '').trim();
+      if (!codigo) { toast('Escribe un código de cuenta', 'error'); return; }
+      const actual = window.GH_GET_CUENTA();
+      const limpio = codigo.toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || 'principal';
+      if (limpio === actual) { toast('Ya estás en esa cuenta', 'info'); return; }
+      const msg = limpio === 'principal'
+        ? '¿Volver a tu cuenta principal (tu información original)?'
+        : `¿Cambiar a la cuenta "${limpio}"? Verás la información de esa cuenta (vacía si es nueva). Podrás regresar escribiendo "principal".`;
+      if (!await gcConfirm(msg, { okText: 'Cambiar' })) return;
+      await window.GH_SET_CUENTA(limpio);
+      toast('Cambiando de cuenta…', 'success');
+      setTimeout(() => location.reload(), 700);
+    });
+  }
+
+  // ---- Panel de administración de usuarios y cuentas (solo admin) ----
+  function ajEsAdmin() { return (window.GH_ROL || 'admin') === 'admin'; }
+
+  async function ajCargarUsuarios() {
+    const cont = $('aj-usuarios-lista');
+    const msg = $('aj-usuarios-msg');
+    if (!cont) return;
+    cont.innerHTML = '<p style="font-size:13px;color:var(--muted);">Cargando usuarios…</p>';
+    msg.textContent = '';
+    if (typeof window.GH_LISTAR_USUARIOS !== 'function') { cont.innerHTML = ''; msg.textContent = 'Solo disponible con sesión en la nube.'; return; }
+    let usuarios;
+    try { usuarios = await window.GH_LISTAR_USUARIOS(); }
+    catch (e) { cont.innerHTML = ''; msg.textContent = 'No se pudo leer la lista de usuarios. Puede que Supabase no permita al admin ver a los demás (hay que ajustar permisos). Detalle: ' + (e.message || e); return; }
+    if (!usuarios || usuarios.length === 0) { cont.innerHTML = ''; msg.textContent = 'No hay usuarios para mostrar.'; return; }
+    if (usuarios.length === 1) msg.textContent = 'Solo se ve tu propio usuario. Si esperabas ver más, hay que dar permiso en Supabase para que el admin lea todos los perfiles.';
+
+    cont.innerHTML = '';
+    usuarios.forEach((u) => {
+      const card = document.createElement('div');
+      card.style.cssText = 'border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;';
+      card.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+          <div style="font-weight:700;">${escapeHtml(u.nombre || '(sin nombre)')}</div>
+          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:3px 8px;border-radius:20px;background:${u.activo ? '#E3F5E8' : '#FBEEE6'};color:${u.activo ? '#2E7D46' : '#C6551E'};">${u.activo ? 'activo' : 'pendiente'}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <div class="gc-field"><label>Cuenta que ve</label>
+            <input type="text" class="admin-cuenta-inp" data-id="${u.id}" value="${escapeHtml(u.cuenta)}" placeholder="principal" autocomplete="off">
+          </div>
+          <div class="gc-field"><label>Rol</label>
+            <select class="admin-rol-sel" data-id="${u.id}">
+              <option value="admin"${u.rol === 'admin' ? ' selected' : ''}>Admin (edita todo)</option>
+              <option value="visor"${u.rol === 'visor' ? ' selected' : ''}>Visor (solo lectura)</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+          <button class="gc-action-btn admin-toggle-activo" data-id="${u.id}" data-activo="${u.activo ? '1' : '0'}">${u.activo ? '🚫 Desactivar' : '✅ Aprobar / activar'}</button>
+          <button class="gc-save-btn admin-guardar" data-id="${u.id}">Guardar cambios</button>
+        </div>`;
+      cont.appendChild(card);
+    });
+
+    // Guardar (cuenta + rol)
+    cont.querySelectorAll('.admin-guardar').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        const cuenta = cont.querySelector(`.admin-cuenta-inp[data-id="${id}"]`).value.trim();
+        const rol = cont.querySelector(`.admin-rol-sel[data-id="${id}"]`).value;
+        try {
+          await window.GH_ASIGNAR_CUENTA(id, cuenta);
+          await window.GH_ACTUALIZAR_PERFIL(id, { rol });
+          toast('Cambios guardados ✓', 'success');
+        } catch (e) { toast('No se pudo guardar: ' + (e.message || e), 'error', 4000); }
+      });
+    });
+    // Activar / desactivar
+    cont.querySelectorAll('.admin-toggle-activo').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        const nuevo = btn.dataset.activo !== '1';
+        try {
+          await window.GH_ACTUALIZAR_PERFIL(id, { activo: nuevo });
+          toast(nuevo ? 'Usuario activado ✓' : 'Usuario desactivado', 'success');
+          ajCargarUsuarios();
+        } catch (e) { toast('No se pudo cambiar: ' + (e.message || e), 'error', 4000); }
+      });
+    });
+  }
+
+  if ($('aj-btn-refrescar-usuarios')) {
+    $('aj-btn-refrescar-usuarios').addEventListener('click', ajCargarUsuarios);
+  }
 
   // ---- Apariencia: color de acento (se guarda solo en este dispositivo) ----
   function aplicarAcento(nombre) {
