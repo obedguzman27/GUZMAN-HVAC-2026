@@ -500,7 +500,7 @@
 
   <!-- NAV TABS -->
   <nav class="gc-nav">
-    <button class="gc-tab active" data-tab="movimientos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Movimientos</button>
+    <button class="gc-tab active" data-tab="movimientos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Registro</button>
     <button class="gc-tab" data-tab="facturas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Facturas</button>
     <button class="gc-tab" data-tab="nomina"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Nómina</button>
     <button class="gc-tab" data-tab="buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Buscar</button>
@@ -755,7 +755,10 @@
       <div class="gc-card" style="margin-top:16px;">
         <p class="gc-card-title">🧾 Datos de la factura y recibos</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">El nombre y la dirección aparecen en las facturas y recibos. Se guardan en la nube — ya <strong>no se borran</strong> al cerrar sesión.</p>
-        <div class="gc-field" style="margin-bottom:12px;"><label>Nombre en la factura / recibos</label>
+        <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px;color:var(--ink);cursor:pointer;">
+          <input type="checkbox" id="aj-factura-sigue-socio" style="width:16px;height:16px;"> Usar el nombre del <strong>Socio 2</strong> en las facturas y nómina (se actualiza solo al cambiar o intercambiar los socios)
+        </label>
+        <div class="gc-field" style="margin-bottom:12px;" id="aj-factura-nombre-wrap"><label>Nombre en la factura / recibos</label>
           <input type="text" id="aj-factura-nombre" placeholder="Ej. GUZMAN HVAC" autocomplete="off">
         </div>
         <div class="gc-field"><label>Dirección (aparece en la factura)</label>
@@ -848,15 +851,16 @@
     <div class="gc-card">
       <p class="gc-card-title">📝 Registrar pago a trabajador</p>
 
-      <!-- Trabajadores (multi-selección) -->
+      <!-- Trabajadores (escribe/busca y agrega, sin límite) -->
       <div class="gc-field" style="margin-bottom:14px;">
-        <label>Trabajadores (toca uno o varios)</label>
-        <div id="nom-trab-chips" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
-        <div id="nom-trab-vacio" style="font-size:12px;color:var(--muted);margin-top:6px;display:none;">Aún no hay trabajadores. Agrega uno abajo.</div>
-        <div style="display:flex;gap:8px;margin-top:10px;">
-          <input type="text" id="nom-trab-nuevo" placeholder="Agregar trabajador nuevo…" autocomplete="off" style="flex:1;">
+        <label>Trabajadores (escribe o busca y agrega los que necesites)</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="nom-trab-buscar" list="dl-trab-todos" placeholder="Escribe o busca un trabajador…" autocomplete="off" style="flex:1;">
+          <datalist id="dl-trab-todos"></datalist>
           <button type="button" class="gc-action-btn" id="nom-btn-add-trab">+ Agregar</button>
         </div>
+        <div id="nom-trab-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;"></div>
+        <p id="nom-trab-info" style="font-size:12px;color:var(--muted);margin-top:6px;"></p>
       </div>
 
       <!-- Sueldo (solo cuando hay 1 seleccionado) -->
@@ -1379,7 +1383,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v3 · 26 ago';
+  const APP_VERSION = 'v4 · 26 ago';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -1400,6 +1404,7 @@
   let cfgSocioMitad = 'GUZMAN HVAC';
   let cfgFacturaNombre = 'GUZMAN HVAC';
   let cfgFacturaDireccion = '';
+  let cfgFacturaSigueSocio = true;  // el nombre de factura/nómina sigue al Socio 2 (mitad)
 
   async function cargarConfig() {
     try {
@@ -1409,16 +1414,20 @@
       if (c.socioMitad) cfgSocioMitad = c.socioMitad;
       if (c.facturaNombre) cfgFacturaNombre = c.facturaNombre;
       if (typeof c.facturaDireccion === 'string') cfgFacturaDireccion = c.facturaDireccion;
+      if (typeof c.facturaSigueSocio === 'boolean') cfgFacturaSigueSocio = c.facturaSigueSocio;
     } catch (e) {
       // Migración: si había una dirección vieja en localStorage, usarla
       try { const d = localStorage.getItem('cra-direccion'); if (d) cfgFacturaDireccion = d; } catch (e2) {}
     }
+    // Si el nombre de factura sigue al socio, mantenerlo sincronizado
+    if (cfgFacturaSigueSocio) cfgFacturaNombre = cfgSocioMitad;
     aplicarNombresEstaticos();
   }
   async function guardarConfig() {
     const c = {
       socioBonus: cfgSocioBonus, socioMitad: cfgSocioMitad,
-      facturaNombre: cfgFacturaNombre, facturaDireccion: cfgFacturaDireccion
+      facturaNombre: cfgFacturaNombre, facturaDireccion: cfgFacturaDireccion,
+      facturaSigueSocio: cfgFacturaSigueSocio
     };
     try { await window.storage.set(CFG_KEY, JSON.stringify(c)); } catch (e) {}
   }
@@ -2888,6 +2897,9 @@
     const unSolo = cfgSocioBonus === cfgSocioMitad;
     $('aj-un-socio').checked = unSolo;
     aplicarModoUnSocio(unSolo);
+    // Casilla: nombre de factura sigue al Socio 2
+    $('aj-factura-sigue-socio').checked = cfgFacturaSigueSocio;
+    aplicarFacturaSigueSocio(cfgFacturaSigueSocio);
   }
   function aplicarModoUnSocio(activo) {
     $('aj-socio-mitad-wrap').style.display = activo ? 'none' : 'block';
@@ -2901,11 +2913,20 @@
   }
   $('aj-un-socio').addEventListener('change', () => aplicarModoUnSocio($('aj-un-socio').checked));
 
+  // Casilla: el nombre de factura/nómina sigue al Socio 2
+  function aplicarFacturaSigueSocio(activo) {
+    $('aj-factura-nombre-wrap').style.display = activo ? 'none' : 'block';
+    if (activo) $('aj-factura-nombre').value = $('aj-socio-mitad').value;
+  }
+  $('aj-factura-sigue-socio').addEventListener('change', () => aplicarFacturaSigueSocio($('aj-factura-sigue-socio').checked));
+
   // Intercambiar los dos nombres
   $('aj-btn-swap-socios').addEventListener('click', () => {
     const a = $('aj-socio-bonus').value;
     $('aj-socio-bonus').value = $('aj-socio-mitad').value;
     $('aj-socio-mitad').value = a;
+    // Si la factura sigue al Socio 2, reflejar el nuevo nombre
+    if ($('aj-factura-sigue-socio').checked) $('aj-factura-nombre').value = $('aj-socio-mitad').value;
   });
 
   // Guardar nombres de socios
@@ -2916,16 +2937,19 @@
     if (!bonus || !mitad) { toast('Escribe el nombre de los socios', 'error'); return; }
     cfgSocioBonus = bonus;
     cfgSocioMitad = mitad;
+    // Si la factura/nómina sigue al Socio 2, actualizar su nombre también
+    if (cfgFacturaSigueSocio) { cfgFacturaNombre = cfgSocioMitad; $('aj-factura-nombre').value = cfgFacturaNombre; }
     await guardarConfig();
     aplicarNombresEstaticos();
     renderReparto();
     if (typeof renderBusqueda === 'function') renderBusqueda();
-    toast('Nombres de socios guardados ✓', 'success');
+    toast(cfgFacturaSigueSocio ? 'Nombres guardados ✓ (facturas y nómina también)' : 'Nombres de socios guardados ✓', 'success');
   });
 
   // Guardar datos de factura (nombre + dirección) — en la nube
   $('aj-btn-guardar-factura').addEventListener('click', async () => {
-    cfgFacturaNombre = $('aj-factura-nombre').value.trim() || cfgFacturaNombre;
+    cfgFacturaSigueSocio = $('aj-factura-sigue-socio').checked;
+    cfgFacturaNombre = cfgFacturaSigueSocio ? cfgSocioMitad : ($('aj-factura-nombre').value.trim() || cfgFacturaNombre);
     cfgFacturaDireccion = $('aj-direccion-empresa').value.trim();
     await guardarConfig();
     // Reflejar la dirección en el formulario de factura si existe
@@ -3768,7 +3792,7 @@
   async function nomSaveTrab() { await window.storage.set(TRAB_NOM_KEY, JSON.stringify(nomTrabajadores)); nomRefreshDl(); }
 
   function nomRefreshDl() {
-    ['dl-trabajadores', 'dl-trabajadores-2'].forEach((id) => {
+    ['dl-trabajadores', 'dl-trabajadores-2', 'dl-trab-todos'].forEach((id) => {
       const dl = document.getElementById(id);
       if (dl) dl.innerHTML = nomTrabajadores.map((t) => `<option value="${escapeHtml(t.nombre)}">`).join('');
     });
@@ -3781,32 +3805,28 @@
     return parseFloat(v) || 0;
   }
 
-  // ---- Trabajadores: multi-selección con chips ----
+  // ---- Trabajadores: buscar/escribir y agregar (sin mostrar todos, sin límite) ----
   let nomTrabSel = [];  // nombres de trabajadores seleccionados
 
+  // Muestra SOLO los trabajadores seleccionados como chips removibles
   function nomRenderTrabChips() {
     const cont = $('nom-trab-chips');
     if (!cont) return;
     cont.innerHTML = '';
-    $('nom-trab-vacio').style.display = nomTrabajadores.length === 0 ? 'block' : 'none';
-    nomTrabajadores.forEach((t) => {
-      const sel = nomTrabSel.includes(t.nombre);
-      const chip = document.createElement('button');
-      chip.type = 'button';
-      chip.textContent = t.nombre + (sel ? '  ✓' : '');
-      chip.style.cssText = `
-        padding:8px 14px; border-radius:20px; font-size:13px; font-weight:600; cursor:pointer;
-        border:1.5px solid ${sel ? 'var(--navy)' : 'var(--border)'};
-        background:${sel ? 'var(--navy)' : '#fff'}; color:${sel ? '#fff' : 'var(--ink)'};
-        transition: all .1s;
-      `;
-      chip.addEventListener('click', () => {
-        const i = nomTrabSel.indexOf(t.nombre);
-        if (i >= 0) nomTrabSel.splice(i, 1); else nomTrabSel.push(t.nombre);
+    nomTrabSel.forEach((nombre, idx) => {
+      const chip = document.createElement('div');
+      chip.className = 'inv-chip';
+      chip.innerHTML = `<span>${escapeHtml(nombre)}</span><button type="button" data-i="${idx}">✕</button>`;
+      chip.querySelector('button').addEventListener('click', () => {
+        nomTrabSel.splice(idx, 1);
         nomActualizarModoTrab();
       });
       cont.appendChild(chip);
     });
+    const info = $('nom-trab-info');
+    if (info) info.textContent = nomTrabSel.length
+      ? `${nomTrabSel.length} trabajador(es) seleccionado(s)`
+      : 'Escribe un nombre y pulsa “+ Agregar”. Puedes agregar los que quieras.';
   }
 
   // Ajusta la vista según cuántos trabajadores estén seleccionados
@@ -3844,19 +3864,24 @@
     box.style.display = 'block';
   }
 
-  // Agregar trabajador nuevo desde el formulario
-  $('nom-btn-add-trab').addEventListener('click', async () => {
-    const nombre = $('nom-trab-nuevo').value.trim();
+  // Agregar el trabajador escrito/buscado a la selección
+  async function nomAgregarTrabSel() {
+    const nombre = $('nom-trab-buscar').value.trim();
     if (!nombre) return;
-    if (!nomBuscarTrab(nombre)) {
-      nomTrabajadores.push({ nombre, sueldo: 0 });
+    // Buscar coincidencia exacta ignorando mayúsculas; si no existe, crearlo
+    const existente = nomBuscarTrab(nombre);
+    const nombreFinal = existente ? existente.nombre : nombre;
+    if (!existente) {
+      nomTrabajadores.push({ nombre: nombreFinal, sueldo: 0 });
       await nomSaveTrab();
     }
-    if (!nomTrabSel.includes(nombre)) nomTrabSel.push(nombre);
-    $('nom-trab-nuevo').value = '';
+    if (!nomTrabSel.includes(nombreFinal)) nomTrabSel.push(nombreFinal);
+    $('nom-trab-buscar').value = '';
     nomActualizarModoTrab();
-  });
-  $('nom-trab-nuevo').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('nom-btn-add-trab').click(); } });
+    $('nom-trab-buscar').focus();
+  }
+  $('nom-btn-add-trab').addEventListener('click', nomAgregarTrabSel);
+  $('nom-trab-buscar').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); nomAgregarTrabSel(); } });
 
   // Al editar el sueldo directamente, recalcular el total
   $('nom-sueldo-dia').addEventListener('input', () => {
