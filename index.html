@@ -405,6 +405,12 @@
   .aj-subtab.active{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;}
   .aj-subpanel{display:none;}
   .aj-subpanel.active{display:block;}
+  .mov-subtab{flex:1;padding:12px 16px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--muted);background:none;border:none;cursor:pointer;transition:all .16s var(--ease);border-right:1px solid var(--border-soft);}
+  .mov-subtab:last-child{border-right:none;}
+  .mov-subtab:hover{background:#F5F7FC;color:var(--ink);}
+  .mov-subtab.active{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;}
+  .mov-subpanel{display:none;}
+  .mov-subpanel.active{display:block;}
   .inv-tbl{width:100%;border-collapse:collapse;}
   .inv-tbl thead tr{background:var(--navy);}
   .inv-tbl th{padding:11px 10px;text-align:left;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.85);}
@@ -486,6 +492,7 @@
       </svg>
       <div class="gc-brand-text">
         <span class="gc-company">Kontaly</span>
+        <span id="app-version-badge" style="font-size:10px;color:rgba(255,255,255,0.55);font-weight:600;letter-spacing:.3px;"></span>
       </div>
     </div>
     <span class="gc-date-badge" id="gc-fecha-actual"></span>
@@ -494,7 +501,6 @@
   <!-- NAV TABS -->
   <nav class="gc-nav">
     <button class="gc-tab active" data-tab="movimientos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Movimientos</button>
-    <button class="gc-tab" data-tab="reparto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg>Registro</button>
     <button class="gc-tab" data-tab="facturas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Facturas</button>
     <button class="gc-tab" data-tab="nomina"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Nómina</button>
     <button class="gc-tab" data-tab="buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Buscar</button>
@@ -503,113 +509,131 @@
 
   <div class="gc-body">
 
-  <!-- ===== MOVIMIENTOS ===== -->
+  <!-- ===== MOVIMIENTOS (hub con carpetas) ===== -->
   <div class="gc-panel active" id="panel-movimientos">
-    <!-- Stats row - semana actual -->
-    <div class="gc-stats">
-      <div class="gc-stat ing"><div class="gc-stat-icon">↑</div><div><div class="gc-stat-label">Ingresos semana</div><div class="gc-stat-val" id="stat-ing">$0.00</div></div></div>
-      <div class="gc-stat gas"><div class="gc-stat-icon">↓</div><div><div class="gc-stat-label">Gastos semana</div><div class="gc-stat-val" id="stat-gas">$0.00</div></div></div>
-      <div class="gc-stat net"><div class="gc-stat-icon">≈</div><div><div class="gc-stat-label">Neto semana</div><div class="gc-stat-val" id="stat-net">$0.00</div></div></div>
-      <div class="gc-stat inv"><div class="gc-stat-icon">📄</div><div><div class="gc-stat-label">Invoices guardados</div><div class="gc-stat-val" id="stat-inv">0</div></div></div>
-    </div>
-    <!-- Stats acumulados de invoices guardados -->
-    <div class="gc-stats" style="grid-template-columns:1fr; margin-top:-8px;">
-      <div class="gc-stat" style="border-color:#6A89CC;"><div class="gc-stat-icon" style="background:#EEF2FF;">🏠</div><div><div class="gc-stat-label">Taxas de <span class="socio-mitad">GUZMAN HVAC</span></div><div class="gc-stat-val" id="stat-tax-guzman" style="color:#4A6FA8;">$0.00</div></div></div>
+    <div class="inv-subnav">
+      <button class="mov-subtab active" data-msub="movs">📋 Movimientos</button>
+      <button class="mov-subtab" data-msub="invoices">📄 Invoices guardados</button>
+      <button class="mov-subtab" data-msub="categorias">🏷️ Categorías</button>
     </div>
 
-    <!-- Gráfica de tendencia semanal (ingresos vs gastos) -->
-    <div class="gc-chart-card" id="gc-chart-semanal-cont" style="display:none;">
-      <div class="gc-chart-head">
-        <p class="gc-card-title" style="margin-bottom:0;">📈 Tendencia — últimas semanas</p>
-        <div class="gc-chart-legend">
-          <span><i style="background:var(--teal);"></i>Ingresos</span>
-          <span><i style="background:var(--ember);"></i>Gastos</span>
-          <span><i style="background:var(--navy);"></i>Neto</span>
-        </div>
+    <!-- Carpeta: Movimientos -->
+    <div class="mov-subpanel active" id="mov-sub-movs">
+      <!-- Stats row - semana actual -->
+      <div class="gc-stats">
+        <div class="gc-stat ing"><div class="gc-stat-icon">↑</div><div><div class="gc-stat-label">Ingresos semana</div><div class="gc-stat-val" id="stat-ing">$0.00</div></div></div>
+        <div class="gc-stat gas"><div class="gc-stat-icon">↓</div><div><div class="gc-stat-label">Gastos semana</div><div class="gc-stat-val" id="stat-gas">$0.00</div></div></div>
+        <div class="gc-stat net"><div class="gc-stat-icon">≈</div><div><div class="gc-stat-label">Neto semana</div><div class="gc-stat-val" id="stat-net">$0.00</div></div></div>
+        <div class="gc-stat inv"><div class="gc-stat-icon">📄</div><div><div class="gc-stat-label">Invoices guardados</div><div class="gc-stat-val" id="stat-inv">0</div></div></div>
       </div>
-      <div class="gc-chart-svg-wrap" id="gc-chart-semanal"></div>
-    </div>
 
-    <!-- Form -->
-    <div class="gc-card">
-      <p class="gc-card-title">Agregar movimiento</p>
-      <div class="gc-type-toggle">
-        <button class="gc-type-btn active" data-type="ingreso">↑ Ingreso</button>
-        <button class="gc-type-btn" data-type="gasto">↓ Gasto</button>
-        <button class="gc-type-btn" data-type="ajuste">± Ajuste CRA</button>
-      </div>
-      <div id="ajuste-direccion-row" style="display:none;margin-bottom:14px;">
-        <div class="gc-field"><label>Tipo de ajuste a <span class="socio-bonus">CRA HVAC</span></label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <button type="button" class="gc-type-btn ajuste-dir-btn active" data-dir="sumar" style="grid-template-columns:none;">+ Sumar a CRA</button>
-            <button type="button" class="gc-type-btn ajuste-dir-btn" data-dir="restar">− Restar a CRA</button>
-          </div>
-          <p style="font-size:11.5px;color:var(--muted);margin-top:8px;">💡 Al sumar/restar dinero a <span class="socio-bonus">CRA HVAC</span>, se genera un bono del 10% que sale de las taxas (igual que el bono normal). Ej: el socio pagó a un trabajador, compró algo, o le debe algo al otro.</p>
-        </div>
-      </div>
-      <div id="ingreso-semana-row" style="display:none;margin-bottom:14px;">
-        <div class="gc-field"><label>¿Qué semana es este ingreso?</label>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <button type="button" id="ingreso-semana-prev" class="gc-action-btn" style="padding:8px 14px;">‹</button>
-            <span id="ingreso-semana-label" style="flex:1;text-align:center;font-weight:600;font-size:13.5px;color:var(--ink);"></span>
-            <button type="button" id="ingreso-semana-next" class="gc-action-btn" style="padding:8px 14px;">›</button>
+      <!-- Gráfica de tendencia semanal (ingresos vs gastos) -->
+      <div class="gc-chart-card" id="gc-chart-semanal-cont" style="display:none;">
+        <div class="gc-chart-head">
+          <p class="gc-card-title" style="margin-bottom:0;">📈 Tendencia — últimas semanas</p>
+          <div class="gc-chart-legend">
+            <span><i style="background:var(--teal);"></i>Ingresos</span>
+            <span><i style="background:var(--ember);"></i>Gastos</span>
+            <span><i style="background:var(--navy);"></i>Neto</span>
           </div>
         </div>
+        <div class="gc-chart-svg-wrap" id="gc-chart-semanal"></div>
       </div>
-      <div class="gc-form-row">
-        <div class="gc-field"><label>Fecha</label><input type="date" id="m-fecha"></div>
-        <div class="gc-field" id="cat-field-wrap"><label>Categoría</label><select id="m-cat"></select></div>
-        <div class="gc-field"><label>Monto ($)</label><input type="text" id="m-monto" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
+
+      <!-- Form -->
+      <div class="gc-card">
+        <p class="gc-card-title">Agregar movimiento</p>
+        <div class="gc-type-toggle">
+          <button class="gc-type-btn active" data-type="ingreso">↑ Ingreso</button>
+          <button class="gc-type-btn" data-type="gasto">↓ Gasto</button>
+          <button class="gc-type-btn" data-type="ajuste">± Ajuste CRA</button>
+        </div>
+        <div id="ajuste-direccion-row" style="display:none;margin-bottom:14px;">
+          <div class="gc-field"><label>Tipo de ajuste a <span class="socio-bonus">CRA HVAC</span></label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <button type="button" class="gc-type-btn ajuste-dir-btn active" data-dir="sumar" style="grid-template-columns:none;">+ Sumar a CRA</button>
+              <button type="button" class="gc-type-btn ajuste-dir-btn" data-dir="restar">− Restar a CRA</button>
+            </div>
+            <p style="font-size:11.5px;color:var(--muted);margin-top:8px;">💡 Al sumar/restar dinero a <span class="socio-bonus">CRA HVAC</span>, se genera un bono del 10% que sale de las taxas (igual que el bono normal). Ej: el socio pagó a un trabajador, compró algo, o le debe algo al otro.</p>
+          </div>
+        </div>
+        <div id="ingreso-semana-row" style="display:none;margin-bottom:14px;">
+          <div class="gc-field"><label>¿Qué semana es este ingreso?</label>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <button type="button" id="ingreso-semana-prev" class="gc-action-btn" style="padding:8px 14px;">‹</button>
+              <span id="ingreso-semana-label" style="flex:1;text-align:center;font-weight:600;font-size:13.5px;color:var(--ink);"></span>
+              <button type="button" id="ingreso-semana-next" class="gc-action-btn" style="padding:8px 14px;">›</button>
+            </div>
+          </div>
+        </div>
+        <div class="gc-form-row">
+          <div class="gc-field"><label>Fecha</label><input type="date" id="m-fecha"></div>
+          <div class="gc-field" id="cat-field-wrap"><label>Categoría</label><select id="m-cat"></select></div>
+          <div class="gc-field"><label>Monto ($)</label><input type="text" id="m-monto" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
+        </div>
+        <div class="gc-form-row wide">
+          <div class="gc-field"><label>Descripción</label><input type="text" id="m-desc" placeholder="Ej. Material para job 10234"></div>
+        </div>
+        <div class="gc-btn-row" style="justify-content:flex-end;">
+          <span class="gc-status" id="status-mov"></span>
+          <span class="gc-kbd-hint" title="Presiona Enter para guardar">↵ Enter</span>
+          <button class="gc-action-btn" id="btn-limpiar-mov" type="button">Limpiar</button>
+          <button class="gc-save-btn" id="btn-guardar-mov">Guardar movimiento</button>
+        </div>
       </div>
-      <div class="gc-form-row wide">
-        <div class="gc-field"><label>Descripción</label><input type="text" id="m-desc" placeholder="Ej. Material para job 10234"></div>
+
+      <!-- Ledger -->
+      <div class="gc-sheet-head">
+        <p class="gc-sheet-title">Hoja de movimientos — por semana</p>
+        <div class="gc-sheet-actions">
+          <button class="gc-save-btn" id="btn-guardar-invoice-top" style="padding:8px 16px;">💾 Guardar invoice</button>
+          <button class="gc-action-btn" id="btn-imprimir">🖨 Imprimir</button>
+          <button class="gc-action-btn" id="btn-export">⬇ CSV</button>
+        </div>
       </div>
-      <div class="gc-btn-row" style="justify-content:flex-end;">
-        <span class="gc-status" id="status-mov"></span>
-        <span class="gc-kbd-hint" title="Presiona Enter para guardar">↵ Enter</span>
-        <button class="gc-action-btn" id="btn-limpiar-mov" type="button">Limpiar</button>
-        <button class="gc-save-btn" id="btn-guardar-mov">Guardar movimiento</button>
+      <div id="ledger-cont">
+        <table class="gc-ledger" id="gc-ledger">
+          <thead><tr>
+            <th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Descripción</th><th class="num">Monto</th><th></th>
+          </tr></thead>
+          <tbody id="tbody-mov"></tbody>
+        </table>
+        <div class="gc-empty" id="empty-mov" style="display:none;">Aún no hay movimientos.</div>
       </div>
     </div>
 
-    <!-- Ledger -->
-    <div class="gc-sheet-head">
-      <p class="gc-sheet-title">Hoja de movimientos — por semana</p>
-      <div class="gc-sheet-actions">
-        <button class="gc-save-btn" id="btn-guardar-invoice-top" style="padding:8px 16px;">💾 Guardar invoice</button>
-        <button class="gc-action-btn" id="btn-imprimir">🖨 Imprimir</button>
-        <button class="gc-action-btn" id="btn-export">⬇ CSV</button>
+    <!-- Carpeta: Invoices guardados (antes "Registro") -->
+    <div class="mov-subpanel" id="mov-sub-invoices">
+      <div class="gc-note"><strong>Registro de invoices guardados.</strong> Aquí solo aparecen las semanas que ya guardaste como invoice desde Movimientos. Cada uno muestra el reparto <span class="socio-bonus">CRA HVAC</span> / <span class="socio-mitad">GUZMAN HVAC</span>. Usa "Ver" para el detalle o "Editar" para reabrirlo.</div>
+      <div class="gc-card" style="margin-top:8px;">
+        <p class="gc-card-title">📄 Invoices guardados</p>
+        <div class="gc-empty" id="empty-invoices-guardados" style="display:none;">No hay invoices guardados. Ve a Movimientos y guarda una semana.</div>
+        <table class="gc-inv-table" id="tabla-invoices-guardados" style="display:none;">
+          <thead><tr>
+            <th>Semana</th><th>Guardado</th><th class="num">Gastos</th><th class="num socio-bonus">CRA HVAC</th><th class="num socio-mitad">GUZMAN HVAC</th><th></th>
+          </tr></thead>
+          <tbody id="tbody-invoices-guardados"></tbody>
+        </table>
+      </div>
+      <div id="reparto-semanas" style="display:none;"></div>
+      <div class="gc-empty" id="empty-reparto" style="display:none;"></div>
+    </div>
+
+    <!-- Carpeta: Categorías (antes en Ajustes) -->
+    <div class="mov-subpanel" id="mov-sub-categorias">
+      <div class="gc-two-col">
+        <div class="gc-cat-section">
+          <p class="gc-cat-title">Categorías de Gastos</p>
+          <div class="gc-sub-add"><input type="text" id="cat-gasto-nueva" placeholder="Nueva categoría"><button id="btn-agregar-gasto">+ Agregar</button></div>
+          <div class="gc-sub-list" id="lista-gastos"></div>
+        </div>
+        <div class="gc-cat-section">
+          <p class="gc-cat-title">Categorías de Ingresos</p>
+          <div class="gc-sub-add"><input type="text" id="cat-ingreso-nueva" placeholder="Nueva categoría"><button id="btn-agregar-ingreso">+ Agregar</button></div>
+          <div class="gc-sub-list" id="lista-ingresos"></div>
+        </div>
       </div>
     </div>
-    <div id="ledger-cont">
-      <table class="gc-ledger" id="gc-ledger">
-        <thead><tr>
-          <th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Descripción</th><th class="num">Monto</th><th></th>
-        </tr></thead>
-        <tbody id="tbody-mov"></tbody>
-      </table>
-      <div class="gc-empty" id="empty-mov" style="display:none;">Aún no hay movimientos.</div>
-    </div>
-  </div>
-
-  <!-- ===== REGISTRO SEMANAL ===== -->
-  <div class="gc-panel" id="panel-reparto">
-    <div class="gc-note"><strong>Registro de invoices guardados.</strong> Aquí solo aparecen las semanas que ya guardaste como invoice desde Movimientos. Cada uno muestra el reparto <span class="socio-bonus">CRA HVAC</span> / <span class="socio-mitad">GUZMAN HVAC</span>. Usa "Ver" para el detalle o "Editar" para reabrirlo.</div>
-
-    <!-- Invoice Save -->
-    <div class="gc-card" style="margin-top:8px;">
-      <p class="gc-card-title">📄 Invoices guardados</p>
-      <div class="gc-empty" id="empty-invoices-guardados" style="display:none;">No hay invoices guardados. Ve a Movimientos y guarda una semana.</div>
-      <table class="gc-inv-table" id="tabla-invoices-guardados" style="display:none;">
-        <thead><tr>
-          <th>Semana</th><th>Guardado</th><th class="num">Gastos</th><th class="num socio-bonus">CRA HVAC</th><th class="num socio-mitad">GUZMAN HVAC</th><th></th>
-        </tr></thead>
-        <tbody id="tbody-invoices-guardados"></tbody>
-      </table>
-    </div>
-
-    <div id="reparto-semanas" style="display:none;"></div>
-    <div class="gc-empty" id="empty-reparto" style="display:none;"></div>
   </div>
 
   <!-- ===== BUSCAR / ANUAL ===== -->
@@ -686,7 +710,6 @@
       <button class="aj-subtab active" data-asub="general">⚙️ General</button>
       <button class="aj-subtab" data-asub="empleados">👥 Empleados</button>
       <button class="aj-subtab" data-asub="papeles">📄 Papeles</button>
-      <button class="aj-subtab" data-asub="categorias">🏷️ Categorías</button>
     </div>
 
     <!-- General: respaldo + opciones -->
@@ -768,6 +791,7 @@
         <p style="font-size:13px;color:var(--muted);line-height:1.7;">
           <strong>Kontaly</strong> — Sistema de cuentas, facturas y nómina.<br>
           Tus datos se sincronizan en la nube y están disponibles en todos tus dispositivos con tu usuario. Aun así, puedes descargar un respaldo cuando quieras.
+          <br><span style="font-size:11px;color:var(--muted);">Versión <span id="app-version-acerca"></span></span>
         </p>
       </div>
     </div>
@@ -805,21 +829,7 @@
       <div class="doc-web-note" id="papeles-web-note" style="display:none;">📂 La subida de PDFs solo está disponible en la <strong>app de escritorio</strong>.</div>
     </div>
 
-    <!-- Categorías -->
-    <div class="aj-subpanel" id="aj-sub-categorias">
-      <div class="gc-two-col">
-        <div class="gc-cat-section">
-          <p class="gc-cat-title">Categorías de Gastos</p>
-          <div class="gc-sub-add"><input type="text" id="cat-gasto-nueva" placeholder="Nueva categoría"><button id="btn-agregar-gasto">+ Agregar</button></div>
-          <div class="gc-sub-list" id="lista-gastos"></div>
-        </div>
-        <div class="gc-cat-section">
-          <p class="gc-cat-title">Categorías de Ingresos</p>
-          <div class="gc-sub-add"><input type="text" id="cat-ingreso-nueva" placeholder="Nueva categoría"><button id="btn-agregar-ingreso">+ Agregar</button></div>
-          <div class="gc-sub-list" id="lista-ingresos"></div>
-        </div>
-      </div>
-    </div>
+    <!-- (Categorías ahora vive dentro de Movimientos) -->
   </div>
 
 
@@ -1224,8 +1234,46 @@
   // Registrar el service worker (instalación PWA + funcionamiento sin internet)
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('service-worker.js').catch(() => {});
+      navigator.serviceWorker.register('service-worker.js').then((reg) => {
+        // Revisar si hay una versión nueva cada vez que se abre
+        reg.update();
+        // Si aparece una versión nueva lista, avisar para recargar
+        reg.addEventListener('updatefound', () => {
+          const nuevo = reg.installing;
+          if (!nuevo) return;
+          nuevo.addEventListener('statechange', () => {
+            if (nuevo.state === 'installed' && navigator.serviceWorker.controller) {
+              // Hay una versión nueva esperando
+              mostrarAvisoActualizacion();
+            }
+          });
+        });
+      }).catch(() => {});
+      // Cuando el nuevo SW toma control, recargar una sola vez para ver lo nuevo
+      let recargado = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (recargado) return; recargado = true;
+        window.location.reload();
+      });
     });
+  }
+  function mostrarAvisoActualizacion() {
+    if (document.getElementById('aviso-update')) return;
+    const barra = document.createElement('div');
+    barra.id = 'aviso-update';
+    barra.style.cssText = 'position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:99999;background:#131C2E;color:#fff;padding:12px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.35);display:flex;align-items:center;gap:14px;font-family:Inter,sans-serif;font-size:13.5px;max-width:92%;';
+    barra.innerHTML = '<span>✨ Hay una versión nueva de Kontaly</span>';
+    const btn = document.createElement('button');
+    btn.textContent = 'Actualizar';
+    btn.style.cssText = 'background:#0E8F82;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;';
+    btn.addEventListener('click', () => {
+      navigator.serviceWorker.getRegistration().then((reg) => {
+        if (reg && reg.waiting) reg.waiting.postMessage('skip-waiting');
+        else window.location.reload();
+      });
+    });
+    barra.appendChild(btn);
+    document.body.appendChild(barra);
   }
 
   // ---- Storage robusto: intenta IPC Electron, cae a localStorage si falla ----
@@ -1330,6 +1378,14 @@
 
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
+  const APP_VERSION = 'v3 · 26 ago';
+  (function mostrarVersion() {
+    const b = document.getElementById('app-version-badge');
+    if (b) b.textContent = APP_VERSION;
+    const a = document.getElementById('app-version-acerca');
+    if (a) a.textContent = APP_VERSION;
+  })();
   // Debounce: evita re-renderizar en cada tecla (más rápido y fluido)
   const debounce = (fn, ms = 180) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
   const today = () => new Date().toISOString().slice(0, 10);
@@ -1427,8 +1483,20 @@
       document.querySelectorAll('.gc-panel').forEach((p) => p.classList.remove('active'));
       tab.classList.add('active');
       $('panel-' + tab.dataset.tab).classList.add('active');
-      if (tab.dataset.tab === 'reparto') renderReparto();
       if (tab.dataset.tab === 'buscar') { renderAnios(); renderBusqueda(); renderResumenTaxas(); }
+    });
+  });
+
+  // ---- Sub-pestañas (carpetas) de Movimientos: Movimientos, Invoices guardados, Categorías ----
+  document.querySelectorAll('.mov-subtab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.mov-subtab').forEach((t) => t.classList.remove('active'));
+      document.querySelectorAll('.mov-subpanel').forEach((p) => p.classList.remove('active'));
+      tab.classList.add('active');
+      const sub = tab.dataset.msub;
+      $('mov-sub-' + sub).classList.add('active');
+      if (sub === 'invoices') renderReparto();
+      if (sub === 'categorias') renderCategorias();
     });
   });
 
@@ -4660,22 +4728,20 @@
   }
 
   function aplicarModoSoloLectura() {
-    // Ocultar todas las pestañas del menú excepto Registro y Nómina.
+    // Ocultar todas las pestañas del menú excepto Movimientos y Nómina.
     document.querySelectorAll('.gc-tab').forEach((t) => {
-      const permitido = t.dataset.tab === 'reparto' || t.dataset.tab === 'nomina';
+      const permitido = t.dataset.tab === 'movimientos' || t.dataset.tab === 'nomina';
       t.style.display = permitido ? '' : 'none';
     });
-    // Si por alguna razón una pestaña no permitida quedó activa, mandarlo a Registro.
+    // Si quedó activa una pestaña no permitida, mandarlo a Movimientos.
     const activa = document.querySelector('.gc-tab.active');
-    if (activa && activa.dataset.tab !== 'reparto' && activa.dataset.tab !== 'nomina') {
-      document.querySelector('.gc-tab[data-tab="reparto"]')?.click();
+    if (activa && activa.dataset.tab !== 'movimientos' && activa.dataset.tab !== 'nomina') {
+      document.querySelector('.gc-tab[data-tab="movimientos"]')?.click();
     }
 
-    // Dentro de Nómina: todas sus secciones quedan visibles (nada se oculta).
-
-    // Cargar los datos de Registro y Nómina, y terminar mostrando Registro.
+    // Cargar los datos de Nómina, y terminar mostrando Movimientos → Invoices guardados.
     (async () => {
-      const tabReparto = document.querySelector('.gc-tab[data-tab="reparto"]');
+      const tabMov = document.querySelector('.gc-tab[data-tab="movimientos"]');
       const tabNomina = document.querySelector('.gc-tab[data-tab="nomina"]');
       const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -4683,16 +4749,18 @@
         tabNomina.click();
         await esperar(900);
       }
-      // Registro (reparto) se queda como vista inicial visible al terminar.
-      if (tabReparto) {
-        tabReparto.click();
-        await esperar(300);
+      // Terminar en Movimientos, abriendo la carpeta de Invoices guardados
+      if (tabMov) {
+        tabMov.click();
+        await esperar(200);
+        document.querySelector('.mov-subtab[data-msub="invoices"]')?.click();
+        await esperar(200);
       }
     })();
 
     const banner = document.createElement('div');
     banner.style.cssText = 'background:#EAF3FF;color:#1A4B8C;font-size:12.5px;padding:8px 20px;text-align:center;border-bottom:1px solid #C7DFFB;';
-    banner.textContent = '👁️ Modo solo lectura — Registro y Nómina (todas sus secciones). Puedes ver y descargar, no editar.';
+    banner.textContent = '👁️ Modo solo lectura — Movimientos y Nómina. Puedes ver y descargar, no editar.';
     document.body.insertBefore(banner, document.body.firstChild);
 
     document.body.classList.add('gh-modo-visor');

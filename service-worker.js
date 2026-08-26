@@ -3,7 +3,7 @@
 // Los datos NO se guardan aquí (eso vive en localStorage / futuro backend),
 // solo el "cascarón" de la app (HTML, íconos).
 
-const CACHE_NAME = 'kontaly-v1';
+const CACHE_NAME = 'kontaly-v3';
 const ARCHIVOS_CACHE = [
   './',
   './index.html',
@@ -19,6 +19,11 @@ self.addEventListener('install', (evento) => {
   evento.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ARCHIVOS_CACHE))
   );
+});
+
+// Permite que la app fuerce la actualización al instante (botón "Actualizar")
+self.addEventListener('message', (evento) => {
+  if (evento.data === 'skip-waiting') self.skipWaiting();
 });
 
 self.addEventListener('activate', (evento) => {
