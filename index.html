@@ -708,8 +708,8 @@
   <div class="gc-panel" id="panel-respaldo">
     <div class="inv-subnav">
       <button class="aj-subtab active" data-asub="general">⚙️ General</button>
-      <button class="aj-subtab" data-asub="empleados">👥 Empleados</button>
-      <button class="aj-subtab" data-asub="papeles">📄 Papeles</button>
+      <button class="aj-subtab" data-asub="empleados" id="aj-subtab-empleados">👥 Empleados</button>
+      <button class="aj-subtab" data-asub="papeles" id="aj-subtab-papeles">📄 Papeles</button>
     </div>
 
     <!-- General: respaldo + opciones -->
@@ -731,7 +731,7 @@
       </div>
 
       <!-- Nombres de los socios (reparto) -->
-      <div class="gc-card" style="margin-top:16px;">
+      <div class="gc-card" style="margin-top:16px;" id="aj-card-socios">
         <p class="gc-card-title">🤝 Nombres de los socios (reparto)</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Estos nombres aparecen en el reparto de cada semana. El <strong>Socio 1</strong> recibe la mitad + el bono; el <strong>Socio 2</strong> recibe solo su mitad. Puedes intercambiarlos o usar un solo nombre.</p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;" id="aj-socios-grid">
@@ -1425,7 +1425,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v8 · 26 ago';
+  const APP_VERSION = 'v10 · 26 ago';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -2929,8 +2929,28 @@
     });
   });
 
+  // Solo admin: nombres de socios, y las sub-pestañas Empleados / Papeles.
+  // Se llama al iniciar sesión (para que empleados nunca las vean) y cada
+  // vez que se abre Ajustes → General.
+  function ajAplicarRestriccionesRol() {
+    const esAdminGral = (window.GH_ROL || 'admin') === 'admin';
+    const cardSocios = $('aj-card-socios'); if (cardSocios) cardSocios.style.display = esAdminGral ? 'block' : 'none';
+    const tabEmpleados = $('aj-subtab-empleados'); if (tabEmpleados) tabEmpleados.style.display = esAdminGral ? '' : 'none';
+    const tabPapeles = $('aj-subtab-papeles'); if (tabPapeles) tabPapeles.style.display = esAdminGral ? '' : 'none';
+    if (!esAdminGral) {
+      // Si por alguna razón quedó activa una sub-pestaña restringida, regresar a General
+      const activa = document.querySelector('.aj-subtab.active');
+      if (activa && (activa.dataset.asub === 'empleados' || activa.dataset.asub === 'papeles')) {
+        document.querySelector('.aj-subtab[data-asub="general"]')?.click();
+      }
+    }
+    return esAdminGral;
+  }
+
   // ---- Opciones: nombres de socios + datos de factura (en la nube) ----
   function cargarFormAjustes() {
+    ajAplicarRestriccionesRol();
+
     $('aj-socio-bonus').value = cfgSocioBonus;
     $('aj-socio-mitad').value = cfgSocioMitad;
     $('aj-factura-nombre').value = cfgFacturaNombre;
@@ -3078,7 +3098,14 @@
       const codigo = ajSlug(nombre);
       if (ajCuentas.some((c) => c.codigo === codigo)) { toast('Ya existe una base de datos con ese nombre', 'info'); return; }
       ajCuentas.push({ codigo, nombre });
-      await ajGuardarCuentas();
+      try {
+        await ajGuardarCuentas();
+      } catch (e) {
+        ajCuentas = ajCuentas.filter((c) => c.codigo !== codigo);  // revertir
+        const detalle = (e && (e.message || e.msg)) ? (e.message || e.msg) : String(e);
+        toast('No se pudo crear. Puede que tu usuario no sea admin en Supabase. Detalle: ' + detalle, 'error', 6000);
+        return;
+      }
       $('aj-bd-nueva').value = '';
       ajRenderBD();
       ajLlenarSelect($('aj-cuenta-select'), window.GH_GET_CUENTA && window.GH_GET_CUENTA());
@@ -3210,6 +3237,7 @@
     window.GH_ESPERAR_SESION().then(() => {
       $('aj-cuenta-nombre').textContent = window.GH_NOMBRE || 'usuario';
       $('aj-cuenta-rol').textContent = window.GH_ROL ? `(${window.GH_ROL})` : '';
+      if (typeof ajAplicarRestriccionesRol === 'function') ajAplicarRestriccionesRol();
       const btn = $('btn-cerrar-sesion');
       btn.style.display = 'inline-block';
       btn.addEventListener('click', async () => {
