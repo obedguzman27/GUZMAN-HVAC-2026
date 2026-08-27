@@ -1425,7 +1425,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v10 · 26 ago';
+  const APP_VERSION = 'v12 · 26 ago';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -1575,6 +1575,7 @@
     renderCategorias();
     renderCatSelect();
     renderMovimientos();
+    actualizarStats();
   }
 
   async function saveMov() {
@@ -2962,7 +2963,13 @@
     // Casilla: nombre de factura sigue al Socio 2
     $('aj-factura-sigue-socio').checked = cfgFacturaSigueSocio;
     aplicarFacturaSigueSocio(cfgFacturaSigueSocio);
-    // Cuenta actual (información separada)
+    ajMostrarPanelesAdmin();
+  }
+
+  // Cuenta actual + tarjetas de admin (Bases de datos, Usuarios). Se llama al
+  // iniciar sesión (para que no dependa de dar click en algo primero) y cada
+  // vez que se abre Ajustes → General.
+  function ajMostrarPanelesAdmin() {
     if (typeof window.GH_GET_CUENTA === 'function') {
       $('aj-cuenta-actual').value = 'cargando…';
       ajCargarCuentas().then(() => {
@@ -3238,6 +3245,7 @@
       $('aj-cuenta-nombre').textContent = window.GH_NOMBRE || 'usuario';
       $('aj-cuenta-rol').textContent = window.GH_ROL ? `(${window.GH_ROL})` : '';
       if (typeof ajAplicarRestriccionesRol === 'function') ajAplicarRestriccionesRol();
+      if (typeof ajMostrarPanelesAdmin === 'function') ajMostrarPanelesAdmin();
       const btn = $('btn-cerrar-sesion');
       btn.style.display = 'inline-block';
       btn.addEventListener('click', async () => {
