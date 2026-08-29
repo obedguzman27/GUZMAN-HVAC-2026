@@ -137,6 +137,7 @@
   .gc-stat.net .gc-stat-icon { background: linear-gradient(140deg, var(--accent-bg), rgba(0,0,0,.06)); }
   .gc-stat.inv .gc-stat-icon { background: linear-gradient(140deg, var(--gold-bg), #F3E2AE); }
   .gc-stat-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-bottom: 4px; }
+  .gc-stat-delta { font-size: 10.5px; font-weight: 600; margin-top: 2px; }
   .gc-stat-val { font-family: 'IBM Plex Mono', monospace; font-size: 23px; font-weight: 700; color: var(--ink); letter-spacing: -.3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .gc-stat.ing .gc-stat-val { color: var(--teal-dk); }
   .gc-stat.gas .gc-stat-val { color: var(--ember); }
@@ -527,8 +528,8 @@
     <div class="mov-subpanel active" id="mov-sub-movs">
       <!-- Stats row - semana actual -->
       <div class="gc-stats">
-        <div class="gc-stat ing"><div class="gc-stat-icon">↑</div><div><div class="gc-stat-label">Ingresos semana</div><div class="gc-stat-val" id="stat-ing">$0.00</div></div></div>
-        <div class="gc-stat gas"><div class="gc-stat-icon">↓</div><div><div class="gc-stat-label">Gastos semana</div><div class="gc-stat-val" id="stat-gas">$0.00</div></div></div>
+        <div class="gc-stat ing"><div class="gc-stat-icon">↑</div><div><div class="gc-stat-label">Ingresos semana</div><div class="gc-stat-val" id="stat-ing">$0.00</div><div class="gc-stat-delta" id="stat-ing-delta"></div></div></div>
+        <div class="gc-stat gas"><div class="gc-stat-icon">↓</div><div><div class="gc-stat-label">Gastos semana</div><div class="gc-stat-val" id="stat-gas">$0.00</div><div class="gc-stat-delta" id="stat-gas-delta"></div></div></div>
         <div class="gc-stat net"><div class="gc-stat-icon">≈</div><div><div class="gc-stat-label">Neto semana</div><div class="gc-stat-val" id="stat-net">$0.00</div></div></div>
         <div class="gc-stat inv"><div class="gc-stat-icon">#</div><div><div class="gc-stat-label">Invoices guardados</div><div class="gc-stat-val" id="stat-inv">0</div></div></div>
       </div>
@@ -560,7 +561,7 @@
               <button type="button" class="gc-type-btn ajuste-dir-btn active" data-dir="sumar" style="grid-template-columns:none;">+ Sumar a CRA</button>
               <button type="button" class="gc-type-btn ajuste-dir-btn" data-dir="restar">− Restar a CRA</button>
             </div>
-            <p style="font-size:11.5px;color:var(--muted);margin-top:8px;">Al sumar/restar dinero a <span class="socio-bonus">CRA HVAC</span>, se genera un bono del 10% que sale de las taxas (igual que el bono normal). Ej: el socio pagó a un trabajador, compró algo, o le debe algo al otro.</p>
+            <p style="font-size:11.5px;color:var(--muted);margin-top:8px;">Al sumar/restar dinero a <span class="socio-bonus">CRA HVAC</span>, también genera tax si ese socio tiene tax activado (igual que con su mitad normal, sale de las taxas). Ej: el socio pagó a un trabajador, compró algo, o le debe algo al otro.</p>
           </div>
         </div>
         <div id="ingreso-semana-row" style="display:none;margin-bottom:14px;">
@@ -577,8 +578,17 @@
           <div class="gc-field" id="cat-field-wrap"><label>Categoría</label><select id="m-cat"></select></div>
           <div class="gc-field"><label>Monto ($)</label><input type="text" id="m-monto" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
         </div>
+        <div id="mov-cat-nueva-row" style="display:none;margin-bottom:14px;">
+          <div class="gc-field"><label>Nombre de la nueva categoría</label>
+            <div style="display:flex;gap:8px;">
+              <input type="text" id="mov-cat-nueva-input" autocomplete="off" style="flex:1;">
+              <button type="button" class="gc-action-btn" id="mov-cat-nueva-cancelar">Cancelar</button>
+              <button type="button" class="gc-save-btn" id="mov-cat-nueva-guardar" style="padding:9px 16px;">Agregar</button>
+            </div>
+          </div>
+        </div>
         <div class="gc-form-row wide">
-          <div class="gc-field"><label>Descripción</label><input type="text" id="m-desc"></div>
+          <div class="gc-field"><label>Descripción</label><input type="text" id="m-desc" list="dl-desc-sugeridas" autocomplete="off"><datalist id="dl-desc-sugeridas"></datalist></div>
         </div>
         <div class="gc-btn-row" style="justify-content:flex-end;">
           <span class="gc-status" id="status-mov"></span>
@@ -605,6 +615,9 @@
           <tbody id="tbody-mov"></tbody>
         </table>
         <div class="gc-empty" id="empty-mov" style="display:none;">Aún no hay movimientos.</div>
+        <div id="mov-ver-mas-row" style="display:none;text-align:center;padding:14px;">
+          <button type="button" class="gc-action-btn" id="mov-ver-mas-btn"></button>
+        </div>
       </div>
     </div>
 
@@ -616,8 +629,8 @@
         <div class="gc-empty" id="empty-invoices-guardados" style="display:none;">No hay invoices guardados. Ve a Movimientos y guarda una semana.</div>
         <div style="overflow-x:auto;">
           <table class="gc-inv-table" id="tabla-invoices-guardados" style="display:none;">
-            <thead><tr>
-              <th>Semana</th><th>Guardado</th><th class="num">Gastos</th><th class="num socio-bonus">CRA HVAC</th><th class="num socio-mitad">GUZMAN HVAC</th><th></th>
+            <thead><tr id="tabla-invoices-thead-row">
+              <th>Semana</th><th>Guardado</th><th class="num">Gastos</th><th></th>
             </tr></thead>
             <tbody id="tbody-invoices-guardados"></tbody>
           </table>
@@ -647,10 +660,18 @@
   <!-- ===== BUSCAR / ANUAL ===== -->
   <div class="gc-panel" id="panel-buscar">
 
-    <!-- Resumen anual de Taxas -->
+    <!-- Total pagado por socio -->
+    <div class="gc-card" style="margin-bottom:24px;" id="card-total-socios">
+      <p class="gc-card-title">Total pagado por socio</p>
+      <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Suma de todos los invoices guardados del año seleccionado arriba ↓ (usa el mismo filtro de año que la tabla de abajo).</p>
+      <div id="total-socios-lista" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;"></div>
+      <div class="gc-empty" id="empty-total-socios" style="display:none;">No hay invoices guardados aún.</div>
+    </div>
+
+    <!-- Resumen anual de Taxas y reparto -->
     <div class="gc-card" style="margin-bottom:24px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
-        <p class="gc-card-title" style="margin:0;">Resumen de Taxas por Invoice</p>
+        <p class="gc-card-title" style="margin:0;">Resumen anual — Taxas y pago por socio</p>
         <select id="taxas-anio-filtro" style="font-family:'Inter',sans-serif;font-size:13px;padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;background:#fff;color:var(--ink);">
           <option value="todos">Todos los años</option>
         </select>
@@ -663,7 +684,7 @@
             <th class="num">Gastos</th>
             <th class="num">Neto</th>
             <th class="num">Taxas (10%)</th>
-            <th class="num">Bono CRA</th>
+            <th class="num">Tax total</th>
             <th class="num" style="background:#FBF0D4;color:var(--gold);">Taxas Restantes</th>
           </tr></thead>
           <tbody id="tbody-taxas-resumen"></tbody>
@@ -675,8 +696,24 @@
 
     <div class="gc-search-bar">
       <div class="gc-field" style="min-width:140px;"><label>Año</label><select id="b-anio"><option value="todos">Todos los años</option></select></div>
-      <div class="gc-field" style="flex:1;"><label>Buscar en tiempo real</label><input type="text" id="b-texto"></div>
+      <div class="gc-field" style="flex:1;"><label>Buscar en tiempo real</label><input type="text" id="b-texto" placeholder="Categoría, descripción o monto…"></div>
     </div>
+    <div class="gc-search-bar" style="margin-top:10px;">
+      <div class="gc-field" style="min-width:130px;"><label>Desde (opcional)</label><input type="date" id="b-desde"></div>
+      <div class="gc-field" style="min-width:130px;"><label>Hasta (opcional)</label><input type="date" id="b-hasta"></div>
+      <div class="gc-field" style="min-width:130px;"><label>Tipo</label>
+        <select id="b-tipo">
+          <option value="todos">Todos</option>
+          <option value="ingreso">Solo ingresos</option>
+          <option value="gasto">Solo gastos</option>
+          <option value="ajuste">Solo ajustes</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:flex-end;">
+        <button type="button" class="gc-action-btn" id="b-limpiar-fechas">Limpiar fechas</button>
+      </div>
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin:6px 2px 0;">Si eliges fechas, mandan sobre el filtro de "Año".</p>
 
     <!-- Gráfica: en qué se va el dinero (gastos por categoría) -->
     <div class="gc-chart-card" id="gc-chart-cat-cont" style="display:none;">
@@ -821,31 +858,14 @@
     <div class="aj-subpanel" id="aj-sub-avanzado">
       <div class="gc-note">Esta sección solo la ve el <strong>admin</strong> — configuración sensible del negocio, no del día a día.</div>
 
-      <!-- Nombres de los socios (reparto) -->
+      <!-- Socios (reparto) -->
       <div class="gc-card" style="margin-top:8px;" id="aj-card-socios">
-        <p class="gc-card-title">Nombres de los socios (reparto)</p>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Cada semana se reparte a la mitad entre los dos. Elige, para cada uno, si además recibe el bono del 10%. Puedes intercambiarlos o usar un solo nombre.</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;" id="aj-socios-grid">
-          <div class="gc-field"><label>Socio 1</label>
-            <input type="text" id="aj-socio-bonus" autocomplete="off">
-            <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12.5px;color:var(--ink);cursor:pointer;font-weight:400;">
-              <input type="checkbox" id="aj-socio1-bono" style="width:15px;height:15px;">Recibe bono del 10%
-            </label>
-          </div>
-          <div class="gc-field" id="aj-socio-mitad-wrap"><label>Socio 2</label>
-            <input type="text" id="aj-socio-mitad" autocomplete="off">
-            <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12.5px;color:var(--ink);cursor:pointer;font-weight:400;">
-              <input type="checkbox" id="aj-socio2-bono" style="width:15px;height:15px;">Recibe bono del 10%
-            </label>
-          </div>
-        </div>
-        <label style="display:flex;align-items:center;gap:8px;margin-top:14px;font-size:13px;color:var(--ink);cursor:pointer;">
-          <input type="checkbox" id="aj-un-socio" style="width:16px;height:16px;">Usar un solo nombre para los dos
-        </label>
-        <p id="aj-un-socio-nota" style="display:none;font-size:12px;color:var(--muted);background:#F5F7FC;border-radius:8px;padding:8px 12px;margin-top:10px;">Con un solo nombre, esa persona recibe todo el reparto de la semana — no aplica bono ni mitad.</p>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:10px;flex-wrap:wrap;">
-          <button class="gc-action-btn" id="aj-btn-swap-socios">⇄ Intercambiar los dos nombres</button>
-          <button class="gc-save-btn" id="aj-btn-guardar-socios">Guardar nombres</button>
+        <p class="gc-card-title">Socios (reparto)</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Cada semana se reparte en partes iguales entre los socios de la lista — con uno solo, se lleva todo. Para cada uno, define si recibe tax y qué porcentaje. El <strong>primer socio</strong> de la lista es quien recibe los ajustes manuales (Movimientos → Ajuste).</p>
+        <div id="aj-socios-lista"></div>
+        <button type="button" class="gc-action-btn" id="aj-btn-add-socio" style="margin-top:4px;">+ Agregar socio</button>
+        <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+          <button class="gc-save-btn" id="aj-btn-guardar-socios">Guardar socios</button>
         </div>
       </div>
 
@@ -1477,7 +1497,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v19 · 29 ago';
+  const APP_VERSION = 'v22 · 29 ago';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -1491,31 +1511,54 @@
   // ============================================================
   // CONFIGURACIÓN DE NOMBRES (socios + factura) — se guarda en la nube
   // ============================================================
-  // Socio BONUS = quien recibe mitad + bono (pagoCra). Por defecto "CRA HVAC".
-  // Socio MITAD = quien recibe solo la mitad (pagoGuzman). Por defecto "GUZMAN HVAC".
+  // cfgSocios: lista de socios, cada uno { id, nombre, bonoPct }. El reparto
+  // de cada semana se divide en partes iguales entre todos los que haya en
+  // la lista (1, 2 o más); el ajuste manual (Movimientos → Ajuste) siempre
+  // es del PRIMER socio de la lista. bonoPct = porcentaje de bono (0-100),
+  // 0 significa que ese socio no recibe bono.
   const CFG_KEY = 'kontaly-config';
+  let cfgSocios = [
+    { id: 'socio-1', nombre: 'CRA HVAC', bonoPct: 10 },
+    { id: 'socio-2', nombre: 'GUZMAN HVAC', bonoPct: 0 }
+  ];
+  // Alias de compatibilidad: apuntan siempre al 1° y 2° socio de la lista.
+  // Muchas partes de la app (facturas, nómina, etiquetas) solo necesitan
+  // "el nombre principal", así que se siguen leyendo desde aquí.
   let cfgSocioBonus = 'CRA HVAC';
   let cfgSocioMitad = 'GUZMAN HVAC';
+  function actualizarAliasSocios() {
+    cfgSocioBonus = (cfgSocios[0] && cfgSocios[0].nombre) || 'Socio 1';
+    cfgSocioMitad = (cfgSocios[1] && cfgSocios[1].nombre) || cfgSocioBonus;
+  }
   let cfgFacturaNombre = 'GUZMAN HVAC';
   let cfgFacturaDireccion = '';
   let cfgFacturaSigueSocio = true; // el nombre de factura/nómina sigue al Socio 2 (mitad)
   let cfgLogoDataUrl = ''; // logo personalizado (opcional); vacío = logo de Kontaly por defecto
-  let cfgSocio1Bono = true;  // ¿Socio 1 recibe el bono del 10%? (por defecto sí, como siempre)
-  let cfgSocio2Bono = false; // ¿Socio 2 recibe el bono del 10%? (por defecto no, como siempre)
   let cfgUltimoCliente = ''; // último "Bill To" usado en Facturas — se mantiene hasta que lo cambien
 
   async function cargarConfig() {
     try {
       const r = await window.storage.get(CFG_KEY);
       const c = JSON.parse(r.value);
-      if (c.socioBonus) cfgSocioBonus = c.socioBonus;
-      if (c.socioMitad) cfgSocioMitad = c.socioMitad;
+      if (Array.isArray(c.socios) && c.socios.length) {
+        // Formato nuevo: usar tal cual (normalizando por si falta algún campo)
+        cfgSocios = c.socios.map((s, i) => ({
+          id: s.id || ('socio-' + (i + 1)),
+          nombre: s.nombre || ('Socio ' + (i + 1)),
+          bonoPct: Number(s.bonoPct) || 0
+        }));
+      } else if (c.socioBonus) {
+        // Migración desde el formato viejo (Socio 1 / Socio 2 fijos + on/off)
+        cfgSocios = [{ id: 'socio-1', nombre: c.socioBonus, bonoPct: c.socio1Bono ? 10 : 0 }];
+        if (c.socioMitad && c.socioMitad !== c.socioBonus) {
+          cfgSocios.push({ id: 'socio-2', nombre: c.socioMitad, bonoPct: c.socio2Bono ? 10 : 0 });
+        }
+      }
+      actualizarAliasSocios();
       if (c.facturaNombre) cfgFacturaNombre = c.facturaNombre;
       if (typeof c.facturaDireccion === 'string') cfgFacturaDireccion = c.facturaDireccion;
       if (typeof c.facturaSigueSocio === 'boolean') cfgFacturaSigueSocio = c.facturaSigueSocio;
       if (typeof c.logoDataUrl === 'string') cfgLogoDataUrl = c.logoDataUrl;
-      if (typeof c.socio1Bono === 'boolean') cfgSocio1Bono = c.socio1Bono;
-      if (typeof c.socio2Bono === 'boolean') cfgSocio2Bono = c.socio2Bono;
       if (typeof c.ultimoCliente === 'string') cfgUltimoCliente = c.ultimoCliente;
     } catch (e) {
       // Migración: si había una dirección vieja en localStorage, usarla
@@ -1528,17 +1571,18 @@
     // Si el formulario de Ajustes ya se había pintado con valores por defecto
     // (porque la sesión resolvió antes que esta carga), lo refresca ahora con
     // los valores reales — así nunca se queda mostrando datos viejos.
-    if (typeof cargarFormAjustes === 'function' && document.getElementById('aj-socio-bonus')) cargarFormAjustes();
+    if (typeof cargarFormAjustes === 'function' && document.getElementById('aj-socios-lista')) cargarFormAjustes();
     // "Bill To" recuerda la última compañía usada, hasta que la cambien a propósito
     const campoCliente = $('inv-cliente');
     if (campoCliente && !campoCliente.value) campoCliente.value = cfgUltimoCliente;
   }
   async function guardarConfig() {
     const c = {
-      socioBonus: cfgSocioBonus, socioMitad: cfgSocioMitad,
+      socios: cfgSocios,
+      socioBonus: cfgSocioBonus, socioMitad: cfgSocioMitad, // se dejan también por compatibilidad hacia atrás
       facturaNombre: cfgFacturaNombre, facturaDireccion: cfgFacturaDireccion,
       facturaSigueSocio: cfgFacturaSigueSocio, logoDataUrl: cfgLogoDataUrl,
-      socio1Bono: cfgSocio1Bono, socio2Bono: cfgSocio2Bono, ultimoCliente: cfgUltimoCliente
+      ultimoCliente: cfgUltimoCliente
     };
     try { await window.storage.set(CFG_KEY, JSON.stringify(c)); } catch (e) {}
   }
@@ -1616,7 +1660,7 @@
       document.querySelectorAll('.gc-panel').forEach((p) => p.classList.remove('active'));
       tab.classList.add('active');
       $('panel-' + tab.dataset.tab).classList.add('active');
-      if (tab.dataset.tab === 'buscar') { renderAnios(); renderBusqueda(); renderResumenTaxas(); }
+      if (tab.dataset.tab === 'buscar') { renderAnios(); renderBusqueda(); renderResumenTaxas(); renderTotalPorSocio(); }
     });
   });
 
@@ -1658,6 +1702,7 @@
     renderCatSelect();
     renderMovimientos();
     actualizarStats();
+    refrescarSugerenciasDesc();
   }
 
   async function saveMov() {
@@ -1686,6 +1731,7 @@
       $('cat-field-wrap').style.display = esAjuste ? 'none' : 'block';
       $('ingreso-semana-row').style.display = esIngreso ? 'block' : 'none';
       if (esIngreso) actualizarSemanaIngreso();
+      if ($('mov-cat-nueva-row')) $('mov-cat-nueva-row').style.display = 'none';
       renderCatSelect();
     });
   });
@@ -1711,6 +1757,10 @@
       opt.value = c; opt.textContent = c;
       select.appendChild(opt);
     });
+    const optNueva = document.createElement('option');
+    optNueva.value = '__nueva__';
+    optNueva.textContent = '+ Nueva categoría…';
+    select.appendChild(optNueva);
   }
 
   // ---- Categorías (gestión) ----
@@ -1764,6 +1814,48 @@
   });
   $('cat-ingreso-nueva').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btn-agregar-ingreso').click(); });
 
+  // ---- Categoría rápida desde Movimientos (sin salir de la pantalla) ----
+  $('m-cat').addEventListener('change', () => {
+    if ($('m-cat').value !== '__nueva__') return;
+    $('mov-cat-nueva-row').style.display = 'block';
+    $('mov-cat-nueva-input').value = '';
+    $('mov-cat-nueva-input').focus();
+  });
+  function movCancelarCatNueva() {
+    $('mov-cat-nueva-row').style.display = 'none';
+    renderCatSelect(); // vuelve a la primera categoría en vez de dejar "+ Nueva categoría…" seleccionado
+  }
+  $('mov-cat-nueva-cancelar').addEventListener('click', movCancelarCatNueva);
+  async function movGuardarCatNueva() {
+    const val = $('mov-cat-nueva-input').value.trim();
+    if (!val) { movCancelarCatNueva(); return; }
+    const lista = tipoActual === 'ingreso' ? catIngresos : catGastos;
+    if (!lista.includes(val)) {
+      lista.push(val);
+      if (tipoActual === 'ingreso') await saveCatIngresos(); else await saveCatGastos();
+      if (typeof renderCategorias === 'function') renderCategorias();
+    }
+    $('mov-cat-nueva-row').style.display = 'none';
+    renderCatSelect();
+    $('m-cat').value = val; // deja seleccionada la que se acaba de crear
+    toast('Categoría agregada ✓', 'success', 1800);
+  }
+  $('mov-cat-nueva-guardar').addEventListener('click', movGuardarCatNueva);
+  $('mov-cat-nueva-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); movGuardarCatNueva(); } });
+
+  // ---- Sugerencias de descripción: recuerda lo que ya se ha escrito antes ----
+  function refrescarSugerenciasDesc() {
+    const dl = $('dl-desc-sugeridas');
+    if (!dl) return;
+    const vistas = new Set();
+    const unicas = [];
+    [...movimientos].sort((a, b) => (b.fecha || '').localeCompare(a.fecha || '')).forEach((m) => {
+      const d = (m.desc || '').trim();
+      if (d && !vistas.has(d.toLowerCase())) { vistas.add(d.toLowerCase()); unicas.push(d); }
+    });
+    dl.innerHTML = unicas.slice(0, 40).map((d) => `<option value="${escapeHtml(d)}">`).join('');
+  }
+
   // ---- Guardar movimiento ----
   function limpiarFormularioMov(avisar) {
     if (tipoActual === 'ingreso') {
@@ -1775,6 +1867,7 @@
     $('m-desc').value = '';
     // El tipo (Ingreso/Gasto/Ajuste) se queda donde el usuario lo dejó — no se resetea
     renderCatSelect();
+    refrescarSugerenciasDesc();
     if (avisar) {
       $('status-mov').textContent = 'Formulario limpiado';
       setTimeout(() => { $('status-mov').textContent = ''; }, 1200);
@@ -1790,6 +1883,7 @@
     const desc = $('m-desc').value.trim();
 
     if (!esAjuste && !cat) { $('status-mov').textContent = 'Agrega al menos una categoría primero'; return; }
+    if (cat === '__nueva__') { $('status-mov').textContent = 'Termina de agregar la categoría nueva, o elige una de la lista'; $('mov-cat-nueva-row').style.display = 'block'; $('mov-cat-nueva-input').focus(); return; }
     if (!monto || monto <= 0) {
       $('status-mov').textContent = 'Captura un monto válido';
       setTimeout(() => { $('status-mov').textContent = ''; }, 1800);
@@ -1842,15 +1936,24 @@
   // ---- Hoja de movimientos agrupada por semana ----
 
   function actualizarStats() {
-    const semAct = weekInfo(today()).key;
-    const movSem = movimientos.filter(m => weekInfo(m.fecha || today()).key === semAct);
+    const hoy = today();
+    const semAct = weekInfo(hoy).key;
+    const fechaSemPasada = new Date(hoy + 'T00:00:00'); fechaSemPasada.setDate(fechaSemPasada.getDate() - 7);
+    const semAnt = weekInfo(fechaSemPasada.toISOString().slice(0, 10)).key;
+
+    const movSem = movimientos.filter(m => weekInfo(m.fecha || hoy).key === semAct);
+    const movAnt = movimientos.filter(m => weekInfo(m.fecha || hoy).key === semAnt);
     const ing = movSem.filter(m => m.tipo === 'ingreso').reduce((s,m) => s + (Number(m.monto)||0), 0);
     const gas = movSem.filter(m => m.tipo === 'gasto').reduce((s,m) => s + (Number(m.monto)||0), 0);
+    const ingAnt = movAnt.filter(m => m.tipo === 'ingreso').reduce((s,m) => s + (Number(m.monto)||0), 0);
+    const gasAnt = movAnt.filter(m => m.tipo === 'gasto').reduce((s,m) => s + (Number(m.monto)||0), 0);
     const net = ing - gas;
     if ($('stat-ing')) $('stat-ing').textContent = fmt(ing);
     if ($('stat-gas')) $('stat-gas').textContent = fmt(gas);
     if ($('stat-net')) { $('stat-net').textContent = fmt(net); $('stat-net').style.color = net >= 0 ? 'var(--teal)' : 'var(--ember)'; }
     if ($('stat-inv')) $('stat-inv').textContent = invoicesGuardados.length;
+    renderStatDelta('stat-ing-delta', ing, ingAnt, true);
+    renderStatDelta('stat-gas-delta', gas, gasAnt, false);
     // Totales acumulados de todos los invoices guardados
     let totTaxas = 0, totCra = 0, totTaxGuzman = 0;
     invoicesGuardados.forEach((inv) => {
@@ -1862,6 +1965,23 @@
     if ($('stat-cra-total')) $('stat-cra-total').textContent = fmt(totCra);
     if ($('stat-tax-guzman')) $('stat-tax-guzman').textContent = fmt(totTaxGuzman);
   }
+
+  // Compara esta semana contra la pasada. subirEsBueno=true para ingresos
+  // (subir = verde), false para gastos (subir = naranja/alerta).
+  function renderStatDelta(elId, actual, anterior, subirEsBueno) {
+    const el = $(elId);
+    if (!el) return;
+    if (anterior <= 0) { el.textContent = ''; return; } // sin semana pasada que comparar
+    const cambio = ((actual - anterior) / anterior) * 100;
+    if (Math.abs(cambio) < 1) { el.textContent = 'igual que la semana pasada'; el.style.color = 'var(--muted)'; return; }
+    const subio = cambio > 0;
+    const esBueno = subio === subirEsBueno;
+    el.style.color = esBueno ? 'var(--teal-dk)' : 'var(--ember)';
+    el.textContent = (subio ? '↑ ' : '↓ ') + Math.abs(cambio).toFixed(0) + '% vs. semana pasada';
+  }
+
+  let movMostrarTodasSemanas = false; // por defecto solo semanas recientes, para no saturar el libro
+  const MOV_SEMANAS_LIMITE = 8;
 
   function renderMovimientos() {
     const tbody = $('tbody-mov');
@@ -1876,7 +1996,28 @@
       grupos.get(key).items.push(m);
     });
 
-    [...grupos.keys()].sort().forEach((key) => {
+    let keys = [...grupos.keys()].sort();
+    const totalSemanas = keys.length;
+    let semanasOcultas = 0;
+    if (!movMostrarTodasSemanas && keys.length > MOV_SEMANAS_LIMITE) {
+      semanasOcultas = keys.length - MOV_SEMANAS_LIMITE;
+      keys = keys.slice(semanasOcultas); // conserva las más recientes (están ordenadas ascendente)
+    }
+    const filaVerMas = $('mov-ver-mas-row');
+    const btnVerMas = $('mov-ver-mas-btn');
+    if (filaVerMas && btnVerMas) {
+      if (semanasOcultas > 0) {
+        filaVerMas.style.display = 'block';
+        btnVerMas.textContent = `Ver ${semanasOcultas} semana${semanasOcultas === 1 ? '' : 's'} anterior${semanasOcultas === 1 ? '' : 'es'} (${totalSemanas} en total)`;
+      } else if (movMostrarTodasSemanas && totalSemanas > MOV_SEMANAS_LIMITE) {
+        filaVerMas.style.display = 'block';
+        btnVerMas.textContent = 'Mostrar solo las semanas recientes';
+      } else {
+        filaVerMas.style.display = 'none';
+      }
+    }
+
+    keys.forEach((key) => {
       const g = grupos.get(key);
       const trWeek = document.createElement('tr');
       trWeek.className = 'gc-week-row';
@@ -1931,6 +2072,12 @@
     });
 
     renderGraficaSemanal();
+  }
+  if ($('mov-ver-mas-btn')) {
+    $('mov-ver-mas-btn').addEventListener('click', () => {
+      movMostrarTodasSemanas = !movMostrarTodasSemanas;
+      renderMovimientos();
+    });
   }
 
   // ---- Gráfica SVG de tendencia semanal (ingresos / gastos / neto) ----
@@ -2137,39 +2284,35 @@
       const taxas = g.ingresos * TASA_TAXAS;
       const gastosTotales = g.gastos + taxas;
       const neto = g.ingresos - gastosTotales;
-      const ajuste = g.ajusteGuzman; // + o −
+      const ajuste = g.ajusteGuzman; // + o −, siempre del primer socio de la lista
 
-      // Un solo socio (mismo nombre para los dos): todo va a uno solo, sin
-      // reparto a la mitad ni bono — no tiene sentido "compartir" con uno mismo.
-      const unSoloSocio = cfgSocioBonus === cfgSocioMitad;
-      let mitad, bonoBase, bonoAjuste, bonoCra, pagoCra, pagoGuzman, taxGuzman;
+      // Reparto en partes iguales entre TODOS los socios de la lista (1, 2 o
+      // más). Si solo hay uno, "su parte" es el 100% — sale solo, sin caso
+      // especial. El ajuste manual siempre es del primer socio; el bono de
+      // cada quien es su propio porcentaje sobre (su parte + su ajuste).
+      const lista = cfgSocios && cfgSocios.length ? cfgSocios : [{ id: 'socio-1', nombre: cfgSocioBonus || 'Socio 1', bonoPct: 0 }];
+      const base = neto / lista.length;
+      const pagos = lista.map((s, i) => {
+        const ajusteSocio = i === 0 ? ajuste : 0;
+        const baseConAjuste = base + ajusteSocio;
+        const pct = Number(s.bonoPct) || 0;
+        const bono = baseConAjuste > 0 ? baseConAjuste * (pct / 100) : 0;
+        return { id: s.id, nombre: s.nombre, bonoPct: pct, base, ajuste: ajusteSocio, bono, total: baseConAjuste + bono };
+      });
+      const bonoCra = pagos.reduce((sum, p) => sum + p.bono, 0); // bono total que sale de las taxas
+      const taxGuzman = taxas - bonoCra;
 
-      if (unSoloSocio) {
-        mitad = neto;
-        bonoBase = 0;
-        bonoAjuste = 0;
-        bonoCra = 0;
-        pagoCra = neto + ajuste;
-        pagoGuzman = 0;
-        taxGuzman = taxas;
-      } else {
-        mitad = neto / 2;
-        // Bono base: 10% de la mitad (solo si neto positivo)
-        bonoBase = mitad > 0 ? mitad * BONO_CRA : 0;
-        // Ajuste a Socio 1: suma/resta a su pago, y genera bono del 10% que sale de las taxas
-        bonoAjuste = ajuste * BONO_CRA; // 10% del ajuste (sale de taxas)
-        // El bono de cada quien solo aplica si ese socio lo tiene activado
-        const bonoSocio1 = cfgSocio1Bono ? (bonoBase + bonoAjuste) : 0;
-        const bonoSocio2 = cfgSocio2Bono ? bonoBase : 0;
-        bonoCra = bonoSocio1 + bonoSocio2; // bono total que sale de las taxas
-        // Socio 1: mitad + ajuste + su bono (si lo tiene activado)
-        pagoCra = mitad + ajuste + bonoSocio1;
-        // Socio 2: mitad + su bono (si lo tiene activado)
-        pagoGuzman = mitad + bonoSocio2;
-        taxGuzman = taxas - bonoCra; // taxas restantes después de todos los bonos
-      }
+      // Alias de compatibilidad con el resto de la app (1° y 2° socio):
+      const mitad = base;
+      const pagoCra = pagos[0] ? pagos[0].total : 0;
+      const pagoGuzman = pagos[1] ? pagos[1].total : 0;
+      // Desglose del bono del primer socio en "de su mitad" vs "de su ajuste" (solo para mostrarlo detallado en la factura/recibo)
+      const pct0 = pagos[0] ? pagos[0].bonoPct : 0;
+      const bonoBase = base > 0 ? base * (pct0 / 100) : 0;
+      const bonoAjuste = ajuste * (pct0 / 100);
+
       const gastoItems = [...g.gastoItems].sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
-      resultado.push({ key, label: g.label, ingresos: g.ingresos, gastos: g.gastos, gastoItems, ajusteGuzman: ajuste, ajusteItems: g.ajusteItems, taxas, gastosTotales, neto, mitad, bonoBase, bonoAjuste, bonoCra, pagoCra, pagoGuzman, taxGuzman });
+      resultado.push({ key, label: g.label, ingresos: g.ingresos, gastos: g.gastos, gastoItems, ajusteGuzman: ajuste, ajusteItems: g.ajusteItems, taxas, gastosTotales, neto, mitad, bonoBase, bonoAjuste, bonoCra, pagoCra, pagoGuzman, taxGuzman, pagos });
     });
     return resultado;
   }
@@ -2180,6 +2323,7 @@
     // El botón "Guardar invoice" ahora está en Movimientos (por semana).
     renderInvoicesGuardados();
     renderResumenTaxas();
+    if (typeof renderTotalPorSocio === 'function') renderTotalPorSocio();
   }
 
   function renderInvoicesGuardados() {
@@ -2190,16 +2334,30 @@
     $('empty-invoices-guardados').style.display = hayDatos ? 'none' : 'block';
     $('tabla-invoices-guardados').style.display = hayDatos ? 'table' : 'none';
 
+    // Encabezado: una columna de pago por cada socio actual (mínimo 1)
+    const listaSocios = cfgSocios && cfgSocios.length ? cfgSocios : [{ nombre: cfgSocioBonus }];
+    const filaEnc = $('tabla-invoices-thead-row');
+    if (filaEnc) {
+      filaEnc.innerHTML = `<th>Semana</th><th>Guardado</th><th class="num">Gastos</th>${listaSocios.map((s) => `<th class="num">${escapeHtml(s.nombre)}</th>`).join('')}<th></th>`;
+    }
+
     sorted.forEach((inv) => {
       const idInv = inv.id || inv.key;
       const fechaGuardado = inv.guardadoEn ? new Date(inv.guardadoEn).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }) : '';
+      // Montos por socio: usa inv.pagos (invoices nuevos) si coincide en cantidad;
+      // si no, usa los campos viejos pagoCra/pagoGuzman como respaldo.
+      const montosPorSocio = listaSocios.map((s, i) => {
+        if (Array.isArray(inv.pagos) && inv.pagos[i]) return inv.pagos[i].total;
+        if (i === 0) return inv.pagoCra || 0;
+        if (i === 1) return inv.pagoGuzman || 0;
+        return null; // este invoice viejo no tiene datos para un 3er+ socio
+      });
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${escapeHtml(inv.label || '')}</td>
         <td>${fechaGuardado}</td>
         <td class="gc-num">${fmt(inv.gastosTotales)}</td>
-        <td class="gc-num">${fmt(inv.pagoCra)}</td>
-        <td class="gc-num">${fmt(inv.pagoGuzman)}</td>
+        ${montosPorSocio.map((m) => `<td class="gc-num">${m == null ? '—' : fmt(m)}</td>`).join('')}
         <td><button class="gc-action-btn gc-ver-invoice-btn" data-id="${idInv}" style="padding:4px 10px; font-size:11px;">Ver</button> <button class="gc-action-btn gc-reabrir-invoice-btn" data-id="${idInv}" style="padding:4px 10px; font-size:11px;color:var(--gold);border-color:var(--gold);">✎ Editar</button> <button class="gc-del" data-id="${idInv}">✕</button></td>
       `;
       tbody.appendChild(tr);
@@ -2254,6 +2412,32 @@
         toast('Invoice eliminado', 'info');
       });
     });
+  }
+
+  // ---- Total pagado por socio (suma de todos los invoices del año filtrado) ----
+  function renderTotalPorSocio() {
+    const cont = $('total-socios-lista');
+    if (!cont) return;
+    const filtroAnio = ($('taxas-anio-filtro') || {}).value || 'todos';
+    const invs = invoicesGuardados.filter((inv) => filtroAnio === 'todos' || (inv.guardadoEn || '').startsWith(filtroAnio));
+    const totales = new Map(); // nombre del socio -> total acumulado
+    invs.forEach((inv) => {
+      const pagos = Array.isArray(inv.pagos) && inv.pagos.length
+        ? inv.pagos
+        : [{ nombre: cfgSocioBonus, total: inv.pagoCra || 0 }, { nombre: cfgSocioMitad, total: inv.pagoGuzman || 0 }];
+      pagos.forEach((p) => {
+        if (!p.nombre) return;
+        totales.set(p.nombre, (totales.get(p.nombre) || 0) + (Number(p.total) || 0));
+      });
+    });
+    const lista = [...totales.entries()].sort((a, b) => b[1] - a[1]);
+    $('empty-total-socios').style.display = lista.length === 0 ? 'block' : 'none';
+    cont.style.display = lista.length === 0 ? 'none' : 'grid';
+    cont.innerHTML = lista.map(([nombre, total], i) => `
+      <div style="background:#F5F7FC;border-radius:12px;padding:14px 16px;border-left:3px solid ${DONUT_COLORES[i % DONUT_COLORES.length]};">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:4px;">${escapeHtml(nombre)}</div>
+        <div style="font-size:19px;font-weight:700;color:var(--ink);font-family:'IBM Plex Mono',monospace;">${fmt(total)}</div>
+      </div>`).join('');
   }
 
   // ---- Resumen anual de Taxas ----
@@ -2463,11 +2647,22 @@
   function renderBusqueda() {
     const texto = $('b-texto').value.trim().toLowerCase();
     const anio = $('b-anio').value || 'todos';
+    const desde = $('b-desde') ? $('b-desde').value : '';
+    const hasta = $('b-hasta') ? $('b-hasta').value : '';
+    const tipoFiltro = $('b-tipo') ? $('b-tipo').value : 'todos';
+    const usaRango = !!(desde || hasta); // si hay fechas, mandan sobre "Año"
 
     const filtrados = todosMov().filter((m) => {
-      const okAnio = anio === 'todos' || (m.fecha || '').slice(0, 4) === anio;
-      const okTexto = !texto || (m.cat || '').toLowerCase().includes(texto) || (m.desc || '').toLowerCase().includes(texto);
-      return okAnio && okTexto;
+      const fecha = m.fecha || '';
+      const okFecha = usaRango
+        ? (!desde || fecha >= desde) && (!hasta || fecha <= hasta)
+        : (anio === 'todos' || fecha.slice(0, 4) === anio);
+      const okTipo = tipoFiltro === 'todos' || m.tipo === tipoFiltro;
+      const okTexto = !texto
+        || (m.cat || '').toLowerCase().includes(texto)
+        || (m.desc || '').toLowerCase().includes(texto)
+        || String(m.monto || '').includes(texto);
+      return okFecha && okTipo && okTexto;
     }).sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
 
     // Detalle
@@ -2558,7 +2753,17 @@
 
   $('b-texto').addEventListener('input', debounce(renderBusqueda, 160));
   $('b-anio').addEventListener('change', renderBusqueda);
-  document.getElementById('taxas-anio-filtro').addEventListener('change', renderResumenTaxas);
+  if ($('b-desde')) $('b-desde').addEventListener('change', renderBusqueda);
+  if ($('b-hasta')) $('b-hasta').addEventListener('change', renderBusqueda);
+  if ($('b-tipo')) $('b-tipo').addEventListener('change', renderBusqueda);
+  if ($('b-limpiar-fechas')) {
+    $('b-limpiar-fechas').addEventListener('click', () => {
+      $('b-desde').value = '';
+      $('b-hasta').value = '';
+      renderBusqueda();
+    });
+  }
+  document.getElementById('taxas-anio-filtro').addEventListener('change', () => { renderResumenTaxas(); renderTotalPorSocio(); });
 
   // ---- Vista previa como hoja impresa ----
   function construirHTMLInvoice(inv) {
@@ -2589,24 +2794,22 @@
           <tr><td>Ingresos</td><td class="num">${fmt(inv.ingresos)}</td></tr>
           <tr><td>Total gastos (incluye taxas)</td><td class="num">${fmt(inv.gastosTotales)}</td></tr>
           <tr><td>Neto a repartir</td><td class="num">${fmt(inv.neto)}</td></tr>
-          ${inv.ajusteGuzman ? `<tr><td>Ajuste a ${cfgSocioBonus} ${inv.ajusteGuzman > 0 ? '(+)' : '(−)'}</td><td class="num">${fmt(inv.ajusteGuzman)}</td></tr>` : ''}
-          ${inv.bonoAjuste ? `<tr><td>Bono 10% del ajuste (sale de taxas)</td><td class="num">${fmt(inv.bonoAjuste)}</td></tr>` : ''}
-          <tr><td>Tax de ${cfgSocioMitad}</td><td class="num">${fmt(inv.taxGuzman)}</td></tr>
+          ${inv.ajusteGuzman ? `<tr><td>Ajuste ${inv.ajusteGuzman > 0 ? '(+)' : '(−)'}</td><td class="num">${fmt(inv.ajusteGuzman)}</td></tr>` : ''}
+          <tr><td>Taxas restantes (después de tax)</td><td class="num">${fmt(inv.taxGuzman)}</td></tr>
         </tbody>
       </table>
 
       <h2>Reparto</h2>
       <div class="ps-split">
-        <div class="ps-split-box">
-          <div class="ps-name">${cfgSocioBonus}</div>
-          <div class="ps-total">${fmt(inv.pagoCra)}</div>
-          <div class="ps-note">mitad ${fmt(inv.mitad)} + bono (${fmt(inv.bonoCra)})${inv.ajusteGuzman ? ` + ajuste ${fmt(inv.ajusteGuzman)}` : ''}</div>
-        </div>
-        <div class="ps-split-box">
-          <div class="ps-name">${cfgSocioMitad}</div>
-          <div class="ps-total">${fmt(inv.pagoGuzman)}</div>
-          <div class="ps-note">mitad del neto</div>
-        </div>
+        ${(Array.isArray(inv.pagos) && inv.pagos.length ? inv.pagos : [
+          { nombre: cfgSocioBonus, base: inv.mitad, ajuste: inv.ajusteGuzman || 0, bono: inv.bonoCra || 0, bonoPct: null, total: inv.pagoCra },
+          { nombre: cfgSocioMitad, base: inv.mitad, ajuste: 0, bono: 0, bonoPct: null, total: inv.pagoGuzman }
+        ]).map((p) => `
+          <div class="ps-split-box">
+            <div class="ps-name">${escapeHtml(p.nombre)}</div>
+            <div class="ps-total">${fmt(p.total)}</div>
+            <div class="ps-note">parte ${fmt(p.base)}${p.bono ? ` + tax${p.bonoPct != null ? ' ' + p.bonoPct + '%' : ''} (${fmt(p.bono)})` : ''}${p.ajuste ? ` + ajuste ${fmt(p.ajuste)}` : ''}</div>
+          </div>`).join('')}
       </div>
     `;
   }
@@ -2829,11 +3032,15 @@
     }));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hojaMovs), 'Movimientos');
 
-    const hojaInv = invs.map((i) => ({
-      Semana: i.label || '', Guardado: (i.guardadoEn || '').slice(0, 10),
-      Ingresos: i.ingresos || 0, Gastos: i.gastos || 0, Taxas: i.taxas || 0,
-      [cfgSocioBonus]: i.pagoCra || 0, [cfgSocioMitad]: i.pagoGuzman || 0
-    }));
+    const hojaInv = invs.map((i) => {
+      const fila = {
+        Semana: i.label || '', Guardado: (i.guardadoEn || '').slice(0, 10),
+        Ingresos: i.ingresos || 0, Gastos: i.gastos || 0, Taxas: i.taxas || 0
+      };
+      const pagos = Array.isArray(i.pagos) && i.pagos.length ? i.pagos : [{ nombre: cfgSocioBonus, total: i.pagoCra || 0 }, { nombre: cfgSocioMitad, total: i.pagoGuzman || 0 }];
+      pagos.forEach((p) => { fila[p.nombre] = p.total; });
+      return fila;
+    });
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hojaInv), 'Invoices guardados');
 
     const hojaNom = nomina.map((n) => ({
@@ -2861,7 +3068,10 @@
     const totNomina = nomina.reduce((s, n) => s + (Number(n.monto) || 0), 0);
     const activos = emps.filter((e) => e.estado !== 'inactivo');
     const filaMov = (m) => `<tr><td>${escapeHtml(m.fecha || '')}</td><td>${m.tipo === 'ingreso' ? 'Ingreso' : m.tipo === 'gasto' ? 'Gasto' : 'Ajuste'}</td><td>${escapeHtml(m.cat || '')}</td><td>${escapeHtml(m.desc || '')}</td><td style="text-align:right;">${fmt(m.monto)}</td></tr>`;
-    const filaInv = (i) => `<tr><td>${escapeHtml(i.label || '')}</td><td style="text-align:right;">${fmt(i.ingresos)}</td><td style="text-align:right;">${fmt(i.gastos)}</td><td style="text-align:right;">${fmt(i.pagoCra)}</td><td style="text-align:right;">${fmt(i.pagoGuzman)}</td></tr>`;
+    const filaInv = (i) => {
+      const pagos = Array.isArray(i.pagos) && i.pagos.length ? i.pagos : [{ nombre: cfgSocioBonus, total: i.pagoCra || 0 }, { nombre: cfgSocioMitad, total: i.pagoGuzman || 0 }];
+      return `<tr><td>${escapeHtml(i.label || '')}</td><td style="text-align:right;">${fmt(i.ingresos)}</td><td style="text-align:right;">${fmt(i.gastos)}</td>${pagos.map((p) => `<td style="text-align:right;">${fmt(p.total)}</td>`).join('')}</tr>`;
+    };
     const filaNom = (n) => `<tr><td>${escapeHtml(n.trabajador || '')}</td><td>${(n.creadoEn || '').slice(0, 10)}</td><td style="text-align:center;">${(n.dias || []).length}</td><td style="text-align:right;">${fmt(n.monto)}</td></tr>`;
     const filaEmp = (e) => `<tr><td>${escapeHtml(empNombreCompleto(e))}</td><td>${escapeHtml(e.rol || '')}</td><td style="text-align:right;">${e.sueldo ? fmt(e.sueldo) + '/día' : '—'}</td></tr>`;
     const rangoTxt = (desde || hasta) ? `${desde || '…'} a ${hasta || '…'}` : 'Todo el historial';
@@ -2881,8 +3091,8 @@
 
         <div style="font-family:'Zilla Slab',serif;font-size:15px;font-weight:700;margin-bottom:8px;">Invoices guardados (${invs.length})</div>
         <table style="width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:20px;">
-          <thead><tr style="background:#F5F7FC;"><th style="text-align:left;padding:6px;">Semana</th><th style="text-align:right;padding:6px;">Ingresos</th><th style="text-align:right;padding:6px;">Gastos</th><th style="text-align:right;padding:6px;">${escapeHtml(cfgSocioBonus)}</th><th style="text-align:right;padding:6px;">${escapeHtml(cfgSocioMitad)}</th></tr></thead>
-          <tbody>${invs.map(filaInv).join('') || '<tr><td colspan="5" style="padding:8px;color:#63708C;">Sin invoices en este rango.</td></tr>'}</tbody>
+          <thead><tr style="background:#F5F7FC;"><th style="text-align:left;padding:6px;">Semana</th><th style="text-align:right;padding:6px;">Ingresos</th><th style="text-align:right;padding:6px;">Gastos</th>${(cfgSocios && cfgSocios.length ? cfgSocios : [{ nombre: cfgSocioBonus }, { nombre: cfgSocioMitad }]).map((s) => `<th style="text-align:right;padding:6px;">${escapeHtml(s.nombre)}</th>`).join('')}</tr></thead>
+          <tbody>${invs.map(filaInv).join('') || `<tr><td colspan="${3 + (cfgSocios && cfgSocios.length ? cfgSocios.length : 2)}" style="padding:8px;color:#63708C;">Sin invoices en este rango.</td></tr>`}</tbody>
         </table>
 
         <div style="font-family:'Zilla Slab',serif;font-size:15px;font-weight:700;margin-bottom:8px;">Movimientos (${movs.length})</div>
@@ -3162,17 +3372,11 @@
     ajAplicarRestriccionesRol();
     if (typeof ajRefrescarPreviewLogo === 'function') ajRefrescarPreviewLogo();
 
-    $('aj-socio-bonus').value = cfgSocioBonus;
-    $('aj-socio-mitad').value = cfgSocioMitad;
-    $('aj-socio1-bono').checked = cfgSocio1Bono;
-    $('aj-socio2-bono').checked = cfgSocio2Bono;
+    ajSociosEdit = cfgSocios.map((s) => ({ ...s }));
+    if (typeof ajRenderSociosLista === 'function') ajRenderSociosLista();
     $('aj-factura-nombre').value = cfgFacturaNombre;
     $('aj-direccion-empresa').value = cfgFacturaDireccion;
-    // Detectar si ambos socios son iguales (modo "un solo nombre")
-    const unSolo = cfgSocioBonus === cfgSocioMitad;
-    $('aj-un-socio').checked = unSolo;
-    aplicarModoUnSocio(unSolo);
-    // Casilla: nombre de factura sigue al Socio 2
+    // Casilla: nombre de factura sigue al socio principal
     $('aj-factura-sigue-socio').checked = cfgFacturaSigueSocio;
     aplicarFacturaSigueSocio(cfgFacturaSigueSocio);
     ajMostrarPanelesAdmin();
@@ -3200,59 +3404,71 @@
       const wrap = $('aj-card-cuentas'); if (wrap) wrap.style.display = 'none';
     }
   }
-  function aplicarModoUnSocio(activo) {
-    $('aj-socio-mitad-wrap').style.display = activo ? 'none' : 'block';
-    $('aj-socios-grid').style.gridTemplateColumns = activo ? '1fr' : '1fr 1fr';
-    $('aj-un-socio-nota').style.display = activo ? 'block' : 'none';
-    // Con un solo socio no hay bono que repartir: ocultar esas casillas
-    $('aj-socio1-bono').closest('label').style.display = activo ? 'none' : 'flex';
-    $('aj-socio2-bono').closest('label').style.display = activo ? 'none' : 'flex';
-    if (activo) {
-      $('aj-socio-mitad').value = $('aj-socio-bonus').value;
-      $('aj-btn-swap-socios').style.display = 'none';
-    } else {
-      $('aj-btn-swap-socios').style.display = '';
-    }
-  }
-  $('aj-un-socio').addEventListener('change', () => aplicarModoUnSocio($('aj-un-socio').checked));
+  // ---- Lista dinámica de socios (agregar / editar / quitar) ----
+  let ajSociosEdit = []; // copia de trabajo mientras se edita, no se guarda hasta dar "Guardar"
 
-  // Casilla: el nombre de factura/nómina sigue al Socio 2
+  function ajRenderSociosLista() {
+    const cont = $('aj-socios-lista');
+    if (!cont) return;
+    cont.innerHTML = ajSociosEdit.map((s, i) => `
+      <div class="aj-socio-row" data-idx="${i}" style="display:flex;gap:10px;align-items:end;padding:12px 0;${i > 0 ? 'border-top:1px solid var(--border-soft);' : ''}">
+        <div class="gc-field" style="flex:2;min-width:0;">
+          <label>${i === 0 ? 'Socio 1 (recibe ajustes)' : 'Socio ' + (i + 1)}</label>
+          <input type="text" class="aj-socio-nombre" data-idx="${i}" value="${escapeHtml(s.nombre)}">
+        </div>
+        <div class="gc-field" style="flex:0 0 90px;min-width:0;">
+          <label>Tax %</label>
+          <input type="text" inputmode="decimal" class="aj-socio-bonopct" data-idx="${i}" value="${s.bonoPct}">
+        </div>
+        <button type="button" class="gc-del aj-socio-del" data-idx="${i}"${ajSociosEdit.length <= 1 ? ' disabled style="opacity:.3;cursor:not-allowed;"' : ''} title="Quitar socio">✕</button>
+      </div>`).join('');
+    cont.querySelectorAll('.aj-socio-del').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (ajSociosEdit.length <= 1) return;
+        ajSociosEdit.splice(Number(btn.dataset.idx), 1);
+        ajRenderSociosLista();
+      });
+    });
+  }
+  if ($('aj-btn-add-socio')) {
+    $('aj-btn-add-socio').addEventListener('click', () => {
+      ajSociosEdit.push({ id: 'socio-' + Date.now(), nombre: '', bonoPct: 0 });
+      ajRenderSociosLista();
+    });
+  }
+
+  // Casilla: el nombre de factura/nómina sigue al Socio 2 (o al único socio, si es uno solo)
   function aplicarFacturaSigueSocio(activo) {
     $('aj-factura-nombre-wrap').style.display = activo ? 'none' : 'block';
-    if (activo) $('aj-factura-nombre').value = $('aj-socio-mitad').value;
+    if (activo) $('aj-factura-nombre').value = cfgSocioMitad;
   }
   $('aj-factura-sigue-socio').addEventListener('change', () => aplicarFacturaSigueSocio($('aj-factura-sigue-socio').checked));
 
-  // Intercambiar los dos nombres (y quién recibe el bono, para que se quede con la persona)
-  $('aj-btn-swap-socios').addEventListener('click', () => {
-    const a = $('aj-socio-bonus').value;
-    $('aj-socio-bonus').value = $('aj-socio-mitad').value;
-    $('aj-socio-mitad').value = a;
-    const bonoA = $('aj-socio1-bono').checked;
-    $('aj-socio1-bono').checked = $('aj-socio2-bono').checked;
-    $('aj-socio2-bono').checked = bonoA;
-    // Si la factura sigue al Socio 2, reflejar el nuevo nombre
-    if ($('aj-factura-sigue-socio').checked) $('aj-factura-nombre').value = $('aj-socio-mitad').value;
-  });
-
-  // Guardar nombres de socios (y si cada uno recibe bono)
-  $('aj-btn-guardar-socios').addEventListener('click', async () => {
-    const bonus = $('aj-socio-bonus').value.trim();
-    const unSolo = $('aj-un-socio').checked;
-    const mitad = unSolo ? bonus : $('aj-socio-mitad').value.trim();
-    if (!bonus || !mitad) { toast('Escribe el nombre de los socios', 'error'); return; }
-    cfgSocioBonus = bonus;
-    cfgSocioMitad = mitad;
-    cfgSocio1Bono = $('aj-socio1-bono').checked;
-    cfgSocio2Bono = $('aj-socio2-bono').checked;
-    // Si la factura/nómina sigue al Socio 2, actualizar su nombre también
-    if (cfgFacturaSigueSocio) { cfgFacturaNombre = cfgSocioMitad; $('aj-factura-nombre').value = cfgFacturaNombre; }
-    await guardarConfig();
-    aplicarNombresEstaticos();
-    renderReparto();
-    if (typeof renderBusqueda === 'function') renderBusqueda();
-    toast(cfgFacturaSigueSocio ? 'Nombres guardados ✓ (facturas y nómina también)' : 'Nombres de socios guardados ✓', 'success');
-  });
+  // Guardar socios (nombres + % de bono de cada uno)
+  if ($('aj-btn-guardar-socios')) {
+    $('aj-btn-guardar-socios').addEventListener('click', async () => {
+      const filas = Array.from(document.querySelectorAll('.aj-socio-row'));
+      const nuevos = filas.map((fila) => {
+        const idx = Number(fila.dataset.idx);
+        const nombre = fila.querySelector('.aj-socio-nombre').value.trim();
+        const bonoPct = Math.max(0, Math.min(100, parseFloat((fila.querySelector('.aj-socio-bonopct').value || '0').replace(',', '.')) || 0));
+        return { id: (ajSociosEdit[idx] && ajSociosEdit[idx].id) || ('socio-' + Date.now() + '-' + idx), nombre, bonoPct };
+      });
+      if (nuevos.length === 0) { toast('Debe haber al menos un socio', 'error'); return; }
+      if (nuevos.some((s) => !s.nombre)) { toast('Escribe el nombre de todos los socios', 'error'); return; }
+      cfgSocios = nuevos;
+      actualizarAliasSocios();
+      ajSociosEdit = cfgSocios.map((s) => ({ ...s }));
+      // Si la factura/nómina sigue al socio principal (2° o único), actualizar su nombre también
+      if (cfgFacturaSigueSocio) { cfgFacturaNombre = cfgSocioMitad; if ($('aj-factura-nombre')) $('aj-factura-nombre').value = cfgFacturaNombre; }
+      await guardarConfig();
+      aplicarNombresEstaticos();
+      renderReparto();
+      if (typeof renderBusqueda === 'function') renderBusqueda();
+      ajRenderSociosLista();
+      toast('Socios guardados ✓', 'success');
+    });
+  }
 
   // Guardar datos de factura (nombre + dirección) — en la nube
   $('aj-btn-guardar-factura').addEventListener('click', async () => {
