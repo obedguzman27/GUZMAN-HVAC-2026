@@ -714,6 +714,7 @@
       <button class="aj-subtab active" data-asub="general">General</button>
       <button class="aj-subtab" data-asub="empleados" id="aj-subtab-empleados">Empleados</button>
       <button class="aj-subtab" data-asub="papeles" id="aj-subtab-papeles">Papeles</button>
+      <button class="aj-subtab" data-asub="avanzado" id="aj-subtab-avanzado">Avanzado</button>
     </div>
 
     <!-- General: respaldo + opciones -->
@@ -734,23 +735,6 @@
         </div>
       </div>
 
-      <!-- Reportes y exportación -->
-      <div class="gc-card" style="margin-top:16px;">
-        <p class="gc-card-title">Reportes y exportación</p>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">A diferencia del respaldo (que es un archivo técnico para restaurar), esto genera reportes para leer, imprimir o abrir en Excel.</p>
-        <div class="gc-field" style="margin-bottom:14px;"><label>Rango de fechas (opcional — vacío = todo)</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <input type="date" id="rep-desde" aria-label="Desde">
-            <input type="date" id="rep-hasta" aria-label="Hasta">
-          </div>
-        </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="gc-save-btn" id="btn-reporte-excel">Descargar Excel completo</button>
-          <button class="gc-action-btn" id="btn-reporte-pdf">Descargar reporte en PDF</button>
-        </div>
-        <p style="font-size:11.5px;color:var(--muted);margin-top:10px;">El Excel trae una hoja por cada área (Movimientos, Invoices, Nómina, Empleados). El PDF es un resumen para imprimir o guardar.</p>
-      </div>
-
       <!-- Recordatorios -->
       <div class="gc-card" style="margin-top:16px;">
         <p class="gc-card-title">Recordatorios</p>
@@ -769,26 +753,6 @@
       </div>
 
       <!-- Nombres de los socios (reparto) -->
-      <div class="gc-card" style="margin-top:16px;" id="aj-card-socios">
-        <p class="gc-card-title">Nombres de los socios (reparto)</p>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Estos nombres aparecen en el reparto de cada semana. El <strong>Socio 1</strong> recibe la mitad + el bono; el <strong>Socio 2</strong> recibe solo su mitad. Puedes intercambiarlos o usar un solo nombre.</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;" id="aj-socios-grid">
-          <div class="gc-field"><label>Socio 1 (mitad + bono)</label>
-            <input type="text" id="aj-socio-bonus" placeholder="Ej. CRA HVAC" autocomplete="off">
-          </div>
-          <div class="gc-field" id="aj-socio-mitad-wrap"><label>Socio 2 (solo mitad)</label>
-            <input type="text" id="aj-socio-mitad" placeholder="Ej. GUZMAN HVAC" autocomplete="off">
-          </div>
-        </div>
-        <label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:var(--ink);cursor:pointer;">
-          <input type="checkbox" id="aj-un-socio" style="width:16px;height:16px;">Usar un solo nombre para los dos
-        </label>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:10px;flex-wrap:wrap;">
-          <button class="gc-action-btn" id="aj-btn-swap-socios">⇄ Intercambiar los dos nombres</button>
-          <button class="gc-save-btn" id="aj-btn-guardar-socios">Guardar nombres</button>
-        </div>
-      </div>
-
       <!-- Datos de la factura -->
       <div class="gc-card" style="margin-top:16px;">
         <p class="gc-card-title">Datos de la factura y recibos</p>
@@ -855,7 +819,61 @@
       </div>
 
       <!-- Bases de datos con nombre (solo admin) -->
-      <div class="gc-card" style="margin-top:16px;display:none;" id="aj-card-bd">
+      <!-- Info de la app -->
+      <div class="gc-card" style="margin-top:16px;">
+        <p class="gc-card-title">Acerca de</p>
+        <p style="font-size:13px;color:var(--muted);line-height:1.7;">
+          <strong>Kontaly</strong> — Sistema de cuentas, facturas y nómina.<br>
+          Tus datos se sincronizan en la nube y están disponibles en todos tus dispositivos con tu usuario. Aun así, puedes descargar un respaldo cuando quieras.
+          <br><span style="font-size:11px;color:var(--muted);">Versión <span id="app-version-acerca"></span></span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Avanzado (solo admin) -->
+    <div class="aj-subpanel" id="aj-sub-avanzado">
+      <div class="gc-note">Esta sección solo la ve el <strong>admin</strong> — configuración sensible del negocio, no del día a día.</div>
+
+      <!-- Nombres de los socios (reparto) -->
+      <div class="gc-card" style="margin-top:8px;" id="aj-card-socios">
+        <p class="gc-card-title">Nombres de los socios (reparto)</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Estos nombres aparecen en el reparto de cada semana. El <strong>Socio 1</strong> recibe la mitad + el bono; el <strong>Socio 2</strong> recibe solo su mitad. Puedes intercambiarlos o usar un solo nombre.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;" id="aj-socios-grid">
+          <div class="gc-field"><label>Socio 1 (mitad + bono)</label>
+            <input type="text" id="aj-socio-bonus" placeholder="Ej. CRA HVAC" autocomplete="off">
+          </div>
+          <div class="gc-field" id="aj-socio-mitad-wrap"><label>Socio 2 (solo mitad)</label>
+            <input type="text" id="aj-socio-mitad" placeholder="Ej. GUZMAN HVAC" autocomplete="off">
+          </div>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:var(--ink);cursor:pointer;">
+          <input type="checkbox" id="aj-un-socio" style="width:16px;height:16px;">Usar un solo nombre para los dos
+        </label>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:10px;flex-wrap:wrap;">
+          <button class="gc-action-btn" id="aj-btn-swap-socios">⇄ Intercambiar los dos nombres</button>
+          <button class="gc-save-btn" id="aj-btn-guardar-socios">Guardar nombres</button>
+        </div>
+      </div>
+
+      <!-- Reportes y exportación -->
+      <div class="gc-card" style="margin-top:16px;">
+        <p class="gc-card-title">Reportes y exportación</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">A diferencia del respaldo (que es un archivo técnico para restaurar), esto genera reportes para leer, imprimir o abrir en Excel.</p>
+        <div class="gc-field" style="margin-bottom:14px;"><label>Rango de fechas (opcional — vacío = todo)</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <input type="date" id="rep-desde" aria-label="Desde">
+            <input type="date" id="rep-hasta" aria-label="Hasta">
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="gc-save-btn" id="btn-reporte-excel">Descargar Excel completo</button>
+          <button class="gc-action-btn" id="btn-reporte-pdf">Descargar reporte en PDF</button>
+        </div>
+        <p style="font-size:11.5px;color:var(--muted);margin-top:10px;">El Excel trae una hoja por cada área (Movimientos, Invoices, Nómina, Empleados). El PDF es un resumen para imprimir o guardar.</p>
+      </div>
+
+      <!-- Bases de datos -->
+      <div class="gc-card" style="margin-top:16px;" id="aj-card-bd">
         <p class="gc-card-title">Bases de datos</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Crea las bases de datos con el nombre que quieras (ej. <em>Guzman HVAC Airton</em>, <em>Guzman HVAC Estrada</em>). Luego, abajo, asignas cada usuario a una de ellas.</p>
         <div id="aj-bd-lista" style="margin-bottom:14px;"></div>
@@ -867,8 +885,8 @@
         </div>
       </div>
 
-      <!-- Administrar usuarios (solo admin) -->
-      <div class="gc-card" style="margin-top:16px;display:none;" id="aj-card-admin">
+      <!-- Administrar usuarios -->
+      <div class="gc-card" style="margin-top:16px;" id="aj-card-admin">
         <p class="gc-card-title">Usuarios y a qué base de datos entran</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Elige a qué base de datos entra cada usuario, apruébalos y define su rol. <strong>Los usuarios en la misma base de datos ven la misma información.</strong></p>
         <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
@@ -876,16 +894,6 @@
         </div>
         <div id="aj-usuarios-lista"></div>
         <p id="aj-usuarios-msg" style="font-size:12px;color:var(--muted);margin-top:10px;"></p>
-      </div>
-
-      <!-- Info de la app -->
-      <div class="gc-card" style="margin-top:16px;">
-        <p class="gc-card-title">Acerca de</p>
-        <p style="font-size:13px;color:var(--muted);line-height:1.7;">
-          <strong>Kontaly</strong> — Sistema de cuentas, facturas y nómina.<br>
-          Tus datos se sincronizan en la nube y están disponibles en todos tus dispositivos con tu usuario. Aun así, puedes descargar un respaldo cuando quieras.
-          <br><span style="font-size:11px;color:var(--muted);">Versión <span id="app-version-acerca"></span></span>
-        </p>
       </div>
     </div>
 
@@ -1475,7 +1483,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v17 · 29 ago';
+  const APP_VERSION = 'v18 · 29 ago';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -3184,6 +3192,7 @@
       if (sub === 'papeles') { renderPapeles(); }
       if (sub === 'categorias') { renderCategorias(); }
       if (sub === 'general') { cargarFormAjustes(); }
+      if (sub === 'avanzado') { if (typeof ajMostrarPanelesAdmin === 'function') ajMostrarPanelesAdmin(); }
     });
   });
 
@@ -3195,10 +3204,11 @@
     const cardSocios = $('aj-card-socios'); if (cardSocios) cardSocios.style.display = esAdminGral ? 'block' : 'none';
     const tabEmpleados = $('aj-subtab-empleados'); if (tabEmpleados) tabEmpleados.style.display = esAdminGral ? '' : 'none';
     const tabPapeles = $('aj-subtab-papeles'); if (tabPapeles) tabPapeles.style.display = esAdminGral ? '' : 'none';
+    const tabAvanzado = $('aj-subtab-avanzado'); if (tabAvanzado) tabAvanzado.style.display = esAdminGral ? '' : 'none';
     if (!esAdminGral) {
       // Si por alguna razón quedó activa una sub-pestaña restringida, regresar a General
       const activa = document.querySelector('.aj-subtab.active');
-      if (activa && (activa.dataset.asub === 'empleados' || activa.dataset.asub === 'papeles')) {
+      if (activa && (activa.dataset.asub === 'empleados' || activa.dataset.asub === 'papeles' || activa.dataset.asub === 'avanzado')) {
         document.querySelector('.aj-subtab[data-asub="general"]')?.click();
       }
     }
