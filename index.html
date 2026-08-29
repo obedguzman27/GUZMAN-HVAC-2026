@@ -124,6 +124,7 @@
   /* ── STATS ROW ──────────────────────────── */
   .gc-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
   .gc-stat { background: var(--card); border-radius: var(--r); padding: 18px 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-soft); display: flex; align-items: center; gap: 15px; position: relative; overflow: hidden; transition: box-shadow .2s var(--ease), transform .2s var(--ease); }
+  .gc-stat-icon + div { min-width: 0; }
   .gc-stat:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
   .gc-stat::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--border); }
   .gc-stat.ing::before { background: var(--teal); }
@@ -136,7 +137,7 @@
   .gc-stat.net .gc-stat-icon { background: linear-gradient(140deg, var(--accent-bg), rgba(0,0,0,.06)); }
   .gc-stat.inv .gc-stat-icon { background: linear-gradient(140deg, var(--gold-bg), #F3E2AE); }
   .gc-stat-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-bottom: 4px; }
-  .gc-stat-val { font-family: 'IBM Plex Mono', monospace; font-size: 23px; font-weight: 700; color: var(--ink); letter-spacing: -.3px; }
+  .gc-stat-val { font-family: 'IBM Plex Mono', monospace; font-size: 23px; font-weight: 700; color: var(--ink); letter-spacing: -.3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .gc-stat.ing .gc-stat-val { color: var(--teal-dk); }
   .gc-stat.gas .gc-stat-val { color: var(--ember); }
 
@@ -154,7 +155,7 @@
   .gc-form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 14px; }
   .gc-form-row.wide { grid-template-columns: 1fr; }
   .gc-field label { display: block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-bottom: 6px; }
-  .gc-field input, .gc-field select, .gc-field textarea { width: 100%; font-family: 'Inter', sans-serif; font-size: 13.5px; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: var(--r-sm); background: #F7F9FD; color: var(--ink); transition: border-color .16s var(--ease), background .16s var(--ease), box-shadow .16s var(--ease); }
+  .gc-field input, .gc-field select, .gc-field textarea { width: 100%; font-family: 'Inter', sans-serif; font-size: 13.5px; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: var(--r-sm); background: #fff; color: var(--ink); transition: border-color .16s var(--ease), background .16s var(--ease), box-shadow .16s var(--ease); }
   .gc-field input:hover, .gc-field select:hover, .gc-field textarea:hover { border-color: #C3CEE2; }
   .gc-field input:focus, .gc-field select:focus, .gc-field textarea:focus { outline: none; border-color: var(--teal); background: #fff; box-shadow: 0 0 0 3.5px rgba(14,143,130,.12); }
 
@@ -246,7 +247,7 @@
   .gc-cat-section { margin-bottom: 24px; }
   .gc-cat-title { font-family: 'Zilla Slab', serif; font-size: 14.5px; font-weight: 600; color: var(--ink); margin-bottom: 12px; }
   .gc-sub-add { display: flex; gap: 8px; margin-bottom: 10px; }
-  .gc-sub-add input { flex: 1; font-family: 'Inter', sans-serif; font-size: 13px; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--r-sm); background: #F7F9FD; color: var(--ink); }
+  .gc-sub-add input { flex: 1; font-family: 'Inter', sans-serif; font-size: 13px; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--r-sm); background: #fff; color: var(--ink); }
   .gc-sub-add input:focus { outline: none; border-color: var(--teal); background: #fff; }
   .gc-sub-add button { background: var(--navy); color: #fff; border: none; padding: 9px 16px; border-radius: var(--r-sm); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: filter .14s; }
   .gc-sub-add button:hover { filter: brightness(1.15); }
@@ -290,7 +291,7 @@
   .emp-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .emp-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
   .emp-field label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
-  .emp-field input, .emp-field select, .emp-field textarea { width: 100%; font-family: 'Inter', sans-serif; font-size: 13px; padding: 9px 11px; border: 1.5px solid var(--border); border-radius: var(--r-sm); color: var(--ink); background: #F7F9FD; }
+  .emp-field input, .emp-field select, .emp-field textarea { width: 100%; font-family: 'Inter', sans-serif; font-size: 13px; padding: 9px 11px; border: 1.5px solid var(--border); border-radius: var(--r-sm); color: var(--ink); background: #fff; }
   .emp-field input:focus, .emp-field select:focus, .emp-field textarea:focus { outline: none; border-color: var(--teal); background: #fff; box-shadow: 0 0 0 3.5px rgba(14,143,130,.12); }
   .emp-field textarea { resize: vertical; min-height: 60px; }
   .emp-field.wide { grid-column: 1 / -1; }
@@ -298,7 +299,7 @@
 
   /* Documentos */
   .doc-upload-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-  .doc-upload-bar select { font-family: 'Inter', sans-serif; font-size: 13px; padding: 9px 11px; border: 1.5px solid var(--border); border-radius: var(--r-sm); background: #F7F9FD; color: var(--ink); }
+  .doc-upload-bar select { font-family: 'Inter', sans-serif; font-size: 13px; padding: 9px 11px; border: 1.5px solid var(--border); border-radius: var(--r-sm); background: #fff; color: var(--ink); }
   .doc-list { display: flex; flex-direction: column; gap: 8px; }
   .doc-item { display: flex; align-items: center; gap: 12px; background: #F5F7FC; border: 1px solid var(--border-soft); border-radius: var(--r-sm); padding: 11px 14px; }
   .doc-icon { font-size: 20px; flex-shrink: 0; }
@@ -451,6 +452,9 @@
   /* ── RESPONSIVE ─────────────────────────── */
   @media (max-width: 860px) {
     .gc-stats { grid-template-columns: 1fr 1fr; }
+    .gc-stat { padding: 14px 14px; gap: 9px; }
+    .gc-stat-icon { width: 34px; height: 34px; font-size: 14px; }
+    .gc-stat-val { font-size: 16px; }
     .gc-form-row { grid-template-columns: 1fr; }
     .gc-two-col { grid-template-columns: 1fr; }
     .emp-info-grid { grid-template-columns: 1fr; }
@@ -574,7 +578,7 @@
           <div class="gc-field"><label>Monto ($)</label><input type="text" id="m-monto" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
         </div>
         <div class="gc-form-row wide">
-          <div class="gc-field"><label>Descripción</label><input type="text" id="m-desc" placeholder="Ej. Material para job 10234"></div>
+          <div class="gc-field"><label>Descripción</label><input type="text" id="m-desc"></div>
         </div>
         <div class="gc-btn-row" style="justify-content:flex-end;">
           <span class="gc-status" id="status-mov"></span>
@@ -647,7 +651,7 @@
     <div class="gc-card" style="margin-bottom:24px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
         <p class="gc-card-title" style="margin:0;">Resumen de Taxas por Invoice</p>
-        <select id="taxas-anio-filtro" style="font-family:'Inter',sans-serif;font-size:13px;padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;background:#F5F8FC;color:var(--ink);">
+        <select id="taxas-anio-filtro" style="font-family:'Inter',sans-serif;font-size:13px;padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;background:#fff;color:var(--ink);">
           <option value="todos">Todos los años</option>
         </select>
       </div>
@@ -671,7 +675,7 @@
 
     <div class="gc-search-bar">
       <div class="gc-field" style="min-width:140px;"><label>Año</label><select id="b-anio"><option value="todos">Todos los años</option></select></div>
-      <div class="gc-field" style="flex:1;"><label>Buscar en tiempo real</label><input type="text" id="b-texto" placeholder="Ej. Gas, Helpers, Airtron… (escribe para filtrar)"></div>
+      <div class="gc-field" style="flex:1;"><label>Buscar en tiempo real</label><input type="text" id="b-texto"></div>
     </div>
 
     <!-- Gráfica: en qué se va el dinero (gastos por categoría) -->
@@ -735,36 +739,19 @@
         </div>
       </div>
 
-      <!-- Recordatorios -->
-      <div class="gc-card" style="margin-top:16px;">
-        <p class="gc-card-title">Recordatorios</p>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Anota algo y la app te lo recuerda al abrirla, a partir de la fecha que elijas. (No son notificaciones push — solo avisan cuando abres la app.)</p>
-        <div style="display:grid;grid-template-columns:2fr 1fr auto;gap:10px;margin-bottom:16px;align-items:end;">
-          <div class="gc-field"><label>Recuérdame</label>
-            <input type="text" id="rec-texto" placeholder="Ej. Pagar el seguro de la camioneta" autocomplete="off">
-          </div>
-          <div class="gc-field"><label>Desde</label>
-            <input type="date" id="rec-fecha">
-          </div>
-          <button class="gc-save-btn" id="rec-btn-add" style="height:40px;">+ Agregar</button>
-        </div>
-        <div class="gc-empty" id="rec-empty" style="display:none;">No tienes recordatorios.</div>
-        <div id="rec-lista"></div>
-      </div>
-
-      <!-- Nombres de los socios (reparto) -->
       <!-- Datos de la factura -->
       <div class="gc-card" style="margin-top:16px;">
         <p class="gc-card-title">Datos de la factura y recibos</p>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">El nombre y la dirección aparecen en las facturas y recibos. Se guardan en la nube — ya <strong>no se borran</strong> al cerrar sesión.</p>
-        <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px;color:var(--ink);cursor:pointer;">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">El nombre y la dirección aparecen en las facturas y recibos. Se guardan en la nube — ya <strong>no se borran</strong> al cerrar sesión, sin importar qué usuario entre.</p>
+        <p id="aj-factura-solo-admin-nota" style="display:none;font-size:12px;color:var(--muted);background:#F5F7FC;border-radius:8px;padding:8px 12px;margin-bottom:12px;">Solo el admin puede cambiar estos datos.</p>
+        <label id="aj-factura-sigue-socio-label" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px;color:var(--ink);cursor:pointer;">
           <input type="checkbox" id="aj-factura-sigue-socio" style="width:16px;height:16px;">Usar el nombre del <strong>Socio 2</strong> en las facturas y nómina (se actualiza solo al cambiar o intercambiar los socios)
         </label>
         <div class="gc-field" style="margin-bottom:12px;" id="aj-factura-nombre-wrap"><label>Nombre en la factura / recibos</label>
-          <input type="text" id="aj-factura-nombre" placeholder="Ej. GUZMAN HVAC" autocomplete="off">
+          <input type="text" id="aj-factura-nombre" autocomplete="off">
         </div>
         <div class="gc-field"><label>Dirección (aparece en la factura)</label>
-          <input type="text" id="aj-direccion-empresa" placeholder="Ej. 1234 Main St, Nashville, TN 37201" autocomplete="off">
+          <input type="text" id="aj-direccion-empresa" autocomplete="off">
         </div>
         <div style="display:flex;justify-content:flex-end;margin-top:12px;">
           <button class="gc-save-btn" id="aj-btn-guardar-factura">Guardar datos de factura</button>
@@ -837,18 +824,25 @@
       <!-- Nombres de los socios (reparto) -->
       <div class="gc-card" style="margin-top:8px;" id="aj-card-socios">
         <p class="gc-card-title">Nombres de los socios (reparto)</p>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Estos nombres aparecen en el reparto de cada semana. El <strong>Socio 1</strong> recibe la mitad + el bono; el <strong>Socio 2</strong> recibe solo su mitad. Puedes intercambiarlos o usar un solo nombre.</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;" id="aj-socios-grid">
-          <div class="gc-field"><label>Socio 1 (mitad + bono)</label>
-            <input type="text" id="aj-socio-bonus" placeholder="Ej. CRA HVAC" autocomplete="off">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Cada semana se reparte a la mitad entre los dos. Elige, para cada uno, si además recibe el bono del 10%. Puedes intercambiarlos o usar un solo nombre.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;" id="aj-socios-grid">
+          <div class="gc-field"><label>Socio 1</label>
+            <input type="text" id="aj-socio-bonus" autocomplete="off">
+            <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12.5px;color:var(--ink);cursor:pointer;font-weight:400;">
+              <input type="checkbox" id="aj-socio1-bono" style="width:15px;height:15px;">Recibe bono del 10%
+            </label>
           </div>
-          <div class="gc-field" id="aj-socio-mitad-wrap"><label>Socio 2 (solo mitad)</label>
-            <input type="text" id="aj-socio-mitad" placeholder="Ej. GUZMAN HVAC" autocomplete="off">
+          <div class="gc-field" id="aj-socio-mitad-wrap"><label>Socio 2</label>
+            <input type="text" id="aj-socio-mitad" autocomplete="off">
+            <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12.5px;color:var(--ink);cursor:pointer;font-weight:400;">
+              <input type="checkbox" id="aj-socio2-bono" style="width:15px;height:15px;">Recibe bono del 10%
+            </label>
           </div>
         </div>
-        <label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:var(--ink);cursor:pointer;">
+        <label style="display:flex;align-items:center;gap:8px;margin-top:14px;font-size:13px;color:var(--ink);cursor:pointer;">
           <input type="checkbox" id="aj-un-socio" style="width:16px;height:16px;">Usar un solo nombre para los dos
         </label>
+        <p id="aj-un-socio-nota" style="display:none;font-size:12px;color:var(--muted);background:#F5F7FC;border-radius:8px;padding:8px 12px;margin-top:10px;">Con un solo nombre, esa persona recibe todo el reparto de la semana — no aplica bono ni mitad.</p>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:10px;flex-wrap:wrap;">
           <button class="gc-action-btn" id="aj-btn-swap-socios">⇄ Intercambiar los dos nombres</button>
           <button class="gc-save-btn" id="aj-btn-guardar-socios">Guardar nombres</button>
@@ -879,7 +873,7 @@
         <div id="aj-bd-lista" style="margin-bottom:14px;"></div>
         <div class="gc-field"><label>Nombre de la nueva base de datos</label>
           <div style="display:flex;gap:8px;">
-            <input type="text" id="aj-bd-nueva" placeholder="Ej. Guzman HVAC Airton" autocomplete="off" style="flex:1;">
+            <input type="text" id="aj-bd-nueva" autocomplete="off" style="flex:1;">
             <button type="button" class="gc-action-btn" id="aj-btn-add-bd">+ Crear</button>
           </div>
         </div>
@@ -911,7 +905,7 @@
       <div class="emp-toolbar">
         <span class="emp-toolbar-title">Papeles Importantes</span>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-          <select id="papeles-cat-nueva" style="font-family:'Inter',sans-serif;font-size:13px;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#F5F8FC;color:var(--ink);">
+          <select id="papeles-cat-nueva" style="font-family:'Inter',sans-serif;font-size:13px;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
             <option value="IRS - Taxes">IRS - Taxes</option>
             <option value="Banco">Banco</option>
             <option value="Seguro">Seguro</option>
@@ -983,13 +977,13 @@
       </div>
 
       <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px;padding:14px;background:#FDEEE6;border-radius:10px;border:1px solid #F0C9B4;">
-        <div class="gc-field"><label>Extra (opcional) — concepto</label><input type="text" id="nom-extra-desc" placeholder="Ej. bono, horas extra, gasolina…" autocomplete="off"></div>
+        <div class="gc-field"><label>Extra (opcional) — concepto</label><input type="text" id="nom-extra-desc" autocomplete="off"></div>
         <div class="gc-field"><label>Monto del extra ($)</label><input type="text" id="nom-extra-monto" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 2fr;gap:14px;margin-bottom:14px;">
         <div class="gc-field" id="nom-monto-wrap"><label>Monto total ($) — se calcula solo, editable</label><input type="text" id="nom-monto" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
-        <div class="gc-field"><label>Nota (opcional)</label><input type="text" id="nom-nota" placeholder="Ej. trabajo en Briley…" autocomplete="off"></div>
+        <div class="gc-field"><label>Nota (opcional)</label><input type="text" id="nom-nota" autocomplete="off"></div>
       </div>
       <div id="nom-preview-multi" style="display:none;background:#EEF2FF;border:1px solid #C7D6EC;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--ink);"></div>
 
@@ -1019,7 +1013,7 @@
     <div class="gc-card" style="margin-top:24px;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
         <p class="gc-card-title" style="margin:0;">Pagos guardados</p>
-        <input type="text" id="nom-reg-buscar" placeholder="Buscar…" style="font-family:'Inter',sans-serif;font-size:13px;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#F5F8FC;color:var(--ink);max-width:220px;">
+        <input type="text" id="nom-reg-buscar" placeholder="Buscar…" style="font-family:'Inter',sans-serif;font-size:13px;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);max-width:220px;">
       </div>
       <div class="gc-empty" id="nom-reg-empty" style="display:none;">Aún no has guardado pagos.</div>
       <div id="nom-reg-ledger"></div>
@@ -1032,7 +1026,7 @@
       <p class="gc-card-title">Historial de pagos</p>
       <div style="margin-bottom:16px;">
         <input type="text" id="nom-hist-buscar" placeholder="Buscar por trabajador o nota…"
-          style="width:100%;font-family:'Inter',sans-serif;font-size:13.5px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#F5F8FC;color:var(--ink);">
+          style="width:100%;font-family:'Inter',sans-serif;font-size:13.5px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
       </div>
       <div class="gc-empty" id="nom-hist-empty" style="display:none;">No hay pagos registrados aún.</div>
       <div style="overflow-x:auto;">
@@ -1124,7 +1118,7 @@
         </div>
       </div>
       <div class="gc-field"><label>Dirección (opcional — aparece en la factura)</label>
-        <input type="text" id="inv-direccion-emisor" placeholder="Ej. 1234 Main St, Nashville, TN 37201" autocomplete="off">
+        <input type="text" id="inv-direccion-emisor" autocomplete="off">
       </div>
     </div>
     <div class="gc-card">
@@ -1166,7 +1160,7 @@
       <p class="gc-card-title">Facturas Guardadas</p>
       <div style="margin-bottom:16px;">
         <input type="text" id="inv-buscar" placeholder="Buscar por Job #, colonia, lote, cliente o # de factura…"
-          style="width:100%;font-family:'Inter',sans-serif;font-size:13.5px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#F5F8FC;color:var(--ink);">
+          style="width:100%;font-family:'Inter',sans-serif;font-size:13.5px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
         <p id="inv-buscar-info" style="font-size:11.5px;color:var(--muted);margin-top:6px;"></p>
       </div>
       <div class="gc-empty" id="inv-list-empty" style="display:none;">No hay facturas guardadas aún.</div>
@@ -1185,7 +1179,7 @@
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Cada trabajo de todas tus facturas aparece aquí como un cobro individual. Se llena solo cuando guardas una factura. Busca por Job #, colonia o lote.</p>
       <div style="margin-bottom:16px;">
         <input type="text" id="cobros-buscar" placeholder="Buscar por Job #, colonia, lote o trabajo…"
-          style="width:100%;font-family:'Inter',sans-serif;font-size:13.5px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#F5F8FC;color:var(--ink);">
+          style="width:100%;font-family:'Inter',sans-serif;font-size:13.5px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
         <p id="cobros-info" style="font-size:11.5px;color:var(--muted);margin-top:6px;"></p>
       </div>
       <div class="gc-empty" id="cobros-empty" style="display:none;">No hay cobros aún. Guarda una factura para verlos aquí.</div>
@@ -1203,7 +1197,7 @@
       <p class="gc-card-title">Base de datos de Clientes</p>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Estos clientes aparecen como sugerencias en el campo <strong>Bill To</strong> de cada factura. También puedes escribir uno nuevo directo en el campo.</p>
       <div style="display:flex;gap:10px;margin-bottom:18px;">
-        <input type="text" id="cli-nueva" placeholder="Nombre del cliente o compañía…" style="flex:1;font-family:'Inter',sans-serif;font-size:13.5px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#F5F8FC;color:var(--ink);">
+        <input type="text" id="cli-nueva" placeholder="Nombre del cliente o compañía…" style="flex:1;font-family:'Inter',sans-serif;font-size:13.5px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
         <button class="gc-save-btn" id="cli-btn-add">+ Agregar</button>
       </div>
       <div id="cli-list" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
@@ -1217,7 +1211,7 @@
       <p class="gc-card-title">Descripciones de Trabajo</p>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Estas descripciones aparecen como sugerencias en el campo <strong>Work Performed</strong>. También puedes escribir lo que quieras directo en el campo.</p>
       <div style="display:flex;gap:10px;margin-bottom:18px;">
-        <input type="text" id="trab-nueva" placeholder="Ej. Trim install, Rough-in, Unit replacement…" style="flex:1;font-family:'Inter',sans-serif;font-size:13.5px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#F5F8FC;color:var(--ink);">
+        <input type="text" id="trab-nueva" style="flex:1;font-family:'Inter',sans-serif;font-size:13.5px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
         <button class="gc-save-btn" id="trab-btn-add">+ Agregar</button>
       </div>
       <div id="trab-list" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
@@ -1232,7 +1226,7 @@
       <p class="gc-card-title">Colonias / Subdivisions</p>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Estas colonias aparecen en el menú de <strong>JOB LOCATION</strong> de cada factura.</p>
       <div style="display:flex;gap:10px;margin-bottom:18px;">
-        <input type="text" id="col-nueva" placeholder="Nombre de la colonia…" style="flex:1;font-family:'Inter',sans-serif;font-size:13.5px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#F5F8FC;color:var(--ink);">
+        <input type="text" id="col-nueva" placeholder="Nombre de la colonia…" style="flex:1;font-family:'Inter',sans-serif;font-size:13.5px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
         <button class="gc-save-btn" id="col-btn-add">+ Agregar</button>
       </div>
       <div id="col-list" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
@@ -1483,7 +1477,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v18 · 29 ago';
+  const APP_VERSION = 'v19 · 29 ago';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -1506,6 +1500,9 @@
   let cfgFacturaDireccion = '';
   let cfgFacturaSigueSocio = true; // el nombre de factura/nómina sigue al Socio 2 (mitad)
   let cfgLogoDataUrl = ''; // logo personalizado (opcional); vacío = logo de Kontaly por defecto
+  let cfgSocio1Bono = true;  // ¿Socio 1 recibe el bono del 10%? (por defecto sí, como siempre)
+  let cfgSocio2Bono = false; // ¿Socio 2 recibe el bono del 10%? (por defecto no, como siempre)
+  let cfgUltimoCliente = ''; // último "Bill To" usado en Facturas — se mantiene hasta que lo cambien
 
   async function cargarConfig() {
     try {
@@ -1517,6 +1514,9 @@
       if (typeof c.facturaDireccion === 'string') cfgFacturaDireccion = c.facturaDireccion;
       if (typeof c.facturaSigueSocio === 'boolean') cfgFacturaSigueSocio = c.facturaSigueSocio;
       if (typeof c.logoDataUrl === 'string') cfgLogoDataUrl = c.logoDataUrl;
+      if (typeof c.socio1Bono === 'boolean') cfgSocio1Bono = c.socio1Bono;
+      if (typeof c.socio2Bono === 'boolean') cfgSocio2Bono = c.socio2Bono;
+      if (typeof c.ultimoCliente === 'string') cfgUltimoCliente = c.ultimoCliente;
     } catch (e) {
       // Migración: si había una dirección vieja en localStorage, usarla
       try { const d = localStorage.getItem('cra-direccion'); if (d) cfgFacturaDireccion = d; } catch (e2) {}
@@ -1525,12 +1525,20 @@
     if (cfgFacturaSigueSocio) cfgFacturaNombre = cfgSocioMitad;
     aplicarNombresEstaticos();
     aplicarLogo();
+    // Si el formulario de Ajustes ya se había pintado con valores por defecto
+    // (porque la sesión resolvió antes que esta carga), lo refresca ahora con
+    // los valores reales — así nunca se queda mostrando datos viejos.
+    if (typeof cargarFormAjustes === 'function' && document.getElementById('aj-socio-bonus')) cargarFormAjustes();
+    // "Bill To" recuerda la última compañía usada, hasta que la cambien a propósito
+    const campoCliente = $('inv-cliente');
+    if (campoCliente && !campoCliente.value) campoCliente.value = cfgUltimoCliente;
   }
   async function guardarConfig() {
     const c = {
       socioBonus: cfgSocioBonus, socioMitad: cfgSocioMitad,
       facturaNombre: cfgFacturaNombre, facturaDireccion: cfgFacturaDireccion,
-      facturaSigueSocio: cfgFacturaSigueSocio, logoDataUrl: cfgLogoDataUrl
+      facturaSigueSocio: cfgFacturaSigueSocio, logoDataUrl: cfgLogoDataUrl,
+      socio1Bono: cfgSocio1Bono, socio2Bono: cfgSocio2Bono, ultimoCliente: cfgUltimoCliente
     };
     try { await window.storage.set(CFG_KEY, JSON.stringify(c)); } catch (e) {}
   }
@@ -1552,94 +1560,6 @@
   // RECORDATORIOS — avisan al abrir la app (no son notificaciones
   // push reales: solo se muestran si la app está abierta).
   // ============================================================
-  const REC_KEY = 'kontaly-recordatorios';
-  let recordatorios = [];
-
-  async function cargarRecordatorios() {
-    try { const r = await window.storage.get(REC_KEY); recordatorios = JSON.parse(r.value); } catch (e) { recordatorios = []; }
-  }
-  async function guardarRecordatorios() {
-    try { await window.storage.set(REC_KEY, JSON.stringify(recordatorios)); } catch (e) {}
-  }
-  function recFechaLegible(iso) {
-    if (!iso) return '';
-    const [y, m, d] = iso.split('-').map(Number);
-    return `${d} de ${MESES_ES[m - 1]}`;
-  }
-  function renderRecordatorios() {
-    const cont = $('rec-lista');
-    if (!cont) return;
-    const ordenados = [...recordatorios].sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
-    $('rec-empty').style.display = ordenados.length === 0 ? 'block' : 'none';
-    cont.innerHTML = ordenados.map((r) => {
-      const vencido = r.fecha && r.fecha <= today() && !r.hecho;
-      return `
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-soft);${r.hecho ? 'opacity:.5;' : ''}">
-          <button type="button" class="rec-toggle" data-id="${r.id}" title="${r.hecho ? 'Marcar como pendiente' : 'Marcar como hecho'}" style="width:22px;height:22px;border-radius:50%;border:2px solid ${r.hecho ? 'var(--teal)' : 'var(--border)'};background:${r.hecho ? 'var(--teal)' : '#fff'};color:#fff;font-size:12px;line-height:1;cursor:pointer;flex-shrink:0;padding:0;">${r.hecho ? '✓' : ''}</button>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:13.5px;color:var(--ink);${r.hecho ? 'text-decoration:line-through;' : ''}">${escapeHtml(r.texto)}</div>
-            <div style="font-size:11px;color:${vencido ? 'var(--ember)' : 'var(--muted)'};font-weight:${vencido ? '700' : '400'};">${r.fecha ? recFechaLegible(r.fecha) : ''}${vencido ? ' · pendiente' : ''}</div>
-          </div>
-          <button class="gc-del rec-del" data-id="${r.id}">✕</button>
-        </div>`;
-    }).join('');
-    cont.querySelectorAll('.rec-toggle').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const r = recordatorios.find((x) => x.id === btn.dataset.id);
-        if (!r) return;
-        r.hecho = !r.hecho;
-        await guardarRecordatorios();
-        renderRecordatorios();
-      });
-    });
-    cont.querySelectorAll('.rec-del').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        if (!await gcConfirm('¿Eliminar este recordatorio?', { okText: 'Eliminar', danger: true })) return;
-        recordatorios = recordatorios.filter((x) => x.id !== btn.dataset.id);
-        await guardarRecordatorios();
-        renderRecordatorios();
-      });
-    });
-  }
-  if ($('rec-btn-add')) {
-    $('rec-btn-add').addEventListener('click', async () => {
-      const texto = $('rec-texto').value.trim();
-      if (!texto) { toast('Escribe qué quieres recordar', 'error'); return; }
-      const fecha = $('rec-fecha').value || today();
-      recordatorios.push({ id: 'rec-' + Date.now(), texto, fecha, hecho: false });
-      await guardarRecordatorios();
-      $('rec-texto').value = ''; $('rec-fecha').value = '';
-      renderRecordatorios();
-      toast('Recordatorio agregado ✓', 'success');
-    });
-  }
-
-  // Aviso al abrir la app (banner arriba), solo si hay algo pendiente y vencido
-  function mostrarAvisoRecordatorios() {
-    const pendientes = recordatorios.filter((r) => !r.hecho && r.fecha && r.fecha <= today());
-    if (pendientes.length === 0 || document.getElementById('aviso-recordatorios')) return;
-    const barra = document.createElement('div');
-    barra.id = 'aviso-recordatorios';
-    barra.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:99998;background:#131C2E;color:#fff;padding:12px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.35);display:flex;align-items:center;gap:12px;font-family:Inter,sans-serif;font-size:13px;width:max-content;max-width:92vw;';
-    const texto = pendientes.length === 1 ? pendientes[0].texto : `${pendientes.length} recordatorios pendientes`;
-    barra.innerHTML = `<span>${escapeHtml(texto)}</span>`;
-    const btnVer = document.createElement('button');
-    btnVer.textContent = 'Ver';
-    btnVer.style.cssText = 'background:#0E8F82;color:#fff;border:none;padding:7px 14px;border-radius:8px;font-weight:700;font-size:12.5px;cursor:pointer;flex-shrink:0;';
-    btnVer.addEventListener('click', () => {
-      barra.remove();
-      document.querySelector('.gc-tab[data-tab="respaldo"]')?.click();
-      setTimeout(() => { document.getElementById('rec-lista')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
-    });
-    const btnCerrar = document.createElement('button');
-    btnCerrar.textContent = '✕';
-    btnCerrar.setAttribute('aria-label', 'Cerrar aviso');
-    btnCerrar.style.cssText = 'background:none;color:rgba(255,255,255,.6);border:none;font-size:14px;cursor:pointer;flex-shrink:0;padding:2px;';
-    btnCerrar.addEventListener('click', () => barra.remove());
-    barra.appendChild(btnVer);
-    barra.appendChild(btnCerrar);
-    document.body.appendChild(barra);
-  }
   const fmtDia = (iso) => { const [y, m, d] = iso.split('-'); return `${d}/${m}`; };
 
   const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
@@ -1727,7 +1647,6 @@
       window.storage.get(KEY_CAT_INGRESO, false).catch(() => null),
       window.storage.get(KEY_INVOICES, false).catch(() => null),
       cargarConfig(), // nombres de socios + factura (nube)
-      cargarRecordatorios(),
     ]);
     try { movimientos = rMov && rMov.value ? JSON.parse(rMov.value) : []; } catch (e) { movimientos = []; }
     try { catGastos = rGas && rGas.value ? JSON.parse(rGas.value) : DEFAULT_GASTOS.slice(); } catch (e) { catGastos = DEFAULT_GASTOS.slice(); }
@@ -1739,8 +1658,6 @@
     renderCatSelect();
     renderMovimientos();
     actualizarStats();
-    renderRecordatorios();
-    mostrarAvisoRecordatorios();
   }
 
   async function saveMov() {
@@ -2220,18 +2137,37 @@
       const taxas = g.ingresos * TASA_TAXAS;
       const gastosTotales = g.gastos + taxas;
       const neto = g.ingresos - gastosTotales;
-      const mitad = neto / 2;
-      // Bono base: 10% de la mitad (solo si neto positivo)
-      const bonoBase = mitad > 0 ? mitad * BONO_CRA : 0;
-      // Ajuste a CRA: suma/resta a su pago, y genera bono del 10% que sale de las taxas
       const ajuste = g.ajusteGuzman; // + o −
-      const bonoAjuste = ajuste * BONO_CRA; // 10% del ajuste (sale de taxas)
-      const bonoCra = bonoBase + bonoAjuste; // bono total que sale de las taxas
-      // GUZMAN HVAC: mitad + bono base + ajuste + bono del ajuste
-      const pagoCra = mitad + bonoBase + ajuste + bonoAjuste;
-      // CRA HVAC: solo su mitad
-      const pagoGuzman = mitad;
-      const taxGuzman = taxas - bonoCra; // taxas restantes después de todos los bonos
+
+      // Un solo socio (mismo nombre para los dos): todo va a uno solo, sin
+      // reparto a la mitad ni bono — no tiene sentido "compartir" con uno mismo.
+      const unSoloSocio = cfgSocioBonus === cfgSocioMitad;
+      let mitad, bonoBase, bonoAjuste, bonoCra, pagoCra, pagoGuzman, taxGuzman;
+
+      if (unSoloSocio) {
+        mitad = neto;
+        bonoBase = 0;
+        bonoAjuste = 0;
+        bonoCra = 0;
+        pagoCra = neto + ajuste;
+        pagoGuzman = 0;
+        taxGuzman = taxas;
+      } else {
+        mitad = neto / 2;
+        // Bono base: 10% de la mitad (solo si neto positivo)
+        bonoBase = mitad > 0 ? mitad * BONO_CRA : 0;
+        // Ajuste a Socio 1: suma/resta a su pago, y genera bono del 10% que sale de las taxas
+        bonoAjuste = ajuste * BONO_CRA; // 10% del ajuste (sale de taxas)
+        // El bono de cada quien solo aplica si ese socio lo tiene activado
+        const bonoSocio1 = cfgSocio1Bono ? (bonoBase + bonoAjuste) : 0;
+        const bonoSocio2 = cfgSocio2Bono ? bonoBase : 0;
+        bonoCra = bonoSocio1 + bonoSocio2; // bono total que sale de las taxas
+        // Socio 1: mitad + ajuste + su bono (si lo tiene activado)
+        pagoCra = mitad + ajuste + bonoSocio1;
+        // Socio 2: mitad + su bono (si lo tiene activado)
+        pagoGuzman = mitad + bonoSocio2;
+        taxGuzman = taxas - bonoCra; // taxas restantes después de todos los bonos
+      }
       const gastoItems = [...g.gastoItems].sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
       resultado.push({ key, label: g.label, ingresos: g.ingresos, gastos: g.gastos, gastoItems, ajusteGuzman: ajuste, ajusteItems: g.ajusteItems, taxas, gastosTotales, neto, mitad, bonoBase, bonoAjuste, bonoCra, pagoCra, pagoGuzman, taxGuzman });
     });
@@ -3192,7 +3128,7 @@
       if (sub === 'papeles') { renderPapeles(); }
       if (sub === 'categorias') { renderCategorias(); }
       if (sub === 'general') { cargarFormAjustes(); }
-      if (sub === 'avanzado') { if (typeof ajMostrarPanelesAdmin === 'function') ajMostrarPanelesAdmin(); }
+      if (sub === 'avanzado') { if (typeof cargarFormAjustes === 'function') cargarFormAjustes(); }
     });
   });
 
@@ -3205,6 +3141,12 @@
     const tabEmpleados = $('aj-subtab-empleados'); if (tabEmpleados) tabEmpleados.style.display = esAdminGral ? '' : 'none';
     const tabPapeles = $('aj-subtab-papeles'); if (tabPapeles) tabPapeles.style.display = esAdminGral ? '' : 'none';
     const tabAvanzado = $('aj-subtab-avanzado'); if (tabAvanzado) tabAvanzado.style.display = esAdminGral ? '' : 'none';
+    // Datos de factura: visibles para todos, pero solo el admin puede editarlos
+    ['aj-factura-nombre', 'aj-direccion-empresa', 'aj-factura-sigue-socio'].forEach((id) => {
+      const el = $(id); if (el) el.disabled = !esAdminGral;
+    });
+    const btnGuardarFactura = $('aj-btn-guardar-factura'); if (btnGuardarFactura) btnGuardarFactura.style.display = esAdminGral ? '' : 'none';
+    const notaFacturaSoloAdmin = $('aj-factura-solo-admin-nota'); if (notaFacturaSoloAdmin) notaFacturaSoloAdmin.style.display = esAdminGral ? 'none' : 'block';
     if (!esAdminGral) {
       // Si por alguna razón quedó activa una sub-pestaña restringida, regresar a General
       const activa = document.querySelector('.aj-subtab.active');
@@ -3219,10 +3161,11 @@
   function cargarFormAjustes() {
     ajAplicarRestriccionesRol();
     if (typeof ajRefrescarPreviewLogo === 'function') ajRefrescarPreviewLogo();
-    if (typeof renderRecordatorios === 'function') renderRecordatorios();
 
     $('aj-socio-bonus').value = cfgSocioBonus;
     $('aj-socio-mitad').value = cfgSocioMitad;
+    $('aj-socio1-bono').checked = cfgSocio1Bono;
+    $('aj-socio2-bono').checked = cfgSocio2Bono;
     $('aj-factura-nombre').value = cfgFacturaNombre;
     $('aj-direccion-empresa').value = cfgFacturaDireccion;
     // Detectar si ambos socios son iguales (modo "un solo nombre")
@@ -3260,6 +3203,10 @@
   function aplicarModoUnSocio(activo) {
     $('aj-socio-mitad-wrap').style.display = activo ? 'none' : 'block';
     $('aj-socios-grid').style.gridTemplateColumns = activo ? '1fr' : '1fr 1fr';
+    $('aj-un-socio-nota').style.display = activo ? 'block' : 'none';
+    // Con un solo socio no hay bono que repartir: ocultar esas casillas
+    $('aj-socio1-bono').closest('label').style.display = activo ? 'none' : 'flex';
+    $('aj-socio2-bono').closest('label').style.display = activo ? 'none' : 'flex';
     if (activo) {
       $('aj-socio-mitad').value = $('aj-socio-bonus').value;
       $('aj-btn-swap-socios').style.display = 'none';
@@ -3276,16 +3223,19 @@
   }
   $('aj-factura-sigue-socio').addEventListener('change', () => aplicarFacturaSigueSocio($('aj-factura-sigue-socio').checked));
 
-  // Intercambiar los dos nombres
+  // Intercambiar los dos nombres (y quién recibe el bono, para que se quede con la persona)
   $('aj-btn-swap-socios').addEventListener('click', () => {
     const a = $('aj-socio-bonus').value;
     $('aj-socio-bonus').value = $('aj-socio-mitad').value;
     $('aj-socio-mitad').value = a;
+    const bonoA = $('aj-socio1-bono').checked;
+    $('aj-socio1-bono').checked = $('aj-socio2-bono').checked;
+    $('aj-socio2-bono').checked = bonoA;
     // Si la factura sigue al Socio 2, reflejar el nuevo nombre
     if ($('aj-factura-sigue-socio').checked) $('aj-factura-nombre').value = $('aj-socio-mitad').value;
   });
 
-  // Guardar nombres de socios
+  // Guardar nombres de socios (y si cada uno recibe bono)
   $('aj-btn-guardar-socios').addEventListener('click', async () => {
     const bonus = $('aj-socio-bonus').value.trim();
     const unSolo = $('aj-un-socio').checked;
@@ -3293,6 +3243,8 @@
     if (!bonus || !mitad) { toast('Escribe el nombre de los socios', 'error'); return; }
     cfgSocioBonus = bonus;
     cfgSocioMitad = mitad;
+    cfgSocio1Bono = $('aj-socio1-bono').checked;
+    cfgSocio2Bono = $('aj-socio2-bono').checked;
     // Si la factura/nómina sigue al Socio 2, actualizar su nombre también
     if (cfgFacturaSigueSocio) { cfgFacturaNombre = cfgSocioMitad; $('aj-factura-nombre').value = cfgFacturaNombre; }
     await guardarConfig();
@@ -3582,7 +3534,7 @@
       $('aj-cuenta-nombre').textContent = window.GH_NOMBRE || 'usuario';
       $('aj-cuenta-rol').textContent = window.GH_ROL ? `(${window.GH_ROL})` : '';
       if (typeof ajAplicarRestriccionesRol === 'function') ajAplicarRestriccionesRol();
-      if (typeof ajMostrarPanelesAdmin === 'function') ajMostrarPanelesAdmin();
+      if (typeof cargarFormAjustes === 'function') cargarFormAjustes();
       const btn = $('btn-cerrar-sesion');
       btn.style.display = 'inline-block';
       btn.addEventListener('click', async () => {
@@ -4021,7 +3973,7 @@
     $('inv-editando').value = '';
     $('inv-num').value = invAutoNum();
     $('inv-fecha').value = invToday();
-    $('inv-cliente').value = '';
+    // Bill To NO se limpia: se mantiene hasta que el usuario lo cambie a propósito
     $('inv-direccion-emisor').value = cfgFacturaDireccion || '';
     $('inv-notas').value = '';
     $('inv-tax').value = '0';
@@ -4053,6 +4005,7 @@
     const idx = invDocs.findIndex(i => i.id===inv.id);
     if (idx>=0) invDocs[idx]=inv; else invDocs.push(inv);
     if (inv.direccionEmisor && inv.direccionEmisor !== cfgFacturaDireccion) { cfgFacturaDireccion = inv.direccionEmisor; guardarConfig(); }
+    if (inv.cliente && inv.cliente !== cfgUltimoCliente) { cfgUltimoCliente = inv.cliente; guardarConfig(); }
     await invSaveInv();
     toast(idx>=0 ? 'Factura actualizada ✓' : 'Factura guardada ✓');
     invLimpiar();
