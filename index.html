@@ -29,45 +29,45 @@
      overlays (modales, confirmaciones, toasts) se insertan como hijos
      directos de <body>, fuera de #gc-app, y necesitan poder leerlas también. */
   :root {
-    --navy:      #131C2E;
-    --navy2:     #1E2D48;
-    --navy3:     #24365A;
-    --teal:      #0E8F82;
-    --teal-dk:   #0B6F65;
-    --teal-bg:   #DCF4F1;
-    --ember:     #C6551E;
-    --ember-bg:  #FBEAE0;
-    --gold:      #9B7220;
-    --gold-bg:   #FAF0D6;
-    --blue:      #4F6FA8;
-    --blue-bg:   #EAF0FB;
-    --copper:    #C46E20;
+    --navy: #131C2E;
+    --navy2: #1E2D48;
+    --navy3: #24365A;
+    --teal: #0E8F82;
+    --teal-dk: #0B6F65;
+    --teal-bg: #DCF4F1;
+    --ember: #C6551E;
+    --ember-bg: #FBEAE0;
+    --gold: #9B7220;
+    --gold-bg: #FAF0D6;
+    --blue: #4F6FA8;
+    --blue-bg: #EAF0FB;
+    --copper: #C46E20;
     --copper-dk: #A2560F;
     --copper-bg: #FBEBD8;
-    --bg:        #EEF2F8;
-    --card:      #FFFFFF;
-    --border:    #DCE3EF;
+    --bg: #EEF2F8;
+    --card: #FFFFFF;
+    --border: #DCE3EF;
     --border-soft: #E7ECF5;
-    --ink:       #131C2E;
-    --muted:     #63708C;
+    --ink: #131C2E;
+    --muted: #63708C;
     --muted-soft:#8895AC;
-    --shadow:    0 2px 6px rgba(19,28,46,.05), 0 10px 28px rgba(19,28,46,.08);
+    --shadow: 0 2px 6px rgba(19,28,46,.05), 0 10px 28px rgba(19,28,46,.08);
     --shadow-sm: 0 1px 2px rgba(19,28,46,.05), 0 2px 8px rgba(19,28,46,.05);
     --shadow-lg: 0 12px 32px rgba(19,28,46,.14), 0 4px 12px rgba(19,28,46,.08);
-    --r:         20px;
-    --r-sm:      12px;
-    --r-lg:      26px;
-    --ease:      cubic-bezier(.2,.7,.3,1);
+    --r: 20px;
+    --r-sm: 12px;
+    --r-lg: 26px;
+    --ease: cubic-bezier(.2,.7,.3,1);
     /* Acento seleccionable en Ajustes → Apariencia (por defecto: cobre) */
-    --accent:    var(--copper);
+    --accent: var(--copper);
     --accent-dk: var(--copper-dk);
     --accent-bg: var(--copper-bg);
   }
   /* Presets de acento — en :root (no en #gc-app) para que también apliquen a
      modales/toasts, que se insertan fuera de #gc-app. */
-  :root[data-accent="teal"]   { --accent: var(--teal);   --accent-dk: var(--teal-dk); --accent-bg: var(--teal-bg); }
-  :root[data-accent="indigo"] { --accent: var(--blue);    --accent-dk: #3A5486;        --accent-bg: var(--blue-bg); }
-  :root[data-accent="verde"]  { --accent: #4E9350;        --accent-dk: #397239;        --accent-bg: #E3F0E3; }
+  :root[data-accent="teal"] { --accent: var(--teal); --accent-dk: var(--teal-dk); --accent-bg: var(--teal-bg); }
+  :root[data-accent="indigo"] { --accent: var(--blue); --accent-dk: #3A5486; --accent-bg: var(--blue-bg); }
+  :root[data-accent="verde"] { --accent: #4E9350; --accent-dk: #397239; --accent-bg: #E3F0E3; }
   #gc-app {
     width: 100%; min-height: 100vh; background: var(--bg);
     color: var(--ink); font-family: 'Inter', sans-serif;
@@ -131,10 +131,10 @@
   .gc-stat.net::before { background: var(--accent); }
   .gc-stat.inv::before { background: var(--gold); }
   .gc-stat-icon { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,.03); }
-  .gc-stat.ing .gc-stat-icon  { background: linear-gradient(140deg, var(--teal-bg), #C4EDE8); }
-  .gc-stat.gas .gc-stat-icon  { background: linear-gradient(140deg, var(--ember-bg), #F6D5C2); }
-  .gc-stat.net .gc-stat-icon  { background: linear-gradient(140deg, var(--accent-bg), rgba(0,0,0,.06)); }
-  .gc-stat.inv .gc-stat-icon  { background: linear-gradient(140deg, var(--gold-bg), #F3E2AE); }
+  .gc-stat.ing .gc-stat-icon { background: linear-gradient(140deg, var(--teal-bg), #C4EDE8); }
+  .gc-stat.gas .gc-stat-icon { background: linear-gradient(140deg, var(--ember-bg), #F6D5C2); }
+  .gc-stat.net .gc-stat-icon { background: linear-gradient(140deg, var(--accent-bg), rgba(0,0,0,.06)); }
+  .gc-stat.inv .gc-stat-icon { background: linear-gradient(140deg, var(--gold-bg), #F3E2AE); }
   .gc-stat-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-bottom: 4px; }
   .gc-stat-val { font-family: 'IBM Plex Mono', monospace; font-size: 23px; font-weight: 700; color: var(--ink); letter-spacing: -.3px; }
   .gc-stat.ing .gc-stat-val { color: var(--teal-dk); }
@@ -149,8 +149,8 @@
   .gc-type-btn { padding: 11px; border: 1.5px solid var(--border); background: #F7F9FD; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: var(--r-sm); color: var(--muted); transition: all .16s var(--ease); }
   .gc-type-btn:hover { border-color: var(--navy); color: var(--ink); background: #fff; }
   .gc-type-btn.active[data-type="ingreso"] { background: var(--teal); border-color: var(--teal); color: #fff; box-shadow: 0 4px 12px rgba(14,143,130,.28); }
-  .gc-type-btn.active[data-type="gasto"]   { background: var(--ember); border-color: var(--ember); color: #fff; box-shadow: 0 4px 12px rgba(198,85,30,.25); }
-  .gc-type-btn.active[data-type="ajuste"]  { background: var(--blue); border-color: var(--blue); color: #fff; box-shadow: 0 4px 12px rgba(79,111,168,.25); }
+  .gc-type-btn.active[data-type="gasto"] { background: var(--ember); border-color: var(--ember); color: #fff; box-shadow: 0 4px 12px rgba(198,85,30,.25); }
+  .gc-type-btn.active[data-type="ajuste"] { background: var(--blue); border-color: var(--blue); color: #fff; box-shadow: 0 4px 12px rgba(79,111,168,.25); }
   .gc-form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 14px; }
   .gc-form-row.wide { grid-template-columns: 1fr; }
   .gc-field label { display: block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-bottom: 6px; }
@@ -186,8 +186,8 @@
   /* ── TIPO TAGS ──────────────────────────── */
   .gc-tipo-tag { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: .4px; }
   .gc-tipo-tag.ingreso { background: var(--teal-bg); color: var(--teal-dk); }
-  .gc-tipo-tag.gasto   { background: var(--ember-bg); color: var(--ember); }
-  .gc-tipo-tag.ajuste  { background: var(--blue-bg); color: var(--blue); }
+  .gc-tipo-tag.gasto { background: var(--ember-bg); color: var(--ember); }
+  .gc-tipo-tag.ajuste { background: var(--blue-bg); color: var(--blue); }
 
   /* ── WEEK CARDS (Registro semanal) ─────── */
   .gc-week-card { background: var(--card); border: 1px solid var(--border-soft); border-radius: var(--r); box-shadow: var(--shadow-sm); margin-bottom: 20px; overflow: hidden; transition: box-shadow .18s var(--ease); }
@@ -208,11 +208,11 @@
   .gc-kpi.net .gc-kpi-val { color: var(--navy); }
   .gc-split-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
   .gc-split-box { border: 1.5px solid var(--border); border-radius: 12px; padding: 15px 17px; }
-  .gc-split-box.cra  { border-color: var(--teal); background: var(--teal-bg); }
-  .gc-split-box.guz  { border-color: var(--blue); background: var(--blue-bg); }
-  .gc-split-name  { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 6px; }
+  .gc-split-box.cra { border-color: var(--teal); background: var(--teal-bg); }
+  .gc-split-box.guz { border-color: var(--blue); background: var(--blue-bg); }
+  .gc-split-name { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 6px; }
   .gc-split-total { font-family: 'IBM Plex Mono', monospace; font-size: 23px; font-weight: 700; color: var(--ink); letter-spacing: -.3px; }
-  .gc-split-sub   { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .gc-split-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
   .gc-week-btn-sm { font-size: 11.5px; padding: 6px 13px; border-radius: 7px; }
 
   /* Detalle gastos semana */
@@ -269,7 +269,7 @@
   .emp-card-name { font-family: 'Zilla Slab', serif; font-weight: 600; font-size: 15.5px; color: var(--ink); margin-bottom: 3px; }
   .emp-card-role { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
   .emp-card-status { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
-  .emp-card-status.activo   { background: var(--teal-bg); color: var(--teal-dk); }
+  .emp-card-status.activo { background: var(--teal-bg); color: var(--teal-dk); }
   .emp-card-status.inactivo { background: var(--ember-bg); color: var(--ember); }
   .emp-card-info { font-size: 11.5px; color: var(--muted); margin-top: 8px; }
   .emp-empty { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
@@ -304,7 +304,7 @@
   .doc-icon { font-size: 20px; flex-shrink: 0; }
   .doc-info { flex: 1; min-width: 0; }
   .doc-name { font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .doc-cat  { font-size: 11px; color: var(--muted); }
+  .doc-cat { font-size: 11px; color: var(--muted); }
   .doc-empty { text-align: center; padding: 28px; color: var(--muted); font-size: 13px; }
   .doc-web-note { background: #F5F7FC; border: 1px solid var(--border-soft); border-radius: var(--r-sm); padding: 16px; text-align: center; color: var(--muted); font-size: 13px; line-height: 1.6; }
 
@@ -326,13 +326,13 @@
   .gc-print-sheet th.num, .gc-print-sheet td.num { text-align: right; }
   .gc-print-sheet td { padding: 6px 4px; border-bottom: 1px solid #ccc; }
   .gc-print-sheet tfoot td { padding: 7px 4px; font-weight: 600; }
-  .gc-print-sheet tfoot tr.ps-tax   td { border-top: 1px solid #1a1a1a; }
+  .gc-print-sheet tfoot tr.ps-tax td { border-top: 1px solid #1a1a1a; }
   .gc-print-sheet tfoot tr.ps-total td { border-top: 2px solid #1a1a1a; font-size: 14px; }
   .gc-print-sheet .ps-split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 10px; }
   .gc-print-sheet .ps-split-box { border: 1.5px solid #1a1a1a; padding: 14px; border-radius: 8px; }
-  .gc-print-sheet .ps-split-box .ps-name  { font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+  .gc-print-sheet .ps-split-box .ps-name { font-weight: 700; font-size: 13px; margin-bottom: 6px; }
   .gc-print-sheet .ps-split-box .ps-total { font-size: 19px; font-weight: 700; }
-  .gc-print-sheet .ps-split-box .ps-note  { font-size: 11px; color: #555; margin-top: 4px; }
+  .gc-print-sheet .ps-split-box .ps-note { font-size: 11px; color: #555; margin-top: 4px; }
   .gc-split-breakdown { font-size: 11px; color: #666; }
 
   /* ── MEDIA PRINT ────────────────────────── */
@@ -350,8 +350,8 @@
   .gc-toast-item { background: linear-gradient(120deg, var(--navy2), var(--navy)); color: #fff; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; padding: 12px 18px; border-radius: 11px; box-shadow: 0 10px 30px rgba(10,16,28,.35); opacity: 0; transform: translateY(12px); transition: opacity .25s var(--ease), transform .25s var(--ease); pointer-events: none; max-width: 340px; border-left: 3px solid transparent; }
   .gc-toast-item.show { opacity: 1; transform: translateY(0); }
   .gc-toast-item.success { border-left-color: var(--teal); }
-  .gc-toast-item.error   { border-left-color: var(--ember); }
-  .gc-toast-item.info    { border-left-color: var(--blue); }
+  .gc-toast-item.error { border-left-color: var(--ember); }
+  .gc-toast-item.info { border-left-color: var(--blue); }
 
   /* ── CUSTOM CONFIRM MODAL ───────────────── */
   .gc-confirm-overlay { position: fixed; inset: 0; background: rgba(19,28,46,.55); backdrop-filter: blur(4px); z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; transition: opacity .16s var(--ease); }
@@ -512,9 +512,9 @@
   <!-- ===== MOVIMIENTOS (hub con carpetas) ===== -->
   <div class="gc-panel active" id="panel-movimientos">
     <div class="inv-subnav">
-      <button class="mov-subtab active" data-msub="movs">📋 Movimientos</button>
-      <button class="mov-subtab" data-msub="invoices">📄 Invoices guardados</button>
-      <button class="mov-subtab" data-msub="categorias">🏷️ Categorías</button>
+      <button class="mov-subtab active" data-msub="movs">Movimientos</button>
+      <button class="mov-subtab" data-msub="invoices">Invoices guardados</button>
+      <button class="mov-subtab" data-msub="categorias">Categorías</button>
     </div>
 
     <!-- Carpeta: Movimientos -->
@@ -524,13 +524,13 @@
         <div class="gc-stat ing"><div class="gc-stat-icon">↑</div><div><div class="gc-stat-label">Ingresos semana</div><div class="gc-stat-val" id="stat-ing">$0.00</div></div></div>
         <div class="gc-stat gas"><div class="gc-stat-icon">↓</div><div><div class="gc-stat-label">Gastos semana</div><div class="gc-stat-val" id="stat-gas">$0.00</div></div></div>
         <div class="gc-stat net"><div class="gc-stat-icon">≈</div><div><div class="gc-stat-label">Neto semana</div><div class="gc-stat-val" id="stat-net">$0.00</div></div></div>
-        <div class="gc-stat inv"><div class="gc-stat-icon">📄</div><div><div class="gc-stat-label">Invoices guardados</div><div class="gc-stat-val" id="stat-inv">0</div></div></div>
+        <div class="gc-stat inv"><div class="gc-stat-icon">#</div><div><div class="gc-stat-label">Invoices guardados</div><div class="gc-stat-val" id="stat-inv">0</div></div></div>
       </div>
 
       <!-- Gráfica de tendencia semanal (ingresos vs gastos) -->
       <div class="gc-chart-card" id="gc-chart-semanal-cont" style="display:none;">
         <div class="gc-chart-head">
-          <p class="gc-card-title" style="margin-bottom:0;">📈 Tendencia — últimas semanas</p>
+          <p class="gc-card-title" style="margin-bottom:0;">Tendencia — últimas semanas</p>
           <div class="gc-chart-legend">
             <span><i style="background:var(--teal);"></i>Ingresos</span>
             <span><i style="background:var(--ember);"></i>Gastos</span>
@@ -554,7 +554,7 @@
               <button type="button" class="gc-type-btn ajuste-dir-btn active" data-dir="sumar" style="grid-template-columns:none;">+ Sumar a CRA</button>
               <button type="button" class="gc-type-btn ajuste-dir-btn" data-dir="restar">− Restar a CRA</button>
             </div>
-            <p style="font-size:11.5px;color:var(--muted);margin-top:8px;">💡 Al sumar/restar dinero a <span class="socio-bonus">CRA HVAC</span>, se genera un bono del 10% que sale de las taxas (igual que el bono normal). Ej: el socio pagó a un trabajador, compró algo, o le debe algo al otro.</p>
+            <p style="font-size:11.5px;color:var(--muted);margin-top:8px;">Al sumar/restar dinero a <span class="socio-bonus">CRA HVAC</span>, se genera un bono del 10% que sale de las taxas (igual que el bono normal). Ej: el socio pagó a un trabajador, compró algo, o le debe algo al otro.</p>
           </div>
         </div>
         <div id="ingreso-semana-row" style="display:none;margin-bottom:14px;">
@@ -586,8 +586,8 @@
       <div class="gc-sheet-head">
         <p class="gc-sheet-title">Hoja de movimientos — por semana</p>
         <div class="gc-sheet-actions">
-          <button class="gc-save-btn" id="btn-guardar-invoice-top" style="padding:8px 16px;">💾 Guardar invoice</button>
-          <button class="gc-action-btn" id="btn-imprimir">🖨 Imprimir</button>
+          <button class="gc-save-btn" id="btn-guardar-invoice-top" style="padding:8px 16px;">Guardar invoice</button>
+          <button class="gc-action-btn" id="btn-imprimir">Imprimir</button>
           <button class="gc-action-btn" id="btn-export">⬇ CSV</button>
         </div>
       </div>
@@ -606,14 +606,16 @@
     <div class="mov-subpanel" id="mov-sub-invoices">
       <div class="gc-note"><strong>Registro de invoices guardados.</strong> Aquí solo aparecen las semanas que ya guardaste como invoice desde Movimientos. Cada uno muestra el reparto <span class="socio-bonus">CRA HVAC</span> / <span class="socio-mitad">GUZMAN HVAC</span>. Usa "Ver" para el detalle o "Editar" para reabrirlo.</div>
       <div class="gc-card" style="margin-top:8px;">
-        <p class="gc-card-title">📄 Invoices guardados</p>
+        <p class="gc-card-title">Invoices guardados</p>
         <div class="gc-empty" id="empty-invoices-guardados" style="display:none;">No hay invoices guardados. Ve a Movimientos y guarda una semana.</div>
-        <table class="gc-inv-table" id="tabla-invoices-guardados" style="display:none;">
-          <thead><tr>
-            <th>Semana</th><th>Guardado</th><th class="num">Gastos</th><th class="num socio-bonus">CRA HVAC</th><th class="num socio-mitad">GUZMAN HVAC</th><th></th>
-          </tr></thead>
-          <tbody id="tbody-invoices-guardados"></tbody>
-        </table>
+        <div style="overflow-x:auto;">
+          <table class="gc-inv-table" id="tabla-invoices-guardados" style="display:none;">
+            <thead><tr>
+              <th>Semana</th><th>Guardado</th><th class="num">Gastos</th><th class="num socio-bonus">CRA HVAC</th><th class="num socio-mitad">GUZMAN HVAC</th><th></th>
+            </tr></thead>
+            <tbody id="tbody-invoices-guardados"></tbody>
+          </table>
+        </div>
       </div>
       <div id="reparto-semanas" style="display:none;"></div>
       <div class="gc-empty" id="empty-reparto" style="display:none;"></div>
@@ -642,7 +644,7 @@
     <!-- Resumen anual de Taxas -->
     <div class="gc-card" style="margin-bottom:24px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
-        <p class="gc-card-title" style="margin:0;">📊 Resumen de Taxas por Invoice</p>
+        <p class="gc-card-title" style="margin:0;">Resumen de Taxas por Invoice</p>
         <select id="taxas-anio-filtro" style="font-family:'Inter',sans-serif;font-size:13px;padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;background:#F5F8FC;color:var(--ink);">
           <option value="todos">Todos los años</option>
         </select>
@@ -673,7 +675,7 @@
     <!-- Gráfica: en qué se va el dinero (gastos por categoría) -->
     <div class="gc-chart-card" id="gc-chart-cat-cont" style="display:none;">
       <div class="gc-chart-head">
-        <p class="gc-card-title" style="margin-bottom:0;">🥧 En qué se va el dinero — gastos por categoría</p>
+        <p class="gc-card-title" style="margin-bottom:0;">En qué se va el dinero — gastos por categoría</p>
       </div>
       <div class="gc-donut-row">
         <div class="gc-chart-svg-wrap" id="gc-donut-svg" style="max-width:180px;flex-shrink:0;"></div>
@@ -707,9 +709,9 @@
   <!-- ===== AJUSTES ===== -->
   <div class="gc-panel" id="panel-respaldo">
     <div class="inv-subnav">
-      <button class="aj-subtab active" data-asub="general">⚙️ General</button>
-      <button class="aj-subtab" data-asub="empleados" id="aj-subtab-empleados">👥 Empleados</button>
-      <button class="aj-subtab" data-asub="papeles" id="aj-subtab-papeles">📄 Papeles</button>
+      <button class="aj-subtab active" data-asub="general">General</button>
+      <button class="aj-subtab" data-asub="empleados" id="aj-subtab-empleados">Empleados</button>
+      <button class="aj-subtab" data-asub="papeles" id="aj-subtab-papeles">Papeles</button>
     </div>
 
     <!-- General: respaldo + opciones -->
@@ -717,13 +719,13 @@
       <div class="gc-note">Tus datos se guardan y sincronizan <strong>en la nube</strong> automáticamente con tu usuario. Aquí puedes descargar un respaldo extra (.json) en cualquier momento.</div>
       <div class="gc-resp-grid">
         <div class="gc-card">
-          <p class="gc-card-title">💾 Descargar respaldo</p>
+          <p class="gc-card-title">Descargar respaldo</p>
           <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Descarga un archivo .json con TODA tu información: movimientos, categorías, invoices, empleados, papeles, facturas y nómina (pagos, trabajadores y recibos semanales).</p>
           <button class="gc-save-btn" id="btn-descargar-respaldo">Descargar respaldo completo</button>
           <p id="ultimo-respaldo-info" style="font-size:11.5px;color:var(--muted);margin-top:10px;"></p>
         </div>
         <div class="gc-card">
-          <p class="gc-card-title">🔄 Restaurar respaldo</p>
+          <p class="gc-card-title">Restaurar respaldo</p>
           <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Selecciona un archivo .json descargado antes. Esto reemplaza los datos actuales.</p>
           <input type="file" id="input-restaurar-respaldo" accept="application/json">
           <p id="status-restaurar" style="font-size:11.5px;color:var(--muted);margin-top:10px;"></p>
@@ -732,7 +734,7 @@
 
       <!-- Nombres de los socios (reparto) -->
       <div class="gc-card" style="margin-top:16px;" id="aj-card-socios">
-        <p class="gc-card-title">🤝 Nombres de los socios (reparto)</p>
+        <p class="gc-card-title">Nombres de los socios (reparto)</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Estos nombres aparecen en el reparto de cada semana. El <strong>Socio 1</strong> recibe la mitad + el bono; el <strong>Socio 2</strong> recibe solo su mitad. Puedes intercambiarlos o usar un solo nombre.</p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;" id="aj-socios-grid">
           <div class="gc-field"><label>Socio 1 (mitad + bono)</label>
@@ -743,7 +745,7 @@
           </div>
         </div>
         <label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:var(--ink);cursor:pointer;">
-          <input type="checkbox" id="aj-un-socio" style="width:16px;height:16px;"> Usar un solo nombre para los dos
+          <input type="checkbox" id="aj-un-socio" style="width:16px;height:16px;">Usar un solo nombre para los dos
         </label>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:10px;flex-wrap:wrap;">
           <button class="gc-action-btn" id="aj-btn-swap-socios">⇄ Intercambiar los dos nombres</button>
@@ -753,10 +755,10 @@
 
       <!-- Datos de la factura -->
       <div class="gc-card" style="margin-top:16px;">
-        <p class="gc-card-title">🧾 Datos de la factura y recibos</p>
+        <p class="gc-card-title">Datos de la factura y recibos</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">El nombre y la dirección aparecen en las facturas y recibos. Se guardan en la nube — ya <strong>no se borran</strong> al cerrar sesión.</p>
         <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px;color:var(--ink);cursor:pointer;">
-          <input type="checkbox" id="aj-factura-sigue-socio" style="width:16px;height:16px;"> Usar el nombre del <strong>Socio 2</strong> en las facturas y nómina (se actualiza solo al cambiar o intercambiar los socios)
+          <input type="checkbox" id="aj-factura-sigue-socio" style="width:16px;height:16px;">Usar el nombre del <strong>Socio 2</strong> en las facturas y nómina (se actualiza solo al cambiar o intercambiar los socios)
         </label>
         <div class="gc-field" style="margin-bottom:12px;" id="aj-factura-nombre-wrap"><label>Nombre en la factura / recibos</label>
           <input type="text" id="aj-factura-nombre" placeholder="Ej. GUZMAN HVAC" autocomplete="off">
@@ -771,7 +773,7 @@
 
       <!-- Apariencia -->
       <div class="gc-card" style="margin-top:16px;">
-        <p class="gc-card-title">🎨 Apariencia</p>
+        <p class="gc-card-title">Apariencia</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Elige el color de acento de la app (botones y pestañas activas). Se guarda en este dispositivo.</p>
         <div id="aj-accent-picker" style="display:flex;gap:12px;flex-wrap:wrap;">
           <button type="button" class="aj-accent-sw" data-accent="cobre" title="Cobre" style="width:38px;height:38px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;background:linear-gradient(135deg,#C46E20,#A2560F);"></button>
@@ -783,14 +785,14 @@
 
       <!-- Mi cuenta -->
       <div class="gc-card" style="margin-top:16px;" id="aj-card-cuenta">
-        <p class="gc-card-title">👤 Mi cuenta</p>
+        <p class="gc-card-title">Mi cuenta</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Conectado como <strong id="aj-cuenta-nombre">—</strong> <span id="aj-cuenta-rol" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);"></span></p>
         <button class="gc-action-btn" id="btn-cerrar-sesion" style="display:none;">Cerrar sesión</button>
       </div>
 
       <!-- Cuentas (información separada) -->
       <div class="gc-card" style="margin-top:16px;" id="aj-card-cuentas">
-        <p class="gc-card-title">🗂️ Base de datos que estás viendo</p>
+        <p class="gc-card-title">Base de datos que estás viendo</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Cada base de datos guarda su <strong>propia</strong> información (movimientos, invoices, nómina, trabajadores, categorías). Estás viendo la marcada abajo.</p>
         <div class="gc-field" style="margin-bottom:12px;"><label>Base de datos actual</label>
           <input type="text" id="aj-cuenta-actual" readonly style="font-weight:600;background:#EEF2FF;">
@@ -802,13 +804,13 @@
           <div style="display:flex;justify-content:flex-end;margin-top:12px;">
             <button class="gc-save-btn" id="aj-btn-cambiar-cuenta">Ver esta base de datos</button>
           </div>
-          <p style="font-size:11px;color:var(--muted);margin-top:10px;">💡 Al cambiar, la app se recargará para mostrar esa base de datos.</p>
+          <p style="font-size:11px;color:var(--muted);margin-top:10px;">Al cambiar, la app se recargará para mostrar esa base de datos.</p>
         </div>
       </div>
 
       <!-- Bases de datos con nombre (solo admin) -->
       <div class="gc-card" style="margin-top:16px;display:none;" id="aj-card-bd">
-        <p class="gc-card-title">🗄️ Bases de datos</p>
+        <p class="gc-card-title">Bases de datos</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Crea las bases de datos con el nombre que quieras (ej. <em>Guzman HVAC Airton</em>, <em>Guzman HVAC Estrada</em>). Luego, abajo, asignas cada usuario a una de ellas.</p>
         <div id="aj-bd-lista" style="margin-bottom:14px;"></div>
         <div class="gc-field"><label>Nombre de la nueva base de datos</label>
@@ -821,10 +823,10 @@
 
       <!-- Administrar usuarios (solo admin) -->
       <div class="gc-card" style="margin-top:16px;display:none;" id="aj-card-admin">
-        <p class="gc-card-title">🛠️ Usuarios y a qué base de datos entran</p>
+        <p class="gc-card-title">Usuarios y a qué base de datos entran</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Elige a qué base de datos entra cada usuario, apruébalos y define su rol. <strong>Los usuarios en la misma base de datos ven la misma información.</strong></p>
         <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
-          <button class="gc-action-btn" id="aj-btn-refrescar-usuarios">🔄 Actualizar lista</button>
+          <button class="gc-action-btn" id="aj-btn-refrescar-usuarios">Actualizar lista</button>
         </div>
         <div id="aj-usuarios-lista"></div>
         <p id="aj-usuarios-msg" style="font-size:12px;color:var(--muted);margin-top:10px;"></p>
@@ -832,7 +834,7 @@
 
       <!-- Info de la app -->
       <div class="gc-card" style="margin-top:16px;">
-        <p class="gc-card-title">ℹ️ Acerca de</p>
+        <p class="gc-card-title">Acerca de</p>
         <p style="font-size:13px;color:var(--muted);line-height:1.7;">
           <strong>Kontaly</strong> — Sistema de cuentas, facturas y nómina.<br>
           Tus datos se sincronizan en la nube y están disponibles en todos tus dispositivos con tu usuario. Aun así, puedes descargar un respaldo cuando quieras.
@@ -856,22 +858,22 @@
         <span class="emp-toolbar-title">Papeles Importantes</span>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
           <select id="papeles-cat-nueva" style="font-family:'Inter',sans-serif;font-size:13px;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#F5F8FC;color:var(--ink);">
-            <option value="IRS - Taxes">📋 IRS - Taxes</option>
-            <option value="Banco">🏦 Banco</option>
-            <option value="Seguro">🔒 Seguro</option>
-            <option value="Licencias">📄 Licencias</option>
-            <option value="Vehiculos">🚗 Vehículos</option>
-            <option value="Contratos">✍️ Contratos</option>
-            <option value="Propiedad">🏠 Propiedad</option>
-            <option value="Gobierno">🏛️ Gobierno</option>
-            <option value="Otro">📁 Otro</option>
+            <option value="IRS - Taxes">IRS - Taxes</option>
+            <option value="Banco">Banco</option>
+            <option value="Seguro">Seguro</option>
+            <option value="Licencias">Licencias</option>
+            <option value="Vehiculos">Vehículos</option>
+            <option value="Contratos">Contratos</option>
+            <option value="Propiedad">Propiedad</option>
+            <option value="Gobierno">Gobierno</option>
+            <option value="Otro">Otro</option>
           </select>
           <button class="gc-save-btn" id="btn-subir-papel">+ Subir PDF</button>
         </div>
       </div>
       <div id="papeles-filtros" class="papeles-filtros"></div>
       <div id="papeles-lista"></div>
-      <div class="doc-web-note" id="papeles-web-note" style="display:none;">📂 La subida de PDFs solo está disponible en la <strong>app de escritorio</strong>.</div>
+      <div class="doc-web-note" id="papeles-web-note" style="display:none;">La subida de PDFs solo está disponible en la <strong>app de escritorio</strong>.</div>
     </div>
 
     <!-- (Categorías ahora vive dentro de Movimientos) -->
@@ -881,17 +883,17 @@
 <!-- ===== NÓMINA ===== -->
 <div class="gc-panel" id="panel-nomina">
   <div class="inv-subnav">
-    <button class="nom-subtab active" data-nsub="registro">📝 Registrar pago</button>
-    <button class="nom-subtab" data-nsub="semanal">📅 Recibo semanal</button>
-    <button class="nom-subtab" data-nsub="historial">📋 Historial</button>
-    <button class="nom-subtab" data-nsub="buscar">🔍 Buscar por persona</button>
-    <button class="nom-subtab" data-nsub="trabajadores">👷 Trabajadores</button>
+    <button class="nom-subtab active" data-nsub="registro">Registrar pago</button>
+    <button class="nom-subtab" data-nsub="semanal">Recibo semanal</button>
+    <button class="nom-subtab" data-nsub="historial">Historial</button>
+    <button class="nom-subtab" data-nsub="buscar">Buscar por persona</button>
+    <button class="nom-subtab" data-nsub="trabajadores">Trabajadores</button>
   </div>
 
   <!-- Registrar pago -->
   <div class="nom-subpanel active" id="nom-sub-registro">
     <div class="gc-card">
-      <p class="gc-card-title">📝 Registrar pago a trabajador</p>
+      <p class="gc-card-title">Registrar pago a trabajador</p>
 
       <!-- Trabajadores (escribe/busca y agrega, sin límite) -->
       <div class="gc-field" style="margin-bottom:14px;">
@@ -920,14 +922,14 @@
             <button type="button" id="nom-cal-next" class="gc-action-btn" style="padding:8px 16px;font-size:16px;">›</button>
           </div>
           <div id="nom-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:7px;"></div>
-          <p style="font-size:11px;color:var(--muted);margin:12px 0 0;display:flex;align-items:center;gap:6px;"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#E4ECF7;border:1px solid #C7D6EC;"></span> Semana actual</p>
+          <p style="font-size:11px;color:var(--muted);margin:12px 0 0;display:flex;align-items:center;gap:6px;"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#E4ECF7;border:1px solid #C7D6EC;"></span>Semana actual</p>
         </div>
         <div id="nom-dias-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;"></div>
         <p id="nom-dias-info" style="font-size:12px;color:var(--muted);margin-top:6px;"></p>
       </div>
 
       <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px;padding:14px;background:#FDEEE6;border-radius:10px;border:1px solid #F0C9B4;">
-        <div class="gc-field"><label>➕ Extra (opcional) — concepto</label><input type="text" id="nom-extra-desc" placeholder="Ej. bono, horas extra, gasolina…" autocomplete="off"></div>
+        <div class="gc-field"><label>Extra (opcional) — concepto</label><input type="text" id="nom-extra-desc" placeholder="Ej. bono, horas extra, gasolina…" autocomplete="off"></div>
         <div class="gc-field"><label>Monto del extra ($)</label><input type="text" id="nom-extra-monto" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
       </div>
 
@@ -939,7 +941,7 @@
 
       <div style="display:flex;gap:10px;justify-content:flex-end;">
         <button class="gc-action-btn" id="nom-btn-limpiar">Limpiar</button>
-        <button class="gc-save-btn" id="nom-btn-guardar">💾 Guardar pago</button>
+        <button class="gc-save-btn" id="nom-btn-guardar">Guardar pago</button>
       </div>
       <input type="hidden" id="nom-editando" value="">
       <p id="nom-status" style="font-size:12px;color:var(--muted);text-align:right;margin-top:8px;height:14px;"></p>
@@ -947,7 +949,7 @@
 
     <!-- Pagos de esta semana -->
     <div class="gc-card">
-      <p class="gc-card-title">📅 Pagos de esta semana</p>
+      <p class="gc-card-title">Pagos de esta semana</p>
       <div class="gc-empty" id="nom-semana-empty" style="display:none;">Aún no has guardado pagos esta semana.</div>
       <div id="nom-semana-lista"></div>
     </div>
@@ -962,8 +964,8 @@
     <!-- Pagos guardados (movido desde Registrar pago) -->
     <div class="gc-card" style="margin-top:24px;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
-        <p class="gc-card-title" style="margin:0;">🧾 Pagos guardados</p>
-        <input type="text" id="nom-reg-buscar" placeholder="🔍 Buscar…" style="font-family:'Inter',sans-serif;font-size:13px;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#F5F8FC;color:var(--ink);max-width:220px;">
+        <p class="gc-card-title" style="margin:0;">Pagos guardados</p>
+        <input type="text" id="nom-reg-buscar" placeholder="Buscar…" style="font-family:'Inter',sans-serif;font-size:13px;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#F5F8FC;color:var(--ink);max-width:220px;">
       </div>
       <div class="gc-empty" id="nom-reg-empty" style="display:none;">Aún no has guardado pagos.</div>
       <div id="nom-reg-ledger"></div>
@@ -973,9 +975,9 @@
   <!-- Historial -->
   <div class="nom-subpanel" id="nom-sub-historial">
     <div class="gc-card">
-      <p class="gc-card-title">📋 Historial de pagos</p>
+      <p class="gc-card-title">Historial de pagos</p>
       <div style="margin-bottom:16px;">
-        <input type="text" id="nom-hist-buscar" placeholder="🔍 Buscar por trabajador o nota…"
+        <input type="text" id="nom-hist-buscar" placeholder="Buscar por trabajador o nota…"
           style="width:100%;font-family:'Inter',sans-serif;font-size:13.5px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#F5F8FC;color:var(--ink);">
       </div>
       <div class="gc-empty" id="nom-hist-empty" style="display:none;">No hay pagos registrados aún.</div>
@@ -991,7 +993,7 @@
   <!-- Buscar por persona -->
   <div class="nom-subpanel" id="nom-sub-buscar">
     <div class="gc-card">
-      <p class="gc-card-title">🔍 Cuánto lleva ganando una persona</p>
+      <p class="gc-card-title">Cuánto lleva ganando una persona</p>
       <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:16px;">
         <div class="gc-field"><label>Trabajador</label>
           <input type="text" id="nom-buscar-persona" list="dl-trabajadores-2" placeholder="Escribe o selecciona un trabajador" autocomplete="off">
@@ -1013,7 +1015,7 @@
   <!-- Trabajadores -->
   <div class="nom-subpanel" id="nom-sub-trabajadores">
     <div class="gc-card">
-      <p class="gc-card-title">👷 Trabajadores y sus sueldos</p>
+      <p class="gc-card-title">Trabajadores y sus sueldos</p>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Aquí defines el sueldo por día de cada trabajador. Al registrar un pago, el monto se calcula solo (días × sueldo). Puedes aumentar o rebajar el sueldo cuando quieras.</p>
       <div style="display:grid;grid-template-columns:2fr 1fr auto;gap:10px;margin-bottom:18px;align-items:end;">
         <div class="gc-field"><label>Nombre del trabajador</label>
@@ -1038,7 +1040,7 @@
 <!-- Overlay de recibo de nómina -->
 <div class="gc-print-overlay" id="nom-ov" style="display:none;">
   <div class="gc-print-toolbar no-print">
-    <button class="gc-save-btn" id="nom-btn-imprimir-recibo">🖨 Imprimir</button>
+    <button class="gc-save-btn" id="nom-btn-imprimir-recibo">Imprimir</button>
     <button class="gc-action-btn" id="nom-btn-descargar-recibo" style="background:#fff;">⬇ Descargar</button>
     <button class="gc-action-btn" id="nom-btn-cerrar-recibo" style="background:#fff;">Cerrar</button>
   </div>
@@ -1049,17 +1051,17 @@
 <div class="gc-panel" id="panel-facturas">
   <div class="inv-subnav">
     <button class="inv-subtab active" data-sub="nueva">+ Nueva Factura</button>
-    <button class="inv-subtab" data-sub="guardadas">📁 Guardadas</button>
-    <button class="inv-subtab" data-sub="cobros">🏠 Cobros por casa</button>
-    <button class="inv-subtab" data-sub="clientes">👤 Clientes</button>
-    <button class="inv-subtab" data-sub="trabajos">🔧 Trabajos</button>
-    <button class="inv-subtab" data-sub="colonias">🏘 Colonias</button>
+    <button class="inv-subtab" data-sub="guardadas">Guardadas</button>
+    <button class="inv-subtab" data-sub="cobros">Cobros por casa</button>
+    <button class="inv-subtab" data-sub="clientes">Clientes</button>
+    <button class="inv-subtab" data-sub="trabajos">Trabajos</button>
+    <button class="inv-subtab" data-sub="colonias">Colonias</button>
   </div>
   <!-- Nueva Factura -->
   <div class="inv-subpanel active" id="inv-sub-nueva">
     <div class="gc-card">
-      <p class="gc-card-title">📋 Información</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px;">
+      <p class="gc-card-title">Información</p>
+      <div class="gc-form-row">
         <div class="gc-field"><label>Invoice #</label><input type="text" id="inv-num" placeholder="INV-2026-001"></div>
         <div class="gc-field"><label>Fecha</label><input type="date" id="inv-fecha"></div>
         <div class="gc-field"><label>Bill To — Nombre / Compañía</label>
@@ -1072,7 +1074,7 @@
       </div>
     </div>
     <div class="gc-card">
-      <p class="gc-card-title">🔧 Trabajos</p>
+      <p class="gc-card-title">Trabajos</p>
       <div style="overflow-x:auto;margin-bottom:12px;">
         <table class="inv-tbl"><thead><tr>
           <th style="width:36px;">#</th><th style="width:110px;">JOB #</th>
@@ -1086,7 +1088,7 @@
     </div>
     <div style="display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start;">
       <div class="gc-card">
-        <p class="gc-card-title">📝 Notas</p>
+        <p class="gc-card-title">Notas</p>
         <div class="gc-field"><textarea id="inv-notas" placeholder="Notas adicionales…" style="min-height:80px;"></textarea></div>
       </div>
       <div class="gc-card" style="padding:18px 20px;min-width:250px;">
@@ -1099,17 +1101,17 @@
     </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;">
       <button class="gc-action-btn" id="inv-btn-limpiar">Limpiar</button>
-      <button class="gc-action-btn" id="inv-btn-preview">👁 Vista previa</button>
-      <button class="gc-save-btn" id="inv-btn-guardar">💾 Guardar Factura</button>
+      <button class="gc-action-btn" id="inv-btn-preview">Vista previa</button>
+      <button class="gc-save-btn" id="inv-btn-guardar">Guardar Factura</button>
     </div>
     <input type="hidden" id="inv-editando" value="">
   </div>
   <!-- Guardadas -->
   <div class="inv-subpanel" id="inv-sub-guardadas">
     <div class="gc-card">
-      <p class="gc-card-title">📁 Facturas Guardadas</p>
+      <p class="gc-card-title">Facturas Guardadas</p>
       <div style="margin-bottom:16px;">
-        <input type="text" id="inv-buscar" placeholder="🔍 Buscar por Job #, colonia, lote, cliente o # de factura…"
+        <input type="text" id="inv-buscar" placeholder="Buscar por Job #, colonia, lote, cliente o # de factura…"
           style="width:100%;font-family:'Inter',sans-serif;font-size:13.5px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#F5F8FC;color:var(--ink);">
         <p id="inv-buscar-info" style="font-size:11.5px;color:var(--muted);margin-top:6px;"></p>
       </div>
@@ -1125,10 +1127,10 @@
   <!-- Cobros por casa -->
   <div class="inv-subpanel" id="inv-sub-cobros">
     <div class="gc-card">
-      <p class="gc-card-title">🏠 Cobros por casa</p>
+      <p class="gc-card-title">Cobros por casa</p>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Cada trabajo de todas tus facturas aparece aquí como un cobro individual. Se llena solo cuando guardas una factura. Busca por Job #, colonia o lote.</p>
       <div style="margin-bottom:16px;">
-        <input type="text" id="cobros-buscar" placeholder="🔍 Buscar por Job #, colonia, lote o trabajo…"
+        <input type="text" id="cobros-buscar" placeholder="Buscar por Job #, colonia, lote o trabajo…"
           style="width:100%;font-family:'Inter',sans-serif;font-size:13.5px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#F5F8FC;color:var(--ink);">
         <p id="cobros-info" style="font-size:11.5px;color:var(--muted);margin-top:6px;"></p>
       </div>
@@ -1144,7 +1146,7 @@
   <!-- Clientes -->
   <div class="inv-subpanel" id="inv-sub-clientes">
     <div class="gc-card">
-      <p class="gc-card-title">👤 Base de datos de Clientes</p>
+      <p class="gc-card-title">Base de datos de Clientes</p>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Estos clientes aparecen como sugerencias en el campo <strong>Bill To</strong> de cada factura. También puedes escribir uno nuevo directo en el campo.</p>
       <div style="display:flex;gap:10px;margin-bottom:18px;">
         <input type="text" id="cli-nueva" placeholder="Nombre del cliente o compañía…" style="flex:1;font-family:'Inter',sans-serif;font-size:13.5px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#F5F8FC;color:var(--ink);">
@@ -1158,7 +1160,7 @@
   <!-- Trabajos -->
   <div class="inv-subpanel" id="inv-sub-trabajos">
     <div class="gc-card">
-      <p class="gc-card-title">🔧 Descripciones de Trabajo</p>
+      <p class="gc-card-title">Descripciones de Trabajo</p>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Estas descripciones aparecen como sugerencias en el campo <strong>Work Performed</strong>. También puedes escribir lo que quieras directo en el campo.</p>
       <div style="display:flex;gap:10px;margin-bottom:18px;">
         <input type="text" id="trab-nueva" placeholder="Ej. Trim install, Rough-in, Unit replacement…" style="flex:1;font-family:'Inter',sans-serif;font-size:13.5px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#F5F8FC;color:var(--ink);">
@@ -1173,7 +1175,7 @@
   <!-- Colonias -->
   <div class="inv-subpanel" id="inv-sub-colonias">
     <div class="gc-card">
-      <p class="gc-card-title">🏘 Colonias / Subdivisions</p>
+      <p class="gc-card-title">Colonias / Subdivisions</p>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Estas colonias aparecen en el menú de <strong>JOB LOCATION</strong> de cada factura.</p>
       <div style="display:flex;gap:10px;margin-bottom:18px;">
         <input type="text" id="col-nueva" placeholder="Nombre de la colonia…" style="flex:1;font-family:'Inter',sans-serif;font-size:13.5px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#F5F8FC;color:var(--ink);">
@@ -1188,7 +1190,7 @@
 <!-- Print overlay para invoices -->
 <div class="gc-print-overlay" id="inv-ov" style="display:none;">
   <div class="gc-print-toolbar no-print">
-    <button class="gc-save-btn" id="inv-btn-imprimir">🖨 Imprimir</button>
+    <button class="gc-save-btn" id="inv-btn-imprimir">Imprimir</button>
     <button class="gc-action-btn" id="inv-btn-descargar" style="background:#fff;">⬇ Descargar</button>
     <button class="gc-action-btn" id="inv-btn-cerrar-ov" style="background:#fff;">Cerrar</button>
   </div>
@@ -1231,7 +1233,7 @@
         </div>
         <div class="emp-modal-actions">
           <button class="gc-save-btn" id="btn-guardar-empleado">Guardar</button>
-          <button class="gc-action-btn" id="btn-imprimir-empleado" style="display:none;">🖨 Imprimir</button>
+          <button class="gc-action-btn" id="btn-imprimir-empleado" style="display:none;">Imprimir</button>
           <button class="gc-action-btn" id="btn-descargar-empleado" style="display:none;">⬇ Descargar</button>
           <button class="gc-action-btn" id="btn-eliminar-empleado" style="display:none;color:var(--ember);border-color:var(--ember);">Eliminar</button>
         </div>
@@ -1245,7 +1247,7 @@
           </div>
           <div class="doc-list" id="doc-list"></div>
         </div>
-        <div class="doc-web-note" id="docs-web-note" style="display:none;">📂 La subida de PDFs solo está disponible en la <strong>app de escritorio</strong>.</div>
+        <div class="doc-web-note" id="docs-web-note" style="display:none;">La subida de PDFs solo está disponible en la <strong>app de escritorio</strong>.</div>
       </div>
     </div>
   </div>
@@ -1254,7 +1256,7 @@
 <!-- Print modal -->
 <div class="gc-print-overlay" id="modal-print" style="display:none;">
   <div class="gc-print-toolbar no-print">
-    <button class="gc-save-btn" id="btn-imprimir-modal">🖨 Imprimir</button>
+    <button class="gc-save-btn" id="btn-imprimir-modal">Imprimir</button>
     <button class="gc-action-btn" id="btn-descargar-desde-modal" style="background:#fff;">⬇ Descargar</button>
     <button class="gc-action-btn" id="btn-cerrar-modal" style="background:#fff;">Cerrar</button>
   </div>
@@ -1308,7 +1310,7 @@
     const barra = document.createElement('div');
     barra.id = 'aviso-update';
     barra.style.cssText = 'position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:99999;background:#131C2E;color:#fff;padding:12px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.35);display:flex;align-items:center;gap:14px;font-family:Inter,sans-serif;font-size:13.5px;max-width:92%;';
-    barra.innerHTML = '<span>✨ Hay una versión nueva de Kontaly</span>';
+    barra.innerHTML = '<span>Hay una versión nueva de Kontaly</span>';
     const btn = document.createElement('button');
     btn.textContent = 'Actualizar';
     btn.style.cssText = 'background:#0E8F82;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;';
@@ -1386,7 +1388,7 @@
         banner = document.createElement('div');
         banner.id = 'gc-offline-banner';
         banner.className = 'gc-banner offline';
-        banner.textContent = '⚠️ Sin conexión a internet — los cambios no se están guardando en la nube hasta que vuelva la señal.';
+        banner.textContent = 'Sin conexión a internet — los cambios no se están guardando en la nube hasta que vuelva la señal.';
         document.body.insertBefore(banner, document.body.firstChild);
       }
     } else if (banner) {
@@ -1425,7 +1427,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v12 · 26 ago';
+  const APP_VERSION = 'v14 · 29 ago';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -1446,7 +1448,7 @@
   let cfgSocioMitad = 'GUZMAN HVAC';
   let cfgFacturaNombre = 'GUZMAN HVAC';
   let cfgFacturaDireccion = '';
-  let cfgFacturaSigueSocio = true;  // el nombre de factura/nómina sigue al Socio 2 (mitad)
+  let cfgFacturaSigueSocio = true; // el nombre de factura/nómina sigue al Socio 2 (mitad)
 
   async function cargarConfig() {
     try {
@@ -1564,7 +1566,7 @@
       window.storage.get(KEY_CAT_GASTO, false).catch(() => null),
       window.storage.get(KEY_CAT_INGRESO, false).catch(() => null),
       window.storage.get(KEY_INVOICES, false).catch(() => null),
-      cargarConfig(),  // nombres de socios + factura (nube)
+      cargarConfig(), // nombres de socios + factura (nube)
     ]);
     try { movimientos = rMov && rMov.value ? JSON.parse(rMov.value) : []; } catch (e) { movimientos = []; }
     try { catGastos = rGas && rGas.value ? JSON.parse(rGas.value) : DEFAULT_GASTOS.slice(); } catch (e) { catGastos = DEFAULT_GASTOS.slice(); }
@@ -1772,13 +1774,13 @@
     // Totales acumulados de todos los invoices guardados
     let totTaxas = 0, totCra = 0, totTaxGuzman = 0;
     invoicesGuardados.forEach((inv) => {
-      totTaxas     += (inv.taxas     || 0);
-      totCra       += (inv.pagoCra   || 0);
+      totTaxas += (inv.taxas || 0);
+      totCra += (inv.pagoCra || 0);
       totTaxGuzman += (inv.taxGuzman || 0);
     });
     if ($('stat-taxas-total')) $('stat-taxas-total').textContent = fmt(totTaxas);
-    if ($('stat-cra-total'))   $('stat-cra-total').textContent   = fmt(totCra);
-    if ($('stat-tax-guzman'))  $('stat-tax-guzman').textContent  = fmt(totTaxGuzman);
+    if ($('stat-cra-total')) $('stat-cra-total').textContent = fmt(totCra);
+    if ($('stat-tax-guzman')) $('stat-tax-guzman').textContent = fmt(totTaxGuzman);
   }
 
   function renderMovimientos() {
@@ -1863,7 +1865,7 @@
     const W = Math.max(560, semanas.length * 90), H = 200;
     const padL = 46, padR = 14, padT = 14, padB = 34;
     const plotW = W - padL - padR, plotH = H - padT - padB;
-    const maxVal = Math.max(1, ...semanas.map((s) => Math.max(s.ingresos, s.gastosTotales)));
+    const maxVal = Math.max(1, ...semanas.map((s) =>Math.max(s.ingresos, s.gastosTotales)));
     const bandW = plotW / semanas.length;
     const barW = Math.min(20, bandW * 0.28);
     const escalaY = (v) => padT + plotH - (Math.max(0, v) / maxVal) * plotH;
@@ -2059,14 +2061,14 @@
       // Bono base: 10% de la mitad (solo si neto positivo)
       const bonoBase = mitad > 0 ? mitad * BONO_CRA : 0;
       // Ajuste a CRA: suma/resta a su pago, y genera bono del 10% que sale de las taxas
-      const ajuste = g.ajusteGuzman;               // + o −
-      const bonoAjuste = ajuste * BONO_CRA;         // 10% del ajuste (sale de taxas)
-      const bonoCra = bonoBase + bonoAjuste;        // bono total que sale de las taxas
+      const ajuste = g.ajusteGuzman; // + o −
+      const bonoAjuste = ajuste * BONO_CRA; // 10% del ajuste (sale de taxas)
+      const bonoCra = bonoBase + bonoAjuste; // bono total que sale de las taxas
       // GUZMAN HVAC: mitad + bono base + ajuste + bono del ajuste
-      const pagoCra   = mitad + bonoBase + ajuste + bonoAjuste;
+      const pagoCra = mitad + bonoBase + ajuste + bonoAjuste;
       // CRA HVAC: solo su mitad
       const pagoGuzman = mitad;
-      const taxGuzman = taxas - bonoCra;  // taxas restantes después de todos los bonos
+      const taxGuzman = taxas - bonoCra; // taxas restantes después de todos los bonos
       const gastoItems = [...g.gastoItems].sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
       resultado.push({ key, label: g.label, ingresos: g.ingresos, gastos: g.gastos, gastoItems, ajusteGuzman: ajuste, ajusteItems: g.ajusteItems, taxas, gastosTotales, neto, mitad, bonoBase, bonoAjuste, bonoCra, pagoCra, pagoGuzman, taxGuzman });
     });
@@ -2086,8 +2088,8 @@
     tbody.innerHTML = '';
     const sorted = [...invoicesGuardados].sort((a, b) => (b.guardadoEn || '').localeCompare(a.guardadoEn || ''));
     const hayDatos = sorted.length > 0;
-    $('empty-invoices-guardados').style.display  = hayDatos ? 'none'  : 'block';
-    $('tabla-invoices-guardados').style.display  = hayDatos ? 'table' : 'none';
+    $('empty-invoices-guardados').style.display = hayDatos ? 'none' : 'block';
+    $('tabla-invoices-guardados').style.display = hayDatos ? 'table' : 'none';
 
     sorted.forEach((inv) => {
       const idInv = inv.id || inv.key;
@@ -2106,14 +2108,14 @@
 
     tbody.querySelectorAll('.gc-ver-invoice-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const inv = invoicesGuardados.find((i) => String(i.id || i.key) === btn.dataset.id);
+        const inv = invoicesGuardados.find((i) =>String(i.id || i.key) === btn.dataset.id);
         if (inv) mostrarVistaImpresion(inv);
       });
     });
 
     tbody.querySelectorAll('.gc-reabrir-invoice-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
-        const inv = invoicesGuardados.find((i) => String(i.id || i.key) === btn.dataset.id);
+        const inv = invoicesGuardados.find((i) =>String(i.id || i.key) === btn.dataset.id);
         if (!inv) return;
         const ok = await gcConfirm(`¿Reabrir el invoice de "${inv.label}"?\n\nLos movimientos volverán a la hoja de Movimientos para que los edites (agregar lo que faltó cobrar, corregir montos, etc). El invoice guardado se quita de la lista y luego lo vuelves a guardar cuando termines.`, { okText: 'Reabrir' });
         if (!ok) return;
@@ -2131,7 +2133,7 @@
         }
 
         movimientos.push(...movsReabiertos);
-        invoicesGuardados = invoicesGuardados.filter((i) => String(i.id || i.key) !== btn.dataset.id);
+        invoicesGuardados = invoicesGuardados.filter((i) =>String(i.id || i.key) !== btn.dataset.id);
         saveMov();
         saveInvoices();
         renderMovimientos();
@@ -2146,7 +2148,7 @@
     tbody.querySelectorAll('.gc-del').forEach((btn) => {
       btn.addEventListener('click', async () => {
         if (!await gcConfirm('¿Eliminar este invoice guardado? Esta acción no se puede deshacer.', { okText: 'Eliminar', danger: true })) return;
-        invoicesGuardados = invoicesGuardados.filter((inv) => String(inv.id || inv.key) !== btn.dataset.id);
+        invoicesGuardados = invoicesGuardados.filter((inv) =>String(inv.id || inv.key) !== btn.dataset.id);
         saveInvoices();
         renderInvoicesGuardados();
         renderReparto();
@@ -2158,8 +2160,8 @@
   // ---- Resumen anual de Taxas ----
   function renderResumenTaxas() {
     const filtroAnio = ($('taxas-anio-filtro') || {}).value || 'todos';
-    const tbody  = $('tbody-taxas-resumen');
-    const tfoot  = $('tfoot-taxas-resumen');
+    const tbody = $('tbody-taxas-resumen');
+    const tfoot = $('tfoot-taxas-resumen');
     tbody.innerHTML = '';
     tfoot.innerHTML = '';
 
@@ -2171,7 +2173,7 @@
     });
 
     $('empty-taxas-resumen').style.display = invs.length === 0 ? 'block' : 'none';
-    $('tabla-taxas-resumen').style.display  = invs.length === 0 ? 'none' : 'table';
+    $('tabla-taxas-resumen').style.display = invs.length === 0 ? 'none' : 'table';
 
     let totIng = 0, totGas = 0, totNeto = 0, totTaxas = 0, totBono = 0, totRest = 0;
 
@@ -2179,19 +2181,19 @@
     const sorted = [...invs].sort((a, b) => (a.guardadoEn || '').localeCompare(b.guardadoEn || ''));
 
     sorted.forEach((inv, i) => {
-      const neto  = inv.neto  ?? 0;
-      const bono  = inv.bonoCra ?? 0;
-      const rest  = inv.taxGuzman ?? 0;
+      const neto = inv.neto ?? 0;
+      const bono = inv.bonoCra ?? 0;
+      const rest = inv.taxGuzman ?? 0;
       const taxas = inv.taxas ?? 0;
-      const ing   = inv.ingresos ?? 0;
-      const gas   = inv.gastos   ?? 0;
+      const ing = inv.ingresos ?? 0;
+      const gas = inv.gastos ?? 0;
 
-      totIng   += ing;
-      totGas   += gas;
-      totNeto  += neto;
+      totIng += ing;
+      totGas += gas;
+      totNeto += neto;
       totTaxas += taxas;
-      totBono  += bono;
-      totRest  += rest;
+      totBono += bono;
+      totRest += rest;
 
       const netoNeg = neto < 0;
       const tr = document.createElement('tr');
@@ -2353,18 +2355,18 @@
   function renderAnios() {
     const select = $('b-anio');
     const actual = select.value;
-    const todos  = todosMov();
-    const anios  = [...new Set(todos.map((m) => (m.fecha || today()).slice(0, 4)))].sort().reverse();
+    const todos = todosMov();
+    const anios = [...new Set(todos.map((m) => (m.fecha || today()).slice(0, 4)))].sort().reverse();
     select.innerHTML = '<option value="todos">Todos los años</option>' + anios.map((a) => `<option value="${a}">${a}</option>`).join('');
     if (actual && (actual === 'todos' || anios.includes(actual))) select.value = actual;
   }
 
   function renderBusqueda() {
     const texto = $('b-texto').value.trim().toLowerCase();
-    const anio  = $('b-anio').value || 'todos';
+    const anio = $('b-anio').value || 'todos';
 
     const filtrados = todosMov().filter((m) => {
-      const okAnio  = anio === 'todos' || (m.fecha || '').slice(0, 4) === anio;
+      const okAnio = anio === 'todos' || (m.fecha || '').slice(0, 4) === anio;
       const okTexto = !texto || (m.cat || '').toLowerCase().includes(texto) || (m.desc || '').toLowerCase().includes(texto);
       return okAnio && okTexto;
     }).sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
@@ -2658,12 +2660,12 @@
     // Leer datos de todos los módulos (algunos viven en su propia clave de storage)
     let empleadosData = [], facturasData = [], coloniasData = [], clientesData = [], trabajosData = [];
     let nominaData = [], trabajadoresData = [];
-    try { const r = await window.storage.get('empleados');     empleadosData = JSON.parse(r.value); } catch(e){}
-    try { const r = await window.storage.get('gh-invoices');   facturasData  = JSON.parse(r.value); } catch(e){}
-    try { const r = await window.storage.get('gh-colonias');   coloniasData  = JSON.parse(r.value); } catch(e){}
-    try { const r = await window.storage.get('gh-clientes');   clientesData  = JSON.parse(r.value); } catch(e){}
-    try { const r = await window.storage.get('gh-trabajos');   trabajosData  = JSON.parse(r.value); } catch(e){}
-    try { const r = await window.storage.get('gh-nomina');     nominaData    = JSON.parse(r.value); } catch(e){}
+    try { const r = await window.storage.get('empleados'); empleadosData = JSON.parse(r.value); } catch(e){}
+    try { const r = await window.storage.get('gh-invoices'); facturasData = JSON.parse(r.value); } catch(e){}
+    try { const r = await window.storage.get('gh-colonias'); coloniasData = JSON.parse(r.value); } catch(e){}
+    try { const r = await window.storage.get('gh-clientes'); clientesData = JSON.parse(r.value); } catch(e){}
+    try { const r = await window.storage.get('gh-trabajos'); trabajosData = JSON.parse(r.value); } catch(e){}
+    try { const r = await window.storage.get('gh-nomina'); nominaData = JSON.parse(r.value); } catch(e){}
     try { const r = await window.storage.get('gh-trabajadores'); trabajadoresData = JSON.parse(r.value); } catch(e){}
     let recibosData = [];
     try { const r = await window.storage.get('gh-recibos-semanales'); recibosData = JSON.parse(r.value); } catch(e){}
@@ -2721,9 +2723,9 @@
         if (!confirmar) { $('status-restaurar').textContent = 'Restauración cancelada.'; $('input-restaurar-respaldo').value = ''; return; }
 
         // Cuentas y reparto
-        movimientos       = data.movimientos       || [];
-        catGastos         = data.catGastos         || catGastos;
-        catIngresos       = data.catIngresos       || catIngresos;
+        movimientos = data.movimientos || [];
+        catGastos = data.catGastos || catGastos;
+        catIngresos = data.catIngresos || catIngresos;
         invoicesGuardados = data.invoicesGuardados || [];
         await saveMov();
         await saveCatGastos();
@@ -2736,10 +2738,10 @@
           try { empleados = data.empleados || []; renderEmpleados(); } catch (e) {}
         }
         // Facturas y sus catálogos
-        if (data.facturas)  await window.storage.set('gh-invoices', JSON.stringify(data.facturas));
-        if (data.colonias)  await window.storage.set('gh-colonias', JSON.stringify(data.colonias));
-        if (data.clientes)  await window.storage.set('gh-clientes', JSON.stringify(data.clientes));
-        if (data.trabajos)  await window.storage.set('gh-trabajos', JSON.stringify(data.trabajos));
+        if (data.facturas) await window.storage.set('gh-invoices', JSON.stringify(data.facturas));
+        if (data.colonias) await window.storage.set('gh-colonias', JSON.stringify(data.colonias));
+        if (data.clientes) await window.storage.set('gh-clientes', JSON.stringify(data.clientes));
+        if (data.trabajos) await window.storage.set('gh-trabajos', JSON.stringify(data.trabajos));
         try {
           if (data.facturas) invDocs = data.facturas;
           if (data.colonias) invColonias = data.colonias;
@@ -2749,7 +2751,7 @@
           invRenderLista(); invRenderCobros(); invRenderColonias(); invRenderClientes(); invRenderTrabajos();
         } catch (e) {}
         // Nómina
-        if (data.nomina)       await window.storage.set('gh-nomina', JSON.stringify(data.nomina));
+        if (data.nomina) await window.storage.set('gh-nomina', JSON.stringify(data.nomina));
         if (data.trabajadores) await window.storage.set('gh-trabajadores', JSON.stringify(data.trabajadores));
         if (data.recibosSemanales) await window.storage.set('gh-recibos-semanales', JSON.stringify(data.recibosSemanales));
         try {
@@ -2800,11 +2802,6 @@
   // ====================================================================
   // MÓDULO: PAPELES IMPORTANTES
   // ====================================================================
-  const CAT_ICONS = {
-    'IRS / Taxes': '📋', 'Banco': '🏦', 'Seguro': '🔒',
-    'Licencias': '📄', 'Vehiculos': '🚗', 'Contratos': '✍️',
-    'Propiedad': '🏠', 'Gobierno': '🏛️', 'Otro': '📁'
-  };
   let papelesFiltroActual = 'Todos';
 
   function parsearPapel(nombre) {
@@ -2826,7 +2823,7 @@
     }
 
     const archivos = await window.electronAPI.papelesListar();
-    const parsed   = archivos.map(f => ({ archivo: f, ...parsearPapel(f) }));
+    const parsed = archivos.map(f => ({ archivo: f, ...parsearPapel(f) }));
 
     // Categorías que existen
     const cats = ['Todos', ...new Set(parsed.map(p => p.cat))];
@@ -2834,7 +2831,7 @@
       const btn = document.createElement('button');
       btn.className = 'gc-action-btn';
       btn.style.cssText = 'padding:5px 14px;font-size:12px;' + (cat === papelesFiltroActual ? 'background:var(--ink);color:#fff;' : '');
-      btn.textContent = (CAT_ICONS[cat] || '📁') + ' ' + cat;
+      btn.textContent = cat;
       btn.addEventListener('click', () => { papelesFiltroActual = cat; renderPapeles(); });
       filtros.appendChild(btn);
     });
@@ -2853,14 +2850,13 @@
     Object.entries(grupos).forEach(([cat, docs]) => {
       const seccion = document.createElement('div');
       seccion.style.marginBottom = '24px';
-      seccion.innerHTML = `<p style="font-family:'Zilla Slab',serif;font-weight:600;font-size:14px;color:var(--ink);margin-bottom:10px;">${CAT_ICONS[cat] || '📁'} ${cat}</p>`;
+      seccion.innerHTML = `<p style="font-family:'Zilla Slab',serif;font-weight:600;font-size:14px;color:var(--ink);margin-bottom:10px;">${cat}</p>`;
       const docList = document.createElement('div');
       docList.className = 'doc-list';
       docs.forEach(p => {
         const item = document.createElement('div');
         item.className = 'doc-item';
         item.innerHTML = `
-          <span class="doc-icon">📄</span>
           <div class="doc-info">
             <div class="doc-name">${escapeHtml(p.nombre)}</div>
             <div class="doc-cat">${escapeHtml(cat)}</div>
@@ -2898,7 +2894,7 @@
     if (!file) return;
     const cat = $('papeles-cat-nueva').value;
     // Quitar caracteres inválidos del nombre antes de enviarlo
-    const nombreBase  = file.name.replace(/[/\\:*?"<>|]/g, '-');
+    const nombreBase = file.name.replace(/[/\\:*?"<>|]/g, '-');
     const nombreFinal = `[${cat.replace(/[/\\:*?"<>|]/g, '-')}] ${nombreBase}`;
     try {
       const buffer = Array.from(new Uint8Array(await file.arrayBuffer()));
@@ -3046,7 +3042,7 @@
   });
 
   // ---- Bases de datos con nombre + administración (solo admin) ----
-  let ajCuentas = [];  // [{codigo, nombre}]
+  let ajCuentas = []; // [{codigo, nombre}]
 
   function ajSlug(nombre) {
     return (nombre || '').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || ('bd-' + Date.now());
@@ -3108,7 +3104,7 @@
       try {
         await ajGuardarCuentas();
       } catch (e) {
-        ajCuentas = ajCuentas.filter((c) => c.codigo !== codigo);  // revertir
+        ajCuentas = ajCuentas.filter((c) => c.codigo !== codigo); // revertir
         const detalle = (e && (e.message || e.msg)) ? (e.message || e.msg) : String(e);
         toast('No se pudo crear. Puede que tu usuario no sea admin en Supabase. Detalle: ' + detalle, 'error', 6000);
         return;
@@ -3175,7 +3171,7 @@
           </div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-          <button class="gc-action-btn admin-toggle-activo" data-id="${u.id}" data-activo="${u.activo ? '1' : '0'}">${u.activo ? '🚫 Desactivar' : '✅ Aprobar / activar'}</button>
+          <button class="gc-action-btn admin-toggle-activo" data-id="${u.id}" data-activo="${u.activo ? '1' : '0'}">${u.activo ? 'Desactivar' : 'Aprobar / activar'}</button>
           <button class="gc-save-btn admin-guardar" data-id="${u.id}">Guardar cambios</button>
         </div>`;
       cont.appendChild(card);
@@ -3298,7 +3294,7 @@
         <p class="emp-card-name">${escapeHtml(emp.nombre)} ${escapeHtml(emp.apellido)}</p>
         <p class="emp-card-role">${escapeHtml(emp.rol || '')}</p>
         <span class="emp-card-status ${emp.estado || 'activo'}">${(emp.estado || 'activo').charAt(0).toUpperCase() + (emp.estado || 'activo').slice(1)}</span>
-        <p class="emp-card-docs">📞 ${escapeHtml(emp.tel || '—')}</p>
+        <p class="emp-card-docs">${escapeHtml(emp.tel || '—')}</p>
       `;
       card.addEventListener('click', () => abrirModalEmpleado(emp.id));
       grid.appendChild(card);
@@ -3311,21 +3307,21 @@
     const emp = id ? empleados.find((e) => e.id === id) : null;
 
     $('emp-modal-titulo').textContent = emp ? `${emp.nombre} ${emp.apellido}` : 'Nuevo empleado';
-    $('emp-nombre').value      = emp?.nombre      || '';
-    $('emp-apellido').value    = emp?.apellido    || '';
-    $('emp-rol').value         = emp?.rol         || 'Técnico HVAC';
-    $('emp-estado').value      = emp?.estado      || 'activo';
-    $('emp-tel').value         = emp?.tel         || '';
-    $('emp-email').value       = emp?.email       || '';
-    $('emp-inicio').value      = emp?.inicio      || '';
-    $('emp-ss').value          = emp?.ss          || '';
-    $('emp-emergencia').value  = emp?.emergencia  || '';
-    $('emp-direccion').value   = emp?.direccion   || '';
-    $('emp-notas').value       = emp?.notas       || '';
+    $('emp-nombre').value = emp?.nombre || '';
+    $('emp-apellido').value = emp?.apellido || '';
+    $('emp-rol').value = emp?.rol || 'Técnico HVAC';
+    $('emp-estado').value = emp?.estado || 'activo';
+    $('emp-tel').value = emp?.tel || '';
+    $('emp-email').value = emp?.email || '';
+    $('emp-inicio').value = emp?.inicio || '';
+    $('emp-ss').value = emp?.ss || '';
+    $('emp-emergencia').value = emp?.emergencia || '';
+    $('emp-direccion').value = emp?.direccion || '';
+    $('emp-notas').value = emp?.notas || '';
     $('emp-status').textContent = '';
-    $('btn-eliminar-empleado').style.display     = id ? 'inline-block' : 'none';
-    $('btn-imprimir-empleado').style.display     = id ? 'inline-block' : 'none';
-    $('btn-descargar-empleado').style.display    = id ? 'inline-block' : 'none';
+    $('btn-eliminar-empleado').style.display = id ? 'inline-block' : 'none';
+    $('btn-imprimir-empleado').style.display = id ? 'inline-block' : 'none';
+    $('btn-descargar-empleado').style.display = id ? 'inline-block' : 'none';
 
     // Tabs reset
     document.querySelectorAll('.emp-modal-tab').forEach((t) => t.classList.remove('active'));
@@ -3399,15 +3395,15 @@
 
     const datos = {
       nombre, apellido,
-      rol:         $('emp-rol').value,
-      estado:      $('emp-estado').value,
-      tel:         $('emp-tel').value.trim(),
-      email:       $('emp-email').value.trim(),
-      inicio:      $('emp-inicio').value,
-      ss:          $('emp-ss').value.trim(),
-      emergencia:  $('emp-emergencia').value.trim(),
-      direccion:   $('emp-direccion').value.trim(),
-      notas:       $('emp-notas').value.trim()
+      rol: $('emp-rol').value,
+      estado: $('emp-estado').value,
+      tel: $('emp-tel').value.trim(),
+      email: $('emp-email').value.trim(),
+      inicio: $('emp-inicio').value,
+      ss: $('emp-ss').value.trim(),
+      emergencia: $('emp-emergencia').value.trim(),
+      direccion: $('emp-direccion').value.trim(),
+      notas: $('emp-notas').value.trim()
     };
 
     if (empIdActual) {
@@ -3424,7 +3420,7 @@
       await saveEmpleados();
       renderEmpleados();
       $('emp-modal-titulo').textContent = `${datos.nombre} ${datos.apellido}`;
-      $('btn-imprimir-empleado').style.display  = 'inline-block';
+      $('btn-imprimir-empleado').style.display = 'inline-block';
       $('btn-descargar-empleado').style.display = 'inline-block';
       $('emp-status').style.color = 'var(--teal)';
       $('emp-status').textContent = 'Guardado ✓';
@@ -3432,7 +3428,7 @@
       toast('Empleado guardado ✓', 'success');
     } catch(e) {
       $('emp-status').style.color = 'var(--ember)';
-      $('emp-status').textContent = '⚠ ' + e.message;
+      $('emp-status').textContent = '' + e.message;
     }
   });
 
@@ -3479,7 +3475,6 @@
       const cat = catMatch ? catMatch[1] : 'Documento';
       const nombreLimpio = catMatch ? doc.slice(catMatch[0].length + 1) : doc;
       item.innerHTML = `
-        <span class="doc-icon">📄</span>
         <div class="doc-info">
           <div class="doc-name">${escapeHtml(nombreLimpio)}</div>
           <div class="doc-cat">${escapeHtml(cat)}</div>
@@ -3518,7 +3513,7 @@
     const file = _inputDocEmp.files[0];
     if (!file || !empIdActual) return;
     const cat = $('doc-categoria').value;
-    const nombreBase  = file.name.replace(/[/\\:*?"<>|]/g, '-');
+    const nombreBase = file.name.replace(/[/\\:*?"<>|]/g, '-');
     const nombreFinal = `[${cat.replace(/[/\\:*?"<>|]/g, '-')}] ${nombreBase}`;
     try {
       const buffer = Array.from(new Uint8Array(await file.arrayBuffer()));
@@ -3568,10 +3563,10 @@
       tab.classList.add('active');
       $('inv-sub-' + tab.dataset.sub).classList.add('active');
       if (tab.dataset.sub === 'guardadas') invRenderLista();
-      if (tab.dataset.sub === 'cobros')    invRenderCobros();
-      if (tab.dataset.sub === 'colonias')  invRenderColonias();
-      if (tab.dataset.sub === 'clientes')  invRenderClientes();
-      if (tab.dataset.sub === 'trabajos')  invRenderTrabajos();
+      if (tab.dataset.sub === 'cobros') invRenderCobros();
+      if (tab.dataset.sub === 'colonias') invRenderColonias();
+      if (tab.dataset.sub === 'clientes') invRenderClientes();
+      if (tab.dataset.sub === 'trabajos') invRenderTrabajos();
     });
   });
 
@@ -3655,8 +3650,8 @@
     $('inv-tbody').querySelectorAll('.inv-amt').forEach(i => { sub += parseFloat((i.value||'0').replace(',','.'))||0; });
     const pct = parseFloat($('inv-tax').value)||0;
     const tax = sub*pct/100;
-    $('inv-t-sub').textContent   = invFmt(sub);
-    $('inv-t-tax').textContent   = invFmt(tax);
+    $('inv-t-sub').textContent = invFmt(sub);
+    $('inv-t-tax').textContent = invFmt(tax);
     $('inv-t-total').textContent = invFmt(sub+tax);
     return {subtotal:sub, tax, total:sub+tax, taxPct:pct};
   }
@@ -3686,10 +3681,10 @@
     if (!num) { toast('Agrega un número de factura', 'error'); return; }
     const items = [];
     $('inv-tbody').querySelectorAll('tr').forEach(tr => {
-      const job  = tr.querySelector('.inv-job').value.trim();
-      const loc  = tr.querySelector('.inv-loc').value;
+      const job = tr.querySelector('.inv-job').value.trim();
+      const loc = tr.querySelector('.inv-loc').value;
       const work = tr.querySelector('.inv-work').value.trim();
-      const amt  = parseFloat((tr.querySelector('.inv-amt').value||'0').replace(',','.'))||0;
+      const amt = parseFloat((tr.querySelector('.inv-amt').value||'0').replace(',','.'))||0;
       if (job||loc||work||amt) items.push({job,location:loc,work,amount:amt});
     });
     if (!items.length) { toast('Agrega al menos un trabajo', 'error'); return; }
@@ -3806,14 +3801,14 @@
 
   function invRenderLista() {
     const buscar = $('inv-buscar').value.trim().toLowerCase();
-    const tbody  = $('inv-list-tbody');
+    const tbody = $('inv-list-tbody');
     tbody.innerHTML = '';
     const filtradas = invDocs.filter(inv => !buscar ||
       (inv.numero||'').toLowerCase().includes(buscar) || (inv.cliente||'').toLowerCase().includes(buscar) ||
       (inv.items||[]).some(it=>(it.job||'').toLowerCase().includes(buscar)||(it.location||'').toLowerCase().includes(buscar)||(it.work||'').toLowerCase().includes(buscar))
     ).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'') || (b.creadoEn||'').localeCompare(a.creadoEn||''));
     $('inv-list-empty').style.display = filtradas.length===0?'block':'none';
-    $('inv-list-tbl').style.display   = filtradas.length===0?'none':'table';
+    $('inv-list-tbl').style.display = filtradas.length===0?'none':'table';
 
     // Info de resultados
     if ($('inv-buscar-info')) {
@@ -3848,7 +3843,7 @@
         e.stopPropagation();
         const inv = invDocs.find(i=>i.id===btn.dataset.id);
         if (!inv) return;
-        if (btn.dataset.a==='ver')    invMostrarVista(inv);
+        if (btn.dataset.a==='ver') invMostrarVista(inv);
         if (btn.dataset.a==='editar') invEditar(inv);
         if (btn.dataset.a==='borrar') {
           if (!await gcConfirm(`¿Eliminar ${inv.numero}?`, { okText: 'Eliminar', danger: true })) return;
@@ -3887,7 +3882,7 @@
     ).sort((a,b) => (b.creadoEn||'').localeCompare(a.creadoEn||''));
 
     $('cobros-empty').style.display = filtrados.length===0 ? 'block' : 'none';
-    $('cobros-tbl').style.display   = filtrados.length===0 ? 'none' : 'table';
+    $('cobros-tbl').style.display = filtrados.length===0 ? 'none' : 'table';
 
     if ($('cobros-info')) {
       if (buscar) $('cobros-info').textContent = `${filtrados.length} cobro(s) encontrado(s) para "${buscar}"`;
@@ -4014,10 +4009,10 @@
   // ====================================================================
   // MÓDULO: NÓMINA (pagos a trabajadores)
   // ====================================================================
-  const NOM_KEY = 'gh-nomina';            // entradas de pago
+  const NOM_KEY = 'gh-nomina'; // entradas de pago
   const TRAB_NOM_KEY = 'gh-trabajadores'; // trabajadores [{nombre, sueldo}]
   let nomDocs = [], nomTrabajadores = [], nomEditando = null;
-  let nomDiasSel = [];  // fechas seleccionadas para el pago actual
+  let nomDiasSel = []; // fechas seleccionadas para el pago actual
 
   const nomFmt = n => '$'+(Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   const nomToday = () => new Date().toISOString().slice(0,10);
@@ -4062,7 +4057,7 @@
   }
 
   // ---- Trabajadores: buscar/escribir y agregar (sin mostrar todos, sin límite) ----
-  let nomTrabSel = [];  // nombres de trabajadores seleccionados
+  let nomTrabSel = []; // nombres de trabajadores seleccionados
 
   // Muestra SOLO los trabajadores seleccionados como chips removibles
   function nomRenderTrabChips() {
@@ -4235,7 +4230,7 @@
   }
 
   function nomRecalcularMonto() {
-    const sueldo = nomLeerSueldoCampo();  // usa el sueldo del campo (editable)
+    const sueldo = nomLeerSueldoCampo(); // usa el sueldo del campo (editable)
     const extra = parseFloat(($('nom-extra-monto').value || '0').replace(',', '.')) || 0;
     const total = (nomDiasSel.length * sueldo) + extra;
     // Solo autollenar si el usuario no ha editado manualmente (o está vacío)
@@ -4309,7 +4304,7 @@
     await nomSaveDocs();
     nomEditando = null;
     $('nom-editando').value = '';
-    $('nom-btn-guardar').textContent = '💾 Guardar pago';
+    $('nom-btn-guardar').textContent = 'Guardar pago';
     nomLimpiar();
     // Ya NO se genera PDF al guardar — solo se guarda
     nomRenderRegLedger();
@@ -4355,7 +4350,7 @@
     nomLimpiar();
     nomEditando = null;
     $('nom-editando').value = '';
-    $('nom-btn-guardar').textContent = '💾 Guardar pago';
+    $('nom-btn-guardar').textContent = 'Guardar pago';
   });
 
   // ---- Editar pago ----
@@ -4503,7 +4498,7 @@
         <td style="font-size:12.5px;color:var(--muted);">${escapeHtml(n.nota || '')}</td>
         <td style="white-space:nowrap;">
           <button class="gc-action-btn nom-ver-btn" data-id="${n.id}" style="padding:4px 10px;font-size:11.5px;">Ver</button>
-          <button class="gc-action-btn nom-imp-btn" data-id="${n.id}" style="padding:4px 10px;font-size:11.5px;margin-left:3px;">🖨</button>
+          <button class="gc-action-btn nom-imp-btn" data-id="${n.id}" style="padding:4px 10px;font-size:11.5px;margin-left:3px;">Imprimir</button>
           <button class="gc-action-btn nom-edit-btn" data-id="${n.id}" style="padding:4px 10px;font-size:11.5px;margin-left:3px;">✎</button>
           <button class="gc-del nom-del-btn" data-id="${n.id}" style="margin-left:3px;">✕</button>
         </td>`;
@@ -4602,8 +4597,8 @@
 
     let html = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
-        <div class="gc-stat" style="border-color:var(--teal);"><div class="gc-stat-icon" style="background:var(--teal-bg);">💰</div><div><div class="gc-stat-label">Total ganado — ${escapeHtml(nombreReal)}</div><div class="gc-stat-val" style="color:var(--teal);">${nomFmt(totalGeneral)}</div></div></div>
-        <div class="gc-stat" style="border-color:var(--navy);"><div class="gc-stat-icon" style="background:#EEF2FF;">📅</div><div><div class="gc-stat-label">Días trabajados en total</div><div class="gc-stat-val" style="color:var(--navy);">${totalDias}</div></div></div>
+        <div class="gc-stat" style="border-color:var(--teal);"><div class="gc-stat-icon" style="background:var(--teal-bg);">$</div><div><div class="gc-stat-label">Total ganado — ${escapeHtml(nombreReal)}</div><div class="gc-stat-val" style="color:var(--teal);">${nomFmt(totalGeneral)}</div></div></div>
+        <div class="gc-stat" style="border-color:var(--navy);"><div class="gc-stat-icon" style="background:#EEF2FF;">#</div><div><div class="gc-stat-label">Días trabajados en total</div><div class="gc-stat-val" style="color:var(--navy);">${totalDias}</div></div></div>
       </div>`;
 
     if (intervalo !== 'todo') {
@@ -4720,8 +4715,14 @@
       tab.addEventListener('click', async () => {
         if (!nomCargado) {
           nomCargado = true;
-          try { const r = await window.storage.get(NOM_KEY); nomDocs = JSON.parse(r.value); } catch (e) { nomDocs = []; }
-          try { const r = await window.storage.get(TRAB_NOM_KEY); nomTrabajadores = nomNormalizarTrab(JSON.parse(r.value)); } catch (e) { nomTrabajadores = []; }
+          // Las dos lecturas son independientes: se piden a la vez (más rápido,
+          // sobre todo con conexión lenta) en vez de una tras otra.
+          const [rDocs, rTrab] = await Promise.all([
+            window.storage.get(NOM_KEY).catch(() => null),
+            window.storage.get(TRAB_NOM_KEY).catch(() => null)
+          ]);
+          try { nomDocs = JSON.parse(rDocs.value); } catch (e) { nomDocs = []; }
+          try { nomTrabajadores = nomNormalizarTrab(JSON.parse(rTrab.value)); } catch (e) { nomTrabajadores = []; }
           nomRefreshDl();
           nomCalMes = new Date(); nomCalMes.setDate(1);
           nomRenderChips();
@@ -4819,10 +4820,10 @@
       card.style.marginBottom = '16px';
       card.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
-          <p style="font-family:'Zilla Slab',serif;font-size:15px;font-weight:600;color:var(--ink);margin:0;">📅 Semana del ${nomFechaCortaTexto(rango.inicio)} al ${nomFechaCortaTexto(rango.fin)}</p>
+          <p style="font-family:'Zilla Slab',serif;font-size:15px;font-weight:600;color:var(--ink);margin:0;">Semana del ${nomFechaCortaTexto(rango.inicio)} al ${nomFechaCortaTexto(rango.fin)}</p>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="gc-action-btn nom-sem-ver" data-wk="${wk}" style="padding:5px 12px;font-size:11.5px;">👁 Ver recibo</button>
-            <button class="gc-action-btn nom-sem-imp" data-wk="${wk}" style="padding:5px 12px;font-size:11.5px;">🖨 Imprimir</button>
+            <button class="gc-action-btn nom-sem-ver" data-wk="${wk}" style="padding:5px 12px;font-size:11.5px;">Ver recibo</button>
+            <button class="gc-action-btn nom-sem-imp" data-wk="${wk}" style="padding:5px 12px;font-size:11.5px;">Imprimir</button>
           </div>
         </div>
         <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;">
@@ -4915,7 +4916,7 @@
 
   // ---- Ledger de pagos guardados (en Registrar pago) ----
   function nomRenderRegLedger() {
-    const buscar = ($('nom-reg-buscar').value || '').trim().toLowerCase();    const cont = $('nom-reg-ledger');
+    const buscar = ($('nom-reg-buscar').value || '').trim().toLowerCase(); const cont = $('nom-reg-ledger');
     cont.innerHTML = '';
 
     let lista = nomDocs.slice().sort((a, b) => (b.creadoEn || '').localeCompare(a.creadoEn || ''));
@@ -4929,7 +4930,7 @@
 
     // Optimización: solo mostrar los 20 más recientes si no hay búsqueda
     const MAX = 20;
-    const recortada = (!buscar && lista.length > MAX) ? lista.slice(0, MAX) : lista;
+    const recortada = (!buscar && lista.length >MAX) ? lista.slice(0, MAX) : lista;
 
     // Construir el HTML de una sola vez (más rápido que muchos appendChild)
     const filas = recortada.map((n) => {
@@ -4943,15 +4944,15 @@
           </div>
           <div style="font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--teal);font-size:14px;white-space:nowrap;">${nomFmt(n.monto)}</div>
           <div style="white-space:nowrap;display:flex;gap:3px;">
-            <button class="gc-action-btn nom-reg-ver" data-id="${n.id}" style="padding:4px 9px;font-size:11px;">👁</button>
-            <button class="gc-action-btn nom-reg-imp" data-id="${n.id}" style="padding:4px 9px;font-size:11px;">🖨</button>
+            <button class="gc-action-btn nom-reg-ver" data-id="${n.id}" style="padding:4px 9px;font-size:11px;">Ver</button>
+            <button class="gc-action-btn nom-reg-imp" data-id="${n.id}" style="padding:4px 9px;font-size:11px;">Imprimir</button>
             <button class="gc-action-btn nom-reg-edit" data-id="${n.id}" style="padding:4px 9px;font-size:11px;">✎</button>
             <button class="gc-del nom-reg-del" data-id="${n.id}">✕</button>
           </div>
         </div>`;
     }).join('');
 
-    const aviso = (!buscar && lista.length > MAX)
+    const aviso = (!buscar && lista.length >MAX)
       ? `<div style="padding:10px 12px;text-align:center;font-size:12px;color:var(--muted);">Mostrando los ${MAX} más recientes de ${lista.length}. Usa el buscador o ve al Historial para ver todos.</div>`
       : '';
 
@@ -5043,7 +5044,7 @@
 
     const banner = document.createElement('div');
     banner.style.cssText = 'background:#EAF3FF;color:#1A4B8C;font-size:12.5px;padding:8px 20px;text-align:center;border-bottom:1px solid #C7DFFB;';
-    banner.textContent = '👁️ Modo solo lectura — Movimientos y Nómina. Puedes ver y descargar, no editar.';
+    banner.textContent = 'Modo solo lectura — Movimientos y Nómina. Puedes ver y descargar, no editar.';
     document.body.insertBefore(banner, document.body.firstChild);
 
     document.body.classList.add('gh-modo-visor');

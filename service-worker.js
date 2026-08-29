@@ -3,7 +3,7 @@
 // Los datos NO se guardan aquí (eso vive en localStorage / futuro backend),
 // solo el "cascarón" de la app (HTML, íconos).
 
-const CACHE_NAME = 'kontaly-v12';
+const CACHE_NAME = 'kontaly-v14';
 const ARCHIVOS_CACHE = [
   './',
   './index.html',
@@ -39,16 +39,30 @@ self.addEventListener('activate', (evento) => {
   self.clients.claim();
 });
 
-// Estrategia: red primero, si falla usa la copia guardada (offline).
+// Estrategia: copia guardada primero (la app abre AL INSTANTE, incluso con
+// señal débil), y en segundo plano busca una versión nueva para la próxima
+// vez — el aviso "Hay una versión nueva de Kontaly" ya le dice al usuario cuándo
+// actualizar, así que no hace falta esperar la red en cada apertura.
+// Solo aplica al "cascarón" de la app (mismo origen: HTML, JS, íconos).
+// Las llamadas a Supabase y a Google Fonts son de OTRO dominio y van
+// siempre directo a la red, sin pasar por aquí ni guardarse en caché.
 self.addEventListener('fetch', (evento) => {
   if (evento.request.method !== 'GET') return;
-  evento.respondWith(
-    fetch(evento.request)
+  if (new URL(evento.request.url).origin !== self.location.origin) return;
+
+  evento.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const enCache = await cache.match(evento.request);
+
+    const buscarEnRed = fetch(evento.request)
       .then((respuesta) => {
-        const copia = respuesta.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(evento.request, copia));
+        if (respuesta && respuesta.ok) cache.put(evento.request, respuesta.clone());
         return respuesta;
       })
-      .catch(() => caches.match(evento.request).then((r) => r || caches.match('./index.html')))
-  );
+      .catch(() => null);
+    evento.waitUntil(buscarEnRed);  // que termine de guardar aunque ya hayamos respondido
+
+    if (enCache) return enCache;                       // instantáneo
+    return (await buscarEnRed) || cache.match('./index.html');  // primera vez / sin caché
+  })());
 });
