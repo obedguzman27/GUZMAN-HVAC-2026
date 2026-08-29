@@ -553,13 +553,13 @@
         <div class="gc-type-toggle">
           <button class="gc-type-btn active" data-type="ingreso">↑ Ingreso</button>
           <button class="gc-type-btn" data-type="gasto">↓ Gasto</button>
-          <button class="gc-type-btn" data-type="ajuste">± Ajuste CRA</button>
+          <button class="gc-type-btn" data-type="ajuste">± Ajuste</button>
         </div>
         <div id="ajuste-direccion-row" style="display:none;margin-bottom:14px;">
           <div class="gc-field"><label>Tipo de ajuste a <span class="socio-bonus">CRA HVAC</span></label>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-              <button type="button" class="gc-type-btn ajuste-dir-btn active" data-dir="sumar" style="grid-template-columns:none;">+ Sumar a CRA</button>
-              <button type="button" class="gc-type-btn ajuste-dir-btn" data-dir="restar">− Restar a CRA</button>
+              <button type="button" class="gc-type-btn ajuste-dir-btn active" data-dir="sumar" style="grid-template-columns:none;">+ Sumar</button>
+              <button type="button" class="gc-type-btn ajuste-dir-btn" data-dir="restar">− Restar</button>
             </div>
             <p style="font-size:11.5px;color:var(--muted);margin-top:8px;">Al sumar/restar dinero a <span class="socio-bonus">CRA HVAC</span>, también genera tax si ese socio tiene tax activado (igual que con su mitad normal, sale de las taxas). Ej: el socio pagó a un trabajador, compró algo, o le debe algo al otro.</p>
           </div>
@@ -1497,7 +1497,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v22 · 29 ago';
+  const APP_VERSION = 'v23 · 29 ago';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -1878,7 +1878,7 @@
   $('btn-guardar-mov').addEventListener('click', () => {
     const fecha = $('m-fecha').value || today();
     const esAjuste = tipoActual === 'ajuste';
-    const cat = esAjuste ? (ajusteDir === 'sumar' ? 'Ajuste + CRA' : 'Ajuste − CRA') : $('m-cat').value;
+    const cat = esAjuste ? (ajusteDir === 'sumar' ? 'Ajuste +' : 'Ajuste −') : $('m-cat').value;
     const monto = parseFloat($('m-monto').value.replace(',', '.'));
     const desc = $('m-desc').value.trim();
 
@@ -3592,6 +3592,13 @@
       const opciones = ajCuentas.slice();
       if (!opciones.some((c) => c.codigo === u.cuenta)) opciones.push({ codigo: u.cuenta, nombre: u.cuenta });
       const optsHtml = opciones.map((c) => `<option value="${escapeHtml(c.codigo)}"${c.codigo === u.cuenta ? ' selected' : ''}>${escapeHtml(c.nombre)}</option>`).join('');
+      // Checkboxes de bases de datos permitidas, solo relevante para rol "visor"
+      const visorSeleccionadas = new Set(u.cuentasVisor || []);
+      const checksHtml = opciones.map((c) => `
+        <label style="display:flex;align-items:center;gap:7px;padding:6px 0;font-size:13px;color:var(--ink);cursor:pointer;font-weight:400;">
+          <input type="checkbox" class="admin-visor-cuenta-chk" data-id="${u.id}" value="${escapeHtml(c.codigo)}"${visorSeleccionadas.has(c.codigo) ? ' checked' : ''} style="width:15px;height:15px;">
+          ${escapeHtml(c.nombre)}
+        </label>`).join('');
       const card = document.createElement('div');
       card.style.cssText = 'border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;';
       card.innerHTML = `
@@ -3611,6 +3618,11 @@
             </select>
           </div>
         </div>
+        <div class="admin-visor-cuentas-wrap" data-id="${u.id}" style="display:${u.rol === 'visor' ? 'block' : 'none'};background:#F5F7FC;border-radius:8px;padding:10px 12px;margin-bottom:10px;">
+          <p style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:2px;">Bases de datos que puede ver (visor)</p>
+          <p style="font-size:11.5px;color:var(--muted);margin-bottom:4px;">Marca las que quieras. Sin ninguna marcada, usa solo la de arriba (como antes).</p>
+          ${checksHtml}
+        </div>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
           <button class="gc-action-btn admin-toggle-activo" data-id="${u.id}" data-activo="${u.activo ? '1' : '0'}">${u.activo ? 'Desactivar' : 'Aprobar / activar'}</button>
           <button class="gc-save-btn admin-guardar" data-id="${u.id}">Guardar cambios</button>
@@ -3618,7 +3630,15 @@
       cont.appendChild(card);
     });
 
-    // Guardar (base de datos + rol)
+    // Mostrar/ocultar la lista de bases de datos del visor según el rol elegido
+    cont.querySelectorAll('.admin-rol-sel').forEach((sel) => {
+      sel.addEventListener('change', () => {
+        const wrap = cont.querySelector(`.admin-visor-cuentas-wrap[data-id="${sel.dataset.id}"]`);
+        if (wrap) wrap.style.display = sel.value === 'visor' ? 'block' : 'none';
+      });
+    });
+
+    // Guardar (base de datos + rol + bases de datos del visor)
     cont.querySelectorAll('.admin-guardar').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const id = btn.dataset.id;
@@ -3627,6 +3647,10 @@
         try {
           await window.GH_ASIGNAR_CUENTA(id, cuenta);
           await window.GH_ACTUALIZAR_PERFIL(id, { rol });
+          if (rol === 'visor' && typeof window.GH_GUARDAR_CUENTAS_VISOR === 'function') {
+            const marcadas = Array.from(cont.querySelectorAll(`.admin-visor-cuenta-chk[data-id="${id}"]:checked`)).map((c) => c.value);
+            await window.GH_GUARDAR_CUENTAS_VISOR(id, marcadas);
+          }
           toast('Cambios guardados ✓', 'success');
         } catch (e) { toast('No se pudo guardar: ' + (e.message || e), 'error', 4000); }
       });
@@ -5371,13 +5395,17 @@
         totalSemana += t.monto;
         const diasUnicos = [...new Set(t.dias)].sort();
         const diasTxt = diasUnicos.map(nomDiaCorto).join(', ');
+        const idUnico = t.pagos.length === 1 ? t.pagos[0].id : '';
         filas += `
           <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #F0F4FA;gap:12px;">
             <div style="flex:1;min-width:0;">
               <div style="font-weight:600;color:var(--ink);font-size:13.5px;">${escapeHtml(nombre)}</div>
-              <div style="font-size:12px;color:var(--muted);margin-top:2px;">trabajó: ${escapeHtml(diasTxt)} <span style="color:var(--navy);font-weight:600;">(${diasUnicos.length} día${diasUnicos.length!==1?'s':''})</span></div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px;">trabajó: ${escapeHtml(diasTxt)} <span style="color:var(--navy);font-weight:600;">(${diasUnicos.length} día${diasUnicos.length!==1?'s':''})</span>${t.pagos.length > 1 ? ` · ${t.pagos.length} pagos` : ''}</div>
             </div>
-            <div style="font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--teal);font-size:14px;white-space:nowrap;">${nomFmt(t.monto)}</div>
+            <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+              <div style="font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--teal);font-size:14px;white-space:nowrap;">${nomFmt(t.monto)}</div>
+              <button type="button" class="gc-action-btn nom-sem-editar-trab" data-nombre="${escapeHtml(nombre)}" data-id-unico="${idUnico}" style="padding:4px 10px;font-size:11px;" title="Editar este pago">Editar</button>
+            </div>
           </div>`;
       });
 
@@ -5412,6 +5440,21 @@
         document.getElementById('print-area').innerHTML = `<div class="gc-print-sheet">${html}</div>`;
         window.print();
         setTimeout(() => { document.getElementById('print-area').innerHTML = ''; }, 600);
+      });
+    });
+    cont.querySelectorAll('.nom-sem-editar-trab').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const idUnico = btn.dataset.idUnico;
+        if (idUnico) {
+          // Un solo pago detrás de esta fila: editarlo directo
+          const entrada = nomDocs.find((n) => String(n.id) === idUnico);
+          if (entrada) { nomEditar(entrada); return; }
+        }
+        // Varios pagos en la semana para este trabajador: los busca abajo, en Pagos guardados, para elegir cuál
+        $('nom-reg-buscar').value = btn.dataset.nombre;
+        nomRenderRegLedger();
+        $('nom-reg-buscar').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        toast('Elige cuál de sus pagos de esta semana quieres editar', 'info', 3000);
       });
     });
   }
@@ -5578,18 +5621,25 @@
   }
 
   function aplicarModoSoloLectura() {
-    // Ocultar todas las pestañas del menú excepto Movimientos y Nómina.
+    // Ocultar todas las pestañas del menú excepto Registro y Nómina.
     document.querySelectorAll('.gc-tab').forEach((t) => {
       const permitido = t.dataset.tab === 'movimientos' || t.dataset.tab === 'nomina';
       t.style.display = permitido ? '' : 'none';
     });
-    // Si quedó activa una pestaña no permitida, mandarlo a Movimientos.
+    // Si quedó activa una pestaña no permitida, mandarlo a Registro.
     const activa = document.querySelector('.gc-tab.active');
     if (activa && activa.dataset.tab !== 'movimientos' && activa.dataset.tab !== 'nomina') {
       document.querySelector('.gc-tab[data-tab="movimientos"]')?.click();
     }
+    // Dentro de Registro: solo "Invoices guardados". Dentro de Nómina: solo "Recibo semanal".
+    document.querySelectorAll('.mov-subtab').forEach((t) => {
+      t.style.display = t.dataset.msub === 'invoices' ? '' : 'none';
+    });
+    document.querySelectorAll('.nom-subtab').forEach((t) => {
+      t.style.display = t.dataset.nsub === 'semanal' ? '' : 'none';
+    });
 
-    // Cargar los datos de Nómina, y terminar mostrando Movimientos → Invoices guardados.
+    // Cargar los datos de Nómina y terminar mostrando Registro → Invoices guardados.
     (async () => {
       const tabMov = document.querySelector('.gc-tab[data-tab="movimientos"]');
       const tabNomina = document.querySelector('.gc-tab[data-tab="nomina"]');
@@ -5598,8 +5648,10 @@
       if (tabNomina) {
         tabNomina.click();
         await esperar(900);
+        document.querySelector('.nom-subtab[data-nsub="semanal"]')?.click();
+        await esperar(200);
       }
-      // Terminar en Movimientos, abriendo la carpeta de Invoices guardados
+      // Terminar en Registro, abriendo la carpeta de Invoices guardados
       if (tabMov) {
         tabMov.click();
         await esperar(200);
@@ -5608,10 +5660,7 @@
       }
     })();
 
-    const banner = document.createElement('div');
-    banner.style.cssText = 'background:#EAF3FF;color:#1A4B8C;font-size:12.5px;padding:8px 20px;text-align:center;border-bottom:1px solid #C7DFFB;';
-    banner.textContent = 'Modo solo lectura — Movimientos y Nómina. Puedes ver y descargar, no editar.';
-    document.body.insertBefore(banner, document.body.firstChild);
+    mostrarBannerVisor();
 
     document.body.classList.add('gh-modo-visor');
     const style = document.createElement('style');
@@ -5624,19 +5673,25 @@
         pointer-events: none !important;
         opacity: .45 !important;
       }
-      /* ...excepto lo que sirve para VER y DESCARGAR datos, y navegar. */
+      /* ...excepto lo que sirve para VER y DESCARGAR datos, y navegar.
+         (Con la MISMA especificidad que el bloqueo de arriba —incluyendo el
+         tipo de elemento— para que esta lista sí gane; si no, el bloqueo
+         gana por ser más específico aunque estas reglas vengan después.) */
       body.gh-modo-visor .gc-tab,
+      body.gh-modo-visor button.mov-subtab,
+      body.gh-modo-visor button.nom-subtab,
       body.gh-modo-visor .inv-subtab,
-      body.gh-modo-visor .nom-subtab,
       body.gh-modo-visor input[type="search"],
       body.gh-modo-visor #nom-reg-buscar,
       body.gh-modo-visor #m-buscar,
-      body.gh-modo-visor .ver-btn,
-      body.gh-modo-visor .gc-ver-invoice-btn,
-      body.gh-modo-visor [id*="ver-"],
-      body.gh-modo-visor [id*="descargar"],
-      body.gh-modo-visor [id*="imprimir"],
-      body.gh-modo-visor [id*="copia"],
+      body.gh-modo-visor button.ver-btn,
+      body.gh-modo-visor button.gc-ver-invoice-btn,
+      body.gh-modo-visor button.nom-sem-ver,
+      body.gh-modo-visor button.nom-sem-imp,
+      body.gh-modo-visor button[id*="ver-"],
+      body.gh-modo-visor button[id*="descargar"],
+      body.gh-modo-visor button[id*="imprimir"],
+      body.gh-modo-visor button[id*="copia"],
       body.gh-modo-visor .gc-print-toolbar button,
       body.gh-modo-visor .nom-sem-card button {
         pointer-events: auto !important;
@@ -5644,6 +5699,66 @@
       }
     `;
     document.head.appendChild(style);
+  }
+
+  // Banner de arriba: en qué base de datos está, y (si el admin le dio acceso
+  // a más de una) un selector para cambiar entre ellas — sin poder editar nada.
+  // (Este script vive en su propio <script>, por eso trae su propio escapeHtml:
+  // el de la app principal no es accesible desde aquí.)
+  function escapeHtmlVisor(str) {
+    const d = document.createElement('div');
+    d.textContent = str == null ? '' : String(str);
+    return d.innerHTML;
+  }
+  async function mostrarBannerVisor() {
+    if (document.getElementById('gh-banner-visor')) return;
+    const banner = document.createElement('div');
+    banner.id = 'gh-banner-visor';
+    banner.style.cssText = 'background:#EAF3FF;color:#1A4B8C;font-size:12.5px;padding:10px 20px;text-align:center;border-bottom:1px solid #C7DFFB;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;';
+
+    const cuentaActual = (typeof window.GH_GET_CUENTA === 'function') ? window.GH_GET_CUENTA() : 'principal';
+    let permitidas = null;
+    let listaNombres = [];
+    try {
+      if (typeof window.GH_MIS_CUENTAS_VISOR === 'function') permitidas = await window.GH_MIS_CUENTAS_VISOR();
+      const r = await window.storage.get('__cuentas_lista');
+      listaNombres = JSON.parse(r.value) || [];
+    } catch (e) {}
+    const nombreDe = (codigo) => {
+      if (codigo === 'principal') return 'Principal';
+      const encontrado = listaNombres.find((c) => c.codigo === codigo);
+      return encontrado ? encontrado.nombre : codigo;
+    };
+
+    const texto = document.createElement('span');
+    texto.innerHTML = `Viendo: <strong>${escapeHtmlVisor(nombreDe(cuentaActual))}</strong> — Invoices guardados y Recibo semanal. Solo lectura.`;
+    banner.appendChild(texto);
+
+    if (Array.isArray(permitidas) && permitidas.length > 1) {
+      const sel = document.createElement('select');
+      sel.style.cssText = 'font-family:Inter,sans-serif;font-size:12px;padding:5px 8px;border:1px solid #9CC2EF;border-radius:6px;background:#fff;color:#1A4B8C;';
+      permitidas.forEach((codigo) => {
+        const opt = document.createElement('option');
+        opt.value = codigo; opt.textContent = nombreDe(codigo);
+        if (codigo === cuentaActual) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      const avisoError = document.createElement('span');
+      avisoError.style.cssText = 'color:#C6551E;font-size:11.5px;display:none;';
+      sel.addEventListener('change', async () => {
+        avisoError.style.display = 'none';
+        try { await window.GH_SET_CUENTA(sel.value); location.reload(); }
+        catch (e) {
+          avisoError.textContent = 'No se pudo cambiar: ' + (e && e.message ? e.message : e);
+          avisoError.style.display = '';
+          sel.value = cuentaActual;
+        }
+      });
+      banner.appendChild(sel);
+      banner.appendChild(avisoError);
+    }
+
+    document.body.insertBefore(banner, document.body.firstChild);
   }
 })();
 </script>

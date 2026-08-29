@@ -259,6 +259,19 @@
   window.GH_GET_CUENTA = () => cuentaActiva;
   window.GH_SET_CUENTA = async (codigo) => {
     const c = (codigo || 'principal').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || 'principal';
+    // Si es visor y el admin le configuró una lista de bases de datos permitidas,
+    // no dejarlo salirse de esa lista (aunque lo intente manualmente).
+    if (window.GH_ROL === 'visor' && typeof window.GH_MIS_CUENTAS_VISOR === 'function') {
+      try {
+        const permitidas = await window.GH_MIS_CUENTAS_VISOR();
+        if (Array.isArray(permitidas) && permitidas.length && !permitidas.includes(c)) {
+          throw new Error('cuenta-no-permitida');
+        }
+      } catch (e) {
+        if (e && e.message === 'cuenta-no-permitida') throw new Error('Esta base de datos no está permitida para tu usuario.');
+        // Si la consulta falla por otra razón (ej. red), no bloquear aquí.
+      }
+    }
     const { data: { user } } = await client.auth.getUser();
     if (user) {
       await client.from('datos_app').upsert({
@@ -281,7 +294,12 @@
     const { data: mapeos } = await client.from('datos_app').select('clave, valor').like('clave', '__cuenta::%');
     const cuentaDe = {};
     (mapeos || []).forEach((m) => { cuentaDe[m.clave.replace('__cuenta::', '')] = m.valor; });
-    return (perfiles || []).map((p) => ({ id: p.id, nombre: p.nombre, rol: p.rol, activo: p.activo, cuenta: cuentaDe[p.id] || 'principal' }));
+    const { data: visorMapeos } = await client.from('datos_app').select('clave, valor').like('clave', '__visor_cuentas::%');
+    const cuentasVisorDe = {};
+    (visorMapeos || []).forEach((m) => {
+      try { cuentasVisorDe[m.clave.replace('__visor_cuentas::', '')] = JSON.parse(m.valor) || []; } catch (e) {}
+    });
+    return (perfiles || []).map((p) => ({ id: p.id, nombre: p.nombre, rol: p.rol, activo: p.activo, cuenta: cuentaDe[p.id] || 'principal', cuentasVisor: cuentasVisorDe[p.id] || null }));
   };
 
   // Asigna una cuenta a un usuario (por su id)
@@ -295,6 +313,31 @@
     });
     if (error) throw error;
     return c;
+  };
+
+  // Para usuarios "visor": el admin decide a CUÁLES bases de datos puede
+  // entrar (una lista, no solo una). Si nunca se configura, el visor sigue
+  // funcionando como antes (solo su __cuenta:: de siempre).
+  window.GH_GUARDAR_CUENTAS_VISOR = async (userId, listaCodigos) => {
+    await sesionLista;
+    const limpia = [...new Set((listaCodigos || []).map(limpiarCodigo))];
+    const { data: { user } } = await client.auth.getUser();
+    const { error } = await client.from('datos_app').upsert({
+      clave: '__visor_cuentas::' + userId, valor: JSON.stringify(limpia),
+      actualizado_por: user ? user.id : null, actualizado_en: new Date().toISOString()
+    });
+    if (error) throw error;
+    return limpia;
+  };
+  window.GH_OBTENER_CUENTAS_VISOR = async (userId) => {
+    await sesionLista;
+    const { data } = await client.from('datos_app').select('valor').eq('clave', '__visor_cuentas::' + userId).maybeSingle();
+    try { return data && data.valor ? JSON.parse(data.valor) : null; } catch (e) { return null; }
+  };
+  // El propio visor consulta cuáles bases de datos tiene permitidas (null = sin restricción especial configurada, se usa su __cuenta:: normal)
+  window.GH_MIS_CUENTAS_VISOR = async () => {
+    if (!window.GH_USER_ID) return null;
+    return window.GH_OBTENER_CUENTAS_VISOR(window.GH_USER_ID);
   };
 
   // Actualiza rol / activo de un usuario
