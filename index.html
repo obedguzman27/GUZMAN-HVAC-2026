@@ -288,9 +288,9 @@
   .emp-modal-tab.active { color: var(--navy); border-bottom-color: var(--teal); }
   .emp-modal-body { overflow-y: auto; padding: 23px 24px; flex: 1; }
   .emp-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .emp-field { display: flex; flex-direction: column; gap: 5px; }
+  .emp-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
   .emp-field label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
-  .emp-field input, .emp-field select, .emp-field textarea { font-family: 'Inter', sans-serif; font-size: 13px; padding: 9px 11px; border: 1.5px solid var(--border); border-radius: var(--r-sm); color: var(--ink); background: #F7F9FD; }
+  .emp-field input, .emp-field select, .emp-field textarea { width: 100%; font-family: 'Inter', sans-serif; font-size: 13px; padding: 9px 11px; border: 1.5px solid var(--border); border-radius: var(--r-sm); color: var(--ink); background: #F7F9FD; }
   .emp-field input:focus, .emp-field select:focus, .emp-field textarea:focus { outline: none; border-color: var(--teal); background: #fff; box-shadow: 0 0 0 3.5px rgba(14,143,130,.12); }
   .emp-field textarea { resize: vertical; min-height: 60px; }
   .emp-field.wide { grid-column: 1 / -1; }
@@ -453,6 +453,7 @@
     .gc-stats { grid-template-columns: 1fr 1fr; }
     .gc-form-row { grid-template-columns: 1fr; }
     .gc-two-col { grid-template-columns: 1fr; }
+    .emp-info-grid { grid-template-columns: 1fr; }
     .gc-resp-grid { grid-template-columns: 1fr; }
     .gc-week-kpis { grid-template-columns: 1fr 1fr; }
     .gc-split-grid { grid-template-columns: 1fr; }
@@ -490,6 +491,7 @@
         <path d="M108 46 L93 49 L105 61 Z" fill="#fff"/>
         <path d="M108 46 L97 49 L105 57 Z" fill="#1CB8A8"/>
       </svg>
+      <img id="gc-logo-custom" alt="Logo" style="display:none;width:46px;height:46px;border-radius:12px;object-fit:cover;flex-shrink:0;">
       <div class="gc-brand-text">
         <span class="gc-company">Kontaly</span>
         <span id="app-version-badge" style="font-size:10px;color:rgba(255,255,255,0.55);font-weight:600;letter-spacing:.3px;"></span>
@@ -732,6 +734,40 @@
         </div>
       </div>
 
+      <!-- Reportes y exportación -->
+      <div class="gc-card" style="margin-top:16px;">
+        <p class="gc-card-title">Reportes y exportación</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">A diferencia del respaldo (que es un archivo técnico para restaurar), esto genera reportes para leer, imprimir o abrir en Excel.</p>
+        <div class="gc-field" style="margin-bottom:14px;"><label>Rango de fechas (opcional — vacío = todo)</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <input type="date" id="rep-desde" aria-label="Desde">
+            <input type="date" id="rep-hasta" aria-label="Hasta">
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="gc-save-btn" id="btn-reporte-excel">Descargar Excel completo</button>
+          <button class="gc-action-btn" id="btn-reporte-pdf">Descargar reporte en PDF</button>
+        </div>
+        <p style="font-size:11.5px;color:var(--muted);margin-top:10px;">El Excel trae una hoja por cada área (Movimientos, Invoices, Nómina, Empleados). El PDF es un resumen para imprimir o guardar.</p>
+      </div>
+
+      <!-- Recordatorios -->
+      <div class="gc-card" style="margin-top:16px;">
+        <p class="gc-card-title">Recordatorios</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Anota algo y la app te lo recuerda al abrirla, a partir de la fecha que elijas. (No son notificaciones push — solo avisan cuando abres la app.)</p>
+        <div style="display:grid;grid-template-columns:2fr 1fr auto;gap:10px;margin-bottom:16px;align-items:end;">
+          <div class="gc-field"><label>Recuérdame</label>
+            <input type="text" id="rec-texto" placeholder="Ej. Pagar el seguro de la camioneta" autocomplete="off">
+          </div>
+          <div class="gc-field"><label>Desde</label>
+            <input type="date" id="rec-fecha">
+          </div>
+          <button class="gc-save-btn" id="rec-btn-add" style="height:40px;">+ Agregar</button>
+        </div>
+        <div class="gc-empty" id="rec-empty" style="display:none;">No tienes recordatorios.</div>
+        <div id="rec-lista"></div>
+      </div>
+
       <!-- Nombres de los socios (reparto) -->
       <div class="gc-card" style="margin-top:16px;" id="aj-card-socios">
         <p class="gc-card-title">Nombres de los socios (reparto)</p>
@@ -774,12 +810,22 @@
       <!-- Apariencia -->
       <div class="gc-card" style="margin-top:16px;">
         <p class="gc-card-title">Apariencia</p>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Elige el color de acento de la app (botones y pestañas activas). Se guarda en este dispositivo.</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Elige el color de acento de la app (botones y pestañas activas). Se guarda para la base de datos que estás viendo — cada base de datos puede tener su propio color, para distinguirlas de un vistazo.</p>
         <div id="aj-accent-picker" style="display:flex;gap:12px;flex-wrap:wrap;">
           <button type="button" class="aj-accent-sw" data-accent="cobre" title="Cobre" style="width:38px;height:38px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;background:linear-gradient(135deg,#C46E20,#A2560F);"></button>
           <button type="button" class="aj-accent-sw" data-accent="teal" title="Teal" style="width:38px;height:38px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;background:linear-gradient(135deg,#0E8F82,#0B6F65);"></button>
           <button type="button" class="aj-accent-sw" data-accent="indigo" title="Índigo" style="width:38px;height:38px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;background:linear-gradient(135deg,#4F6FA8,#3A5486);"></button>
           <button type="button" class="aj-accent-sw" data-accent="verde" title="Verde" style="width:38px;height:38px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;background:linear-gradient(135deg,#4E9350,#397239);"></button>
+        </div>
+        <div style="margin-top:20px;padding-top:18px;border-top:1px solid var(--border-soft);">
+          <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);display:block;margin-bottom:8px;">Logo de la empresa (opcional)</label>
+          <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px;">Reemplaza el logo de Kontaly en el encabezado por el tuyo. Válido para toda la app (todas las bases de datos).</p>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            <img id="aj-logo-preview" alt="" style="display:none;width:46px;height:46px;border-radius:12px;object-fit:cover;border:1px solid var(--border);">
+            <input type="file" id="aj-logo-input" accept="image/*" style="max-width:220px;">
+            <button type="button" class="gc-action-btn" id="aj-logo-quitar" style="display:none;">Quitar logo</button>
+          </div>
+          <p id="aj-logo-status" style="font-size:11.5px;color:var(--muted);margin-top:8px;"></p>
         </div>
       </div>
 
@@ -1016,7 +1062,7 @@
   <div class="nom-subpanel" id="nom-sub-trabajadores">
     <div class="gc-card">
       <p class="gc-card-title">Trabajadores y sus sueldos</p>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Aquí defines el sueldo por día de cada trabajador. Al registrar un pago, el monto se calcula solo (días × sueldo). Puedes aumentar o rebajar el sueldo cuando quieras.</p>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Estos son los mismos trabajadores de <strong>Empleados</strong> (en Ajustes) — aquí defines su sueldo por día. Al registrar un pago, el monto se calcula solo (días × sueldo). Puedes aumentar o rebajar el sueldo cuando quieras.</p>
       <div style="display:grid;grid-template-columns:2fr 1fr auto;gap:10px;margin-bottom:18px;align-items:end;">
         <div class="gc-field"><label>Nombre del trabajador</label>
           <input type="text" id="trab-nom-nuevo" placeholder="Nombre…" autocomplete="off">
@@ -1223,6 +1269,7 @@
           <div class="emp-field"><label>Estado</label>
             <select id="emp-estado"><option value="activo">Activo</option><option value="inactivo">Inactivo</option></select>
           </div>
+          <div class="emp-field"><label>Sueldo por día ($)</label><input id="emp-sueldo" type="text" inputmode="decimal" placeholder="0.00"></div>
           <div class="emp-field"><label>Teléfono</label><input id="emp-tel" type="tel" placeholder="615-000-0000"></div>
           <div class="emp-field"><label>Email</label><input id="emp-email" type="email" placeholder="juan@email.com"></div>
           <div class="emp-field"><label>Fecha de inicio</label><input id="emp-inicio" type="date"></div>
@@ -1268,6 +1315,7 @@
 <div id="print-area"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="supabase-storage.js"></script>
 <script>
   if (typeof window.GH_ESPERAR_SESION === 'function') {
@@ -1427,7 +1475,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v14 · 29 ago';
+  const APP_VERSION = 'v17 · 29 ago';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -1449,6 +1497,7 @@
   let cfgFacturaNombre = 'GUZMAN HVAC';
   let cfgFacturaDireccion = '';
   let cfgFacturaSigueSocio = true; // el nombre de factura/nómina sigue al Socio 2 (mitad)
+  let cfgLogoDataUrl = ''; // logo personalizado (opcional); vacío = logo de Kontaly por defecto
 
   async function cargarConfig() {
     try {
@@ -1459,6 +1508,7 @@
       if (c.facturaNombre) cfgFacturaNombre = c.facturaNombre;
       if (typeof c.facturaDireccion === 'string') cfgFacturaDireccion = c.facturaDireccion;
       if (typeof c.facturaSigueSocio === 'boolean') cfgFacturaSigueSocio = c.facturaSigueSocio;
+      if (typeof c.logoDataUrl === 'string') cfgLogoDataUrl = c.logoDataUrl;
     } catch (e) {
       // Migración: si había una dirección vieja en localStorage, usarla
       try { const d = localStorage.getItem('cra-direccion'); if (d) cfgFacturaDireccion = d; } catch (e2) {}
@@ -1466,19 +1516,121 @@
     // Si el nombre de factura sigue al socio, mantenerlo sincronizado
     if (cfgFacturaSigueSocio) cfgFacturaNombre = cfgSocioMitad;
     aplicarNombresEstaticos();
+    aplicarLogo();
   }
   async function guardarConfig() {
     const c = {
       socioBonus: cfgSocioBonus, socioMitad: cfgSocioMitad,
       facturaNombre: cfgFacturaNombre, facturaDireccion: cfgFacturaDireccion,
-      facturaSigueSocio: cfgFacturaSigueSocio
+      facturaSigueSocio: cfgFacturaSigueSocio, logoDataUrl: cfgLogoDataUrl
     };
     try { await window.storage.set(CFG_KEY, JSON.stringify(c)); } catch (e) {}
+  }
+  // Muestra el logo personalizado en el encabezado si hay uno; si no, el de Kontaly.
+  function aplicarLogo() {
+    const badge = document.querySelector('.gc-logo-badge');
+    const img = document.getElementById('gc-logo-custom');
+    if (!badge || !img) return;
+    if (cfgLogoDataUrl) { badge.style.display = 'none'; img.style.display = ''; img.src = cfgLogoDataUrl; }
+    else { badge.style.display = ''; img.style.display = 'none'; img.src = ''; }
   }
   // Actualiza los textos fijos del HTML que muestran los nombres de los socios
   function aplicarNombresEstaticos() {
     document.querySelectorAll('.socio-bonus').forEach((e) => { e.textContent = cfgSocioBonus; });
     document.querySelectorAll('.socio-mitad').forEach((e) => { e.textContent = cfgSocioMitad; });
+  }
+
+  // ============================================================
+  // RECORDATORIOS — avisan al abrir la app (no son notificaciones
+  // push reales: solo se muestran si la app está abierta).
+  // ============================================================
+  const REC_KEY = 'kontaly-recordatorios';
+  let recordatorios = [];
+
+  async function cargarRecordatorios() {
+    try { const r = await window.storage.get(REC_KEY); recordatorios = JSON.parse(r.value); } catch (e) { recordatorios = []; }
+  }
+  async function guardarRecordatorios() {
+    try { await window.storage.set(REC_KEY, JSON.stringify(recordatorios)); } catch (e) {}
+  }
+  function recFechaLegible(iso) {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-').map(Number);
+    return `${d} de ${MESES_ES[m - 1]}`;
+  }
+  function renderRecordatorios() {
+    const cont = $('rec-lista');
+    if (!cont) return;
+    const ordenados = [...recordatorios].sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
+    $('rec-empty').style.display = ordenados.length === 0 ? 'block' : 'none';
+    cont.innerHTML = ordenados.map((r) => {
+      const vencido = r.fecha && r.fecha <= today() && !r.hecho;
+      return `
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-soft);${r.hecho ? 'opacity:.5;' : ''}">
+          <button type="button" class="rec-toggle" data-id="${r.id}" title="${r.hecho ? 'Marcar como pendiente' : 'Marcar como hecho'}" style="width:22px;height:22px;border-radius:50%;border:2px solid ${r.hecho ? 'var(--teal)' : 'var(--border)'};background:${r.hecho ? 'var(--teal)' : '#fff'};color:#fff;font-size:12px;line-height:1;cursor:pointer;flex-shrink:0;padding:0;">${r.hecho ? '✓' : ''}</button>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13.5px;color:var(--ink);${r.hecho ? 'text-decoration:line-through;' : ''}">${escapeHtml(r.texto)}</div>
+            <div style="font-size:11px;color:${vencido ? 'var(--ember)' : 'var(--muted)'};font-weight:${vencido ? '700' : '400'};">${r.fecha ? recFechaLegible(r.fecha) : ''}${vencido ? ' · pendiente' : ''}</div>
+          </div>
+          <button class="gc-del rec-del" data-id="${r.id}">✕</button>
+        </div>`;
+    }).join('');
+    cont.querySelectorAll('.rec-toggle').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const r = recordatorios.find((x) => x.id === btn.dataset.id);
+        if (!r) return;
+        r.hecho = !r.hecho;
+        await guardarRecordatorios();
+        renderRecordatorios();
+      });
+    });
+    cont.querySelectorAll('.rec-del').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!await gcConfirm('¿Eliminar este recordatorio?', { okText: 'Eliminar', danger: true })) return;
+        recordatorios = recordatorios.filter((x) => x.id !== btn.dataset.id);
+        await guardarRecordatorios();
+        renderRecordatorios();
+      });
+    });
+  }
+  if ($('rec-btn-add')) {
+    $('rec-btn-add').addEventListener('click', async () => {
+      const texto = $('rec-texto').value.trim();
+      if (!texto) { toast('Escribe qué quieres recordar', 'error'); return; }
+      const fecha = $('rec-fecha').value || today();
+      recordatorios.push({ id: 'rec-' + Date.now(), texto, fecha, hecho: false });
+      await guardarRecordatorios();
+      $('rec-texto').value = ''; $('rec-fecha').value = '';
+      renderRecordatorios();
+      toast('Recordatorio agregado ✓', 'success');
+    });
+  }
+
+  // Aviso al abrir la app (banner arriba), solo si hay algo pendiente y vencido
+  function mostrarAvisoRecordatorios() {
+    const pendientes = recordatorios.filter((r) => !r.hecho && r.fecha && r.fecha <= today());
+    if (pendientes.length === 0 || document.getElementById('aviso-recordatorios')) return;
+    const barra = document.createElement('div');
+    barra.id = 'aviso-recordatorios';
+    barra.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:99998;background:#131C2E;color:#fff;padding:12px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.35);display:flex;align-items:center;gap:12px;font-family:Inter,sans-serif;font-size:13px;width:max-content;max-width:92vw;';
+    const texto = pendientes.length === 1 ? pendientes[0].texto : `${pendientes.length} recordatorios pendientes`;
+    barra.innerHTML = `<span>${escapeHtml(texto)}</span>`;
+    const btnVer = document.createElement('button');
+    btnVer.textContent = 'Ver';
+    btnVer.style.cssText = 'background:#0E8F82;color:#fff;border:none;padding:7px 14px;border-radius:8px;font-weight:700;font-size:12.5px;cursor:pointer;flex-shrink:0;';
+    btnVer.addEventListener('click', () => {
+      barra.remove();
+      document.querySelector('.gc-tab[data-tab="respaldo"]')?.click();
+      setTimeout(() => { document.getElementById('rec-lista')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
+    });
+    const btnCerrar = document.createElement('button');
+    btnCerrar.textContent = '✕';
+    btnCerrar.setAttribute('aria-label', 'Cerrar aviso');
+    btnCerrar.style.cssText = 'background:none;color:rgba(255,255,255,.6);border:none;font-size:14px;cursor:pointer;flex-shrink:0;padding:2px;';
+    btnCerrar.addEventListener('click', () => barra.remove());
+    barra.appendChild(btnVer);
+    barra.appendChild(btnCerrar);
+    document.body.appendChild(barra);
   }
   const fmtDia = (iso) => { const [y, m, d] = iso.split('-'); return `${d}/${m}`; };
 
@@ -1567,6 +1719,7 @@
       window.storage.get(KEY_CAT_INGRESO, false).catch(() => null),
       window.storage.get(KEY_INVOICES, false).catch(() => null),
       cargarConfig(), // nombres de socios + factura (nube)
+      cargarRecordatorios(),
     ]);
     try { movimientos = rMov && rMov.value ? JSON.parse(rMov.value) : []; } catch (e) { movimientos = []; }
     try { catGastos = rGas && rGas.value ? JSON.parse(rGas.value) : DEFAULT_GASTOS.slice(); } catch (e) { catGastos = DEFAULT_GASTOS.slice(); }
@@ -1578,6 +1731,8 @@
     renderCatSelect();
     renderMovimientos();
     actualizarStats();
+    renderRecordatorios();
+    mostrarAvisoRecordatorios();
   }
 
   async function saveMov() {
@@ -2702,6 +2857,111 @@
     toast('Respaldo completo descargado ✓', 'success');
   });
 
+  // ---- Reportes y exportación (Excel + PDF) ----
+  // Trae nómina y empleados frescos de storage (por si no se visitaron esas
+  // pestañas todavía); movimientos e invoices ya están siempre cargados.
+  async function repObtenerDatos() {
+    const leer = async (key) => { try { const r = await window.storage.get(key); return JSON.parse(r.value); } catch (e) { return []; } };
+    const [nomina, emps] = await Promise.all([leer('gh-nomina'), leer(STORAGE_EMPLEADOS)]);
+    const desde = $('rep-desde').value || null;
+    const hasta = $('rep-hasta').value || null;
+    const enRango = (fecha) => (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
+    return {
+      movs: movimientos.filter((m) => enRango(m.fecha || '')),
+      invs: invoicesGuardados.filter((i) => enRango((i.guardadoEn || '').slice(0, 10))),
+      nomina: nomina.filter((n) => enRango((n.creadoEn || '').slice(0, 10))),
+      emps, desde, hasta
+    };
+  }
+
+  $('btn-reporte-excel').addEventListener('click', async () => {
+    if (typeof XLSX === 'undefined') { toast('No se pudo cargar el generador de Excel. Revisa tu conexión e intenta de nuevo.', 'error', 4000); return; }
+    const { movs, invs, nomina, emps } = await repObtenerDatos();
+    const wb = XLSX.utils.book_new();
+
+    const hojaMovs = movs.map((m) => ({
+      Fecha: m.fecha || '', Tipo: m.tipo === 'ingreso' ? 'Ingreso' : m.tipo === 'gasto' ? 'Gasto' : 'Ajuste',
+      Categoría: m.cat || '', Descripción: m.desc || '', Monto: Number(m.monto) || 0
+    }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hojaMovs), 'Movimientos');
+
+    const hojaInv = invs.map((i) => ({
+      Semana: i.label || '', Guardado: (i.guardadoEn || '').slice(0, 10),
+      Ingresos: i.ingresos || 0, Gastos: i.gastos || 0, Taxas: i.taxas || 0,
+      [cfgSocioBonus]: i.pagoCra || 0, [cfgSocioMitad]: i.pagoGuzman || 0
+    }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hojaInv), 'Invoices guardados');
+
+    const hojaNom = nomina.map((n) => ({
+      Trabajador: n.trabajador || '', Fecha: (n.creadoEn || '').slice(0, 10),
+      'Días trabajados': (n.dias || []).length, 'Sueldo por día': n.sueldoDia || 0,
+      Extra: n.extraDesc || '', 'Monto extra': n.extraMonto || 0, 'Monto total': n.monto || 0, Nota: n.nota || ''
+    }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hojaNom), 'Nómina');
+
+    const hojaEmp = emps.map((e) => ({
+      Nombre: empNombreCompleto(e), Rol: e.rol || '', Estado: e.estado === 'inactivo' ? 'Inactivo' : 'Activo',
+      'Sueldo por día': e.sueldo || 0, Teléfono: e.tel || '', Email: e.email || '',
+      Dirección: e.direccion || '', 'Fecha de inicio': e.inicio || ''
+    }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hojaEmp), 'Empleados');
+
+    XLSX.writeFile(wb, `reporte-kontaly-${today()}.xlsx`);
+    toast('Excel descargado ✓', 'success');
+  });
+
+  $('btn-reporte-pdf').addEventListener('click', async () => {
+    const { movs, invs, nomina, emps, desde, hasta } = await repObtenerDatos();
+    const totIng = movs.filter((m) => m.tipo === 'ingreso').reduce((s, m) => s + (Number(m.monto) || 0), 0);
+    const totGas = movs.filter((m) => m.tipo === 'gasto').reduce((s, m) => s + (Number(m.monto) || 0), 0);
+    const totNomina = nomina.reduce((s, n) => s + (Number(n.monto) || 0), 0);
+    const activos = emps.filter((e) => e.estado !== 'inactivo');
+    const filaMov = (m) => `<tr><td>${escapeHtml(m.fecha || '')}</td><td>${m.tipo === 'ingreso' ? 'Ingreso' : m.tipo === 'gasto' ? 'Gasto' : 'Ajuste'}</td><td>${escapeHtml(m.cat || '')}</td><td>${escapeHtml(m.desc || '')}</td><td style="text-align:right;">${fmt(m.monto)}</td></tr>`;
+    const filaInv = (i) => `<tr><td>${escapeHtml(i.label || '')}</td><td style="text-align:right;">${fmt(i.ingresos)}</td><td style="text-align:right;">${fmt(i.gastos)}</td><td style="text-align:right;">${fmt(i.pagoCra)}</td><td style="text-align:right;">${fmt(i.pagoGuzman)}</td></tr>`;
+    const filaNom = (n) => `<tr><td>${escapeHtml(n.trabajador || '')}</td><td>${(n.creadoEn || '').slice(0, 10)}</td><td style="text-align:center;">${(n.dias || []).length}</td><td style="text-align:right;">${fmt(n.monto)}</td></tr>`;
+    const filaEmp = (e) => `<tr><td>${escapeHtml(empNombreCompleto(e))}</td><td>${escapeHtml(e.rol || '')}</td><td style="text-align:right;">${e.sueldo ? fmt(e.sueldo) + '/día' : '—'}</td></tr>`;
+    const rangoTxt = (desde || hasta) ? `${desde || '…'} a ${hasta || '…'}` : 'Todo el historial';
+
+    const html = `
+      <div style="font-family:'Inter',sans-serif;color:#131C2E;">
+        <div style="border-bottom:2px solid #131C2E;padding-bottom:14px;margin-bottom:18px;">
+          <div style="font-family:'Zilla Slab',serif;font-size:22px;font-weight:700;">Reporte — ${escapeHtml(cfgFacturaNombre)}</div>
+          <div style="font-size:12px;color:#63708C;">Rango: ${escapeHtml(rangoTxt)} · Generado: ${new Date().toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })}</div>
+        </div>
+        <div style="display:flex;gap:14px;margin-bottom:22px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;border:1px solid #DCE3EF;border-radius:10px;padding:12px;"><div style="font-size:10.5px;color:#63708C;text-transform:uppercase;">Ingresos</div><div style="font-size:19px;font-weight:700;color:#0E8F82;">${fmt(totIng)}</div></div>
+          <div style="flex:1;min-width:140px;border:1px solid #DCE3EF;border-radius:10px;padding:12px;"><div style="font-size:10.5px;color:#63708C;text-transform:uppercase;">Gastos</div><div style="font-size:19px;font-weight:700;color:#C6551E;">${fmt(totGas)}</div></div>
+          <div style="flex:1;min-width:140px;border:1px solid #DCE3EF;border-radius:10px;padding:12px;"><div style="font-size:10.5px;color:#63708C;text-transform:uppercase;">Neto</div><div style="font-size:19px;font-weight:700;">${fmt(totIng - totGas)}</div></div>
+          <div style="flex:1;min-width:140px;border:1px solid #DCE3EF;border-radius:10px;padding:12px;"><div style="font-size:10.5px;color:#63708C;text-transform:uppercase;">Nómina pagada</div><div style="font-size:19px;font-weight:700;">${fmt(totNomina)}</div></div>
+        </div>
+
+        <div style="font-family:'Zilla Slab',serif;font-size:15px;font-weight:700;margin-bottom:8px;">Invoices guardados (${invs.length})</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:20px;">
+          <thead><tr style="background:#F5F7FC;"><th style="text-align:left;padding:6px;">Semana</th><th style="text-align:right;padding:6px;">Ingresos</th><th style="text-align:right;padding:6px;">Gastos</th><th style="text-align:right;padding:6px;">${escapeHtml(cfgSocioBonus)}</th><th style="text-align:right;padding:6px;">${escapeHtml(cfgSocioMitad)}</th></tr></thead>
+          <tbody>${invs.map(filaInv).join('') || '<tr><td colspan="5" style="padding:8px;color:#63708C;">Sin invoices en este rango.</td></tr>'}</tbody>
+        </table>
+
+        <div style="font-family:'Zilla Slab',serif;font-size:15px;font-weight:700;margin-bottom:8px;">Movimientos (${movs.length})</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:20px;">
+          <thead><tr style="background:#F5F7FC;"><th style="text-align:left;padding:6px;">Fecha</th><th style="text-align:left;padding:6px;">Tipo</th><th style="text-align:left;padding:6px;">Categoría</th><th style="text-align:left;padding:6px;">Descripción</th><th style="text-align:right;padding:6px;">Monto</th></tr></thead>
+          <tbody>${movs.map(filaMov).join('') || '<tr><td colspan="5" style="padding:8px;color:#63708C;">Sin movimientos en este rango.</td></tr>'}</tbody>
+        </table>
+
+        <div style="font-family:'Zilla Slab',serif;font-size:15px;font-weight:700;margin-bottom:8px;">Nómina (${nomina.length} pagos)</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:20px;">
+          <thead><tr style="background:#F5F7FC;"><th style="text-align:left;padding:6px;">Trabajador</th><th style="text-align:left;padding:6px;">Fecha</th><th style="text-align:center;padding:6px;">Días</th><th style="text-align:right;padding:6px;">Monto</th></tr></thead>
+          <tbody>${nomina.map(filaNom).join('') || '<tr><td colspan="4" style="padding:8px;color:#63708C;">Sin pagos en este rango.</td></tr>'}</tbody>
+        </table>
+
+        <div style="font-family:'Zilla Slab',serif;font-size:15px;font-weight:700;margin-bottom:8px;">Empleados activos (${activos.length})</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11.5px;">
+          <thead><tr style="background:#F5F7FC;"><th style="text-align:left;padding:6px;">Nombre</th><th style="text-align:left;padding:6px;">Rol</th><th style="text-align:right;padding:6px;">Sueldo</th></tr></thead>
+          <tbody>${activos.map(filaEmp).join('') || '<tr><td colspan="3" style="padding:8px;color:#63708C;">Sin empleados activos.</td></tr>'}</tbody>
+        </table>
+      </div>`;
+    imprimirContenido(html, `Reporte - ${cfgFacturaNombre} - ${today()}`);
+  });
+
   $('input-restaurar-respaldo').addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -2756,7 +3016,8 @@
         if (data.recibosSemanales) await window.storage.set('gh-recibos-semanales', JSON.stringify(data.recibosSemanales));
         try {
           if (data.nomina) nomDocs = data.nomina;
-          if (data.trabajadores) nomTrabajadores = nomNormalizarTrab(data.trabajadores);
+          // Los trabajadores de un respaldo viejo se integran a Empleados (sin duplicar).
+          if (data.trabajadores) { await nomMigrarTrabajadoresViejos(data.trabajadores); await saveEmpleados(); }
           nomCargado = true; // ya quedó cargado con lo restaurado; evita que un futuro click lo pise
           nomRefreshDl();
           nomRenderRegLedger(); nomRenderHist(); nomRenderTrabajadores(); nomRenderSemanal();
@@ -2947,6 +3208,8 @@
   // ---- Opciones: nombres de socios + datos de factura (en la nube) ----
   function cargarFormAjustes() {
     ajAplicarRestriccionesRol();
+    if (typeof ajRefrescarPreviewLogo === 'function') ajRefrescarPreviewLogo();
+    if (typeof renderRecordatorios === 'function') renderRecordatorios();
 
     $('aj-socio-bonus').value = cfgSocioBonus;
     $('aj-socio-mitad').value = cfgSocioMitad;
@@ -3208,7 +3471,8 @@
     $('aj-btn-refrescar-usuarios').addEventListener('click', ajCargarUsuarios);
   }
 
-  // ---- Apariencia: color de acento (se guarda solo en este dispositivo) ----
+  // ---- Apariencia: color de acento (guardado por base de datos/cuenta) ----
+  const ACCENT_KEY = 'kontaly-accent';
   function aplicarAcento(nombre) {
     if (nombre === 'cobre') document.documentElement.removeAttribute('data-accent');
     else document.documentElement.setAttribute('data-accent', nombre);
@@ -3216,19 +3480,86 @@
       sw.classList.toggle('active', sw.dataset.accent === nombre);
     });
   }
-  (function initAcento() {
+  // Pintura instantánea con lo último visto en este aparato (sin parpadeo);
+  // luego se corrige con el color real de la base de datos que se abrió.
+  (function initAcentoInstantaneo() {
     let guardado = 'cobre';
-    try { guardado = localStorage.getItem('gh-accent') || 'cobre'; } catch (e) {}
+    try { guardado = localStorage.getItem('gh-accent-ultimo') || 'cobre'; } catch (e) {}
     aplicarAcento(guardado);
   })();
+  async function initAcentoPorCuenta() {
+    if (typeof window.GH_ESPERAR_SESION === 'function') { try { await window.GH_ESPERAR_SESION(); } catch (e) {} }
+    let guardado = 'cobre';
+    try { const r = await window.storage.get(ACCENT_KEY); guardado = JSON.parse(r.value) || 'cobre'; } catch (e) {}
+    aplicarAcento(guardado);
+    try { localStorage.setItem('gh-accent-ultimo', guardado); } catch (e) {}
+  }
+  initAcentoPorCuenta();
   document.querySelectorAll('.aj-accent-sw').forEach((sw) => {
-    sw.addEventListener('click', () => {
+    sw.addEventListener('click', async () => {
       const nombre = sw.dataset.accent;
       aplicarAcento(nombre);
-      try { localStorage.setItem('gh-accent', nombre); } catch (e) {}
+      try { localStorage.setItem('gh-accent-ultimo', nombre); } catch (e) {}
+      try { await window.storage.set(ACCENT_KEY, JSON.stringify(nombre)); } catch (e) {}
       toast('Color de acento actualizado ✓', 'success', 1800);
     });
   });
+
+  // ---- Logo personalizado (opcional, reemplaza el de Kontaly en el encabezado) ----
+  function ajRefrescarPreviewLogo() {
+    const prev = $('aj-logo-preview');
+    const btnQuitar = $('aj-logo-quitar');
+    if (cfgLogoDataUrl) { prev.src = cfgLogoDataUrl; prev.style.display = ''; btnQuitar.style.display = ''; }
+    else { prev.style.display = 'none'; btnQuitar.style.display = 'none'; }
+  }
+  // Redimensiona la imagen a un cuadro pequeño (para no guardar archivos pesados)
+  function ajRedimensionarImagen(file, maxLado) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const escala = Math.min(1, maxLado / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * escala));
+        const h = Math.max(1, Math.round(img.height * escala));
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('No se pudo leer la imagen')); };
+      img.src = url;
+    });
+  }
+  if ($('aj-logo-input')) {
+    $('aj-logo-input').addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) { $('aj-logo-status').textContent = 'Elige un archivo de imagen (PNG, JPG).'; return; }
+      $('aj-logo-status').textContent = 'Procesando…';
+      try {
+        cfgLogoDataUrl = await ajRedimensionarImagen(file, 200);
+        await guardarConfig();
+        aplicarLogo();
+        ajRefrescarPreviewLogo();
+        $('aj-logo-status').textContent = '';
+        toast('Logo actualizado ✓', 'success');
+      } catch (err) {
+        $('aj-logo-status').textContent = 'No se pudo procesar la imagen. Intenta con otra.';
+      }
+      $('aj-logo-input').value = '';
+    });
+  }
+  if ($('aj-logo-quitar')) {
+    $('aj-logo-quitar').addEventListener('click', async () => {
+      if (!await gcConfirm('¿Quitar el logo personalizado y volver al de Kontaly?', { okText: 'Quitar' })) return;
+      cfgLogoDataUrl = '';
+      await guardarConfig();
+      aplicarLogo();
+      ajRefrescarPreviewLogo();
+      toast('Logo de Kontaly restaurado', 'info');
+    });
+  }
 
   // ---- Mi cuenta: solo aplica en la versión con login (GH_ESPERAR_SESION) ----
   (function initCuenta() {
@@ -3258,6 +3589,17 @@
   let empleados = [];
   let empIdActual = null; // null = nuevo, string = editar
 
+  // Nombre para mostrar: si no hay apellido (trabajadores informales, ej. "Airton"),
+  // usa solo el nombre en vez de dejar un espacio de más.
+  function empNombreCompleto(emp) {
+    return (emp.apellido ? (emp.nombre + ' ' + emp.apellido) : (emp.nombre || '')).trim();
+  }
+  function empIniciales(emp) {
+    if (emp.apellido) return ((emp.nombre || '?')[0] + (emp.apellido || '?')[0]).toUpperCase();
+    const n = emp.nombre || '??';
+    return (n[0] + (n[1] || '')).toUpperCase();
+  }
+
   const esElectron = !!(window.electronAPI);
 
   // ---- Storage empleados ----
@@ -3285,14 +3627,14 @@
       return;
     }
     empleados.forEach((emp) => {
-      const initiales = ((emp.nombre || '?')[0] + (emp.apellido || '?')[0]).toUpperCase();
+      const initiales = empIniciales(emp);
       const card = document.createElement('div');
       card.className = 'emp-card';
       card.dataset.id = emp.id;
       card.innerHTML = `
         <div class="emp-card-avatar">${initiales}</div>
-        <p class="emp-card-name">${escapeHtml(emp.nombre)} ${escapeHtml(emp.apellido)}</p>
-        <p class="emp-card-role">${escapeHtml(emp.rol || '')}</p>
+        <p class="emp-card-name">${escapeHtml(empNombreCompleto(emp))}</p>
+        <p class="emp-card-role">${[escapeHtml(emp.rol || ''), emp.sueldo ? ('$' + emp.sueldo.toFixed(2) + '/día') : ''].filter(Boolean).join(' · ')}</p>
         <span class="emp-card-status ${emp.estado || 'activo'}">${(emp.estado || 'activo').charAt(0).toUpperCase() + (emp.estado || 'activo').slice(1)}</span>
         <p class="emp-card-docs">${escapeHtml(emp.tel || '—')}</p>
       `;
@@ -3306,11 +3648,12 @@
     empIdActual = id || null;
     const emp = id ? empleados.find((e) => e.id === id) : null;
 
-    $('emp-modal-titulo').textContent = emp ? `${emp.nombre} ${emp.apellido}` : 'Nuevo empleado';
+    $('emp-modal-titulo').textContent = emp ? empNombreCompleto(emp) : 'Nuevo empleado';
     $('emp-nombre').value = emp?.nombre || '';
     $('emp-apellido').value = emp?.apellido || '';
     $('emp-rol').value = emp?.rol || 'Técnico HVAC';
     $('emp-estado').value = emp?.estado || 'activo';
+    $('emp-sueldo').value = emp?.sueldo ? String(emp.sueldo) : '';
     $('emp-tel').value = emp?.tel || '';
     $('emp-email').value = emp?.email || '';
     $('emp-inicio').value = emp?.inicio || '';
@@ -3347,9 +3690,9 @@
     const row = (label, val) => val ? `<tr><td style="font-weight:600;width:180px;padding:7px 10px;border-bottom:1px solid #eee;color:#555;font-size:12px;">${label}</td><td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:13px;">${escapeHtml(val)}</td></tr>` : '';
     return `
       <div style="display:flex;align-items:center;gap:18px;margin-bottom:22px;padding-bottom:18px;border-bottom:2px solid #16233F;">
-        <div style="width:56px;height:56px;border-radius:50%;background:#16233F;color:#fff;font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${((emp.nombre||'?')[0]+(emp.apellido||'?')[0]).toUpperCase()}</div>
+        <div style="width:56px;height:56px;border-radius:50%;background:#16233F;color:#fff;font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${empIniciales(emp)}</div>
         <div>
-          <div style="font-size:20px;font-weight:700;color:#16233F;">${escapeHtml(emp.nombre)} ${escapeHtml(emp.apellido)}</div>
+          <div style="font-size:20px;font-weight:700;color:#16233F;">${escapeHtml(empNombreCompleto(emp))}</div>
           <div style="font-size:13px;color:#555;">${escapeHtml(emp.rol||'')} · <span style="color:${emp.estado==='activo'?'#2E8B84':'#C2622E'};font-weight:600;">${emp.estado==='activo'?'Activo':'Inactivo'}</span></div>
         </div>
         <div style="margin-left:auto;text-align:right;">
@@ -3357,6 +3700,7 @@
         </div>
       </div>
       <table style="width:100%;border-collapse:collapse;">
+        ${row('Sueldo por día', emp.sueldo ? nomFmt(emp.sueldo) : '')}
         ${row('Teléfono', emp.tel)}
         ${row('Email', emp.email)}
         ${row('Dirección', emp.direccion)}
@@ -3370,19 +3714,19 @@
   $('btn-imprimir-empleado').addEventListener('click', () => {
     const emp = empleados.find(e => e.id === empIdActual);
     if (!emp) return;
-    imprimirContenido(construirFichaEmpleado(emp), `Ficha - ${emp.nombre} ${emp.apellido}`);
+    imprimirContenido(construirFichaEmpleado(emp), `Ficha - ${empNombreCompleto(emp)}`);
   });
 
   $('btn-descargar-empleado').addEventListener('click', () => {
     const emp = empleados.find(e => e.id === empIdActual);
     if (!emp) return;
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Ficha - ${escapeHtml(emp.nombre)} ${escapeHtml(emp.apellido)}</title>
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Ficha - ${escapeHtml(empNombreCompleto(emp))}</title>
       <style>body{font-family:Arial,sans-serif;padding:32px;max-width:680px;margin:0 auto;color:#1a1a1a;}</style>
       </head><body>${construirFichaEmpleado(emp)}</body></html>`;
     const blob = new Blob([html], { type: 'text/html;charset=utf-8;' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `ficha-${emp.nombre}-${emp.apellido}.html`.toLowerCase().replace(/\s+/g,'-');
+    a.download = `ficha-${empNombreCompleto(emp)}.html`.toLowerCase().replace(/\s+/g,'-');
     a.click();
     URL.revokeObjectURL(a.href);
   });
@@ -3391,12 +3735,13 @@
   $('btn-guardar-empleado').addEventListener('click', async () => {
     const nombre = $('emp-nombre').value.trim();
     const apellido = $('emp-apellido').value.trim();
-    if (!nombre || !apellido) { $('emp-status').textContent = 'Nombre y apellido son obligatorios'; return; }
+    if (!nombre) { $('emp-status').textContent = 'El nombre es obligatorio'; return; }
 
     const datos = {
       nombre, apellido,
       rol: $('emp-rol').value,
       estado: $('emp-estado').value,
+      sueldo: parseFloat(($('emp-sueldo').value || '0').replace(',', '.')) || 0,
       tel: $('emp-tel').value.trim(),
       email: $('emp-email').value.trim(),
       inicio: $('emp-inicio').value,
@@ -4010,19 +4355,37 @@
   // MÓDULO: NÓMINA (pagos a trabajadores)
   // ====================================================================
   const NOM_KEY = 'gh-nomina'; // entradas de pago
-  const TRAB_NOM_KEY = 'gh-trabajadores'; // trabajadores [{nombre, sueldo}]
-  let nomDocs = [], nomTrabajadores = [], nomEditando = null;
+  const TRAB_NOM_KEY_VIEJO = 'gh-trabajadores'; // formato viejo [{nombre, sueldo}] — solo para migrar una vez
+  let nomDocs = [], nomEditando = null;
   let nomDiasSel = []; // fechas seleccionadas para el pago actual
 
   const nomFmt = n => '$'+(Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   const nomToday = () => new Date().toISOString().slice(0,10);
 
-  // Normaliza trabajadores: acepta formato viejo (string) y nuevo ({nombre, sueldo})
-  function nomNormalizarTrab(arr) {
-    return (arr || []).map((t) => typeof t === 'string' ? { nombre: t, sueldo: 0 } : { nombre: t.nombre || '', sueldo: Number(t.sueldo) || 0 });
-  }
+  // Los trabajadores de Nómina AHORA viven en Empleados (empleados[]). Busca
+  // por nombre completo (o solo nombre, para los que no tienen apellido).
   function nomBuscarTrab(nombre) {
-    return nomTrabajadores.find((t) => t.nombre.toLowerCase() === (nombre || '').toLowerCase());
+    const n = (nombre || '').trim().toLowerCase();
+    if (!n) return null;
+    return empleados.find((e) => empNombreCompleto(e).toLowerCase() === n);
+  }
+
+  // Migra una sola vez la lista vieja de "gh-trabajadores" (si existe) hacia
+  // Empleados, para no perder sueldos ya configurados. No duplica: si el
+  // nombre ya existe en Empleados, lo deja como está.
+  async function nomMigrarTrabajadoresViejos(listaVieja) {
+    const lista = (listaVieja || []).map((t) => typeof t === 'string' ? { nombre: t, sueldo: 0 } : { nombre: t.nombre || '', sueldo: Number(t.sueldo) || 0 });
+    let cambiaron = false;
+    lista.forEach((t) => {
+      if (!t.nombre || nomBuscarTrab(t.nombre)) return;
+      empleados.push({
+        id: 'emp-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+        nombre: t.nombre, apellido: '', rol: '', estado: 'activo', sueldo: t.sueldo,
+        tel: '', email: '', inicio: '', ss: '', emergencia: '', direccion: '', notas: ''
+      });
+      cambiaron = true;
+    });
+    if (cambiaron) await saveEmpleados();
   }
 
   // Sub-tabs
@@ -4040,12 +4403,13 @@
   });
 
   async function nomSaveDocs() { await window.storage.set(NOM_KEY, JSON.stringify(nomDocs)); }
-  async function nomSaveTrab() { await window.storage.set(TRAB_NOM_KEY, JSON.stringify(nomTrabajadores)); nomRefreshDl(); }
 
   function nomRefreshDl() {
+    // Solo trabajadores activos aparecen para buscar/seleccionar
+    const activos = empleados.filter((e) => e.estado !== 'inactivo');
     ['dl-trabajadores', 'dl-trabajadores-2', 'dl-trab-todos'].forEach((id) => {
       const dl = document.getElementById(id);
-      if (dl) dl.innerHTML = nomTrabajadores.map((t) => `<option value="${escapeHtml(t.nombre)}">`).join('');
+      if (dl) dl.innerHTML = activos.map((e) => `<option value="${escapeHtml(empNombreCompleto(e))}">`).join('');
     });
     if (typeof nomRenderTrabChips === 'function') nomRenderTrabChips();
   }
@@ -4119,12 +4483,16 @@
   async function nomAgregarTrabSel() {
     const nombre = $('nom-trab-buscar').value.trim();
     if (!nombre) return;
-    // Buscar coincidencia exacta ignorando mayúsculas; si no existe, crearlo
+    // Buscar coincidencia exacta ignorando mayúsculas; si no existe, crearlo como Empleado nuevo
     const existente = nomBuscarTrab(nombre);
-    const nombreFinal = existente ? existente.nombre : nombre;
+    const nombreFinal = existente ? empNombreCompleto(existente) : nombre;
     if (!existente) {
-      nomTrabajadores.push({ nombre: nombreFinal, sueldo: 0 });
-      await nomSaveTrab();
+      empleados.push({
+        id: 'emp-' + Date.now(), nombre, apellido: '', rol: '', estado: 'activo', sueldo: 0,
+        tel: '', email: '', inicio: '', ss: '', emergencia: '', direccion: '', notas: ''
+      });
+      await saveEmpleados();
+      nomRefreshDl();
     }
     if (!nomTrabSel.includes(nombreFinal)) nomTrabSel.push(nombreFinal);
     $('nom-trab-buscar').value = '';
@@ -4274,7 +4642,10 @@
       if (monto <= 0) { $('nom-status').textContent = 'El monto no puede ser cero'; setTimeout(()=>{$('nom-status').textContent='';},2000); return; }
       let t = nomBuscarTrab(trabajador);
       const sueldoCampo = nomLeerSueldoCampo();
-      if (!t) { t = { nombre: trabajador, sueldo: sueldoCampo }; nomTrabajadores.push(t); await nomSaveTrab(); }
+      if (!t) {
+        t = { id: 'emp-' + Date.now(), nombre: trabajador, apellido: '', rol: '', estado: 'activo', sueldo: sueldoCampo, tel: '', email: '', inicio: '', ss: '', emergencia: '', direccion: '', notas: '' };
+        empleados.push(t); await saveEmpleados(); nomRefreshDl();
+      }
       const entrada = {
         id: nomEditando || Date.now().toString(),
         trabajador, dias: [...nomDiasSel],
@@ -4640,37 +5011,41 @@
   $('nom-buscar-persona').addEventListener('input', debounce(nomRenderBuscar, 160));
   $('nom-buscar-intervalo').addEventListener('change', nomRenderBuscar);
 
-  // ---- Trabajadores (base de datos con sueldos) ----
+  // ---- Trabajadores (ahora es una vista rápida de Empleados, con su sueldo) ----
   function nomRenderTrabajadores() {
     const tbody = $('trab-nom-tbody');
     tbody.innerHTML = '';
-    $('trab-nom-empty').style.display = nomTrabajadores.length === 0 ? 'block' : 'none';
-    $('trab-nom-tbl').style.display = nomTrabajadores.length === 0 ? 'none' : 'table';
+    const activos = empleados.filter((e) => e.estado !== 'inactivo');
+    $('trab-nom-empty').style.display = activos.length === 0 ? 'block' : 'none';
+    $('trab-nom-tbl').style.display = activos.length === 0 ? 'none' : 'table';
 
-    nomTrabajadores.forEach((t, i) => {
+    activos.forEach((emp) => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td style="font-weight:500;">${escapeHtml(t.nombre)}</td>
-        <td class="num" style="font-weight:700;color:var(--teal);">${nomFmt(t.sueldo)}</td>
+        <td style="font-weight:500;">${escapeHtml(empNombreCompleto(emp))}</td>
+        <td class="num" style="font-weight:700;color:var(--teal);">${nomFmt(emp.sueldo)}</td>
         <td style="white-space:nowrap;">
-          <input type="text" inputmode="decimal" class="trab-sueldo-input" data-i="${i}" placeholder="Nuevo sueldo $" style="width:110px;padding:6px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:12.5px;">
-          <button class="gc-action-btn trab-sueldo-set" data-i="${i}" style="padding:5px 12px;font-size:11.5px;margin-left:4px;">Guardar</button>
+          <input type="text" inputmode="decimal" class="trab-sueldo-input" data-id="${emp.id}" placeholder="Nuevo sueldo $" style="width:110px;padding:6px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:12.5px;">
+          <button class="gc-action-btn trab-sueldo-set" data-id="${emp.id}" style="padding:5px 12px;font-size:11.5px;margin-left:4px;">Guardar</button>
         </td>
-        <td><button class="gc-del trab-nom-del" data-i="${i}">✕</button></td>`;
+        <td><button class="gc-action-btn trab-nom-del" data-id="${emp.id}" style="padding:5px 10px;font-size:11px;" title="Marcar inactivo (no se borra su información)">Inactivo</button></td>`;
       tbody.appendChild(tr);
     });
 
     tbody.querySelectorAll('.trab-sueldo-set').forEach((btn) => {
       btn.addEventListener('click', async () => {
-        const i = Number(btn.dataset.i);
-        const input = tbody.querySelector(`.trab-sueldo-input[data-i="${i}"]`);
+        const id = btn.dataset.id;
+        const idx = empleados.findIndex((e) => e.id === id);
+        if (idx < 0) return;
+        const input = tbody.querySelector(`.trab-sueldo-input[data-id="${id}"]`);
         const nuevo = parseFloat((input.value || '').replace(',', '.'));
         if (isNaN(nuevo) || nuevo < 0) { toast('Escribe un sueldo válido', 'error'); return; }
-        nomTrabajadores[i].sueldo = nuevo;
-        await nomSaveTrab();
+        empleados[idx].sueldo = nuevo;
+        await saveEmpleados();
         nomRenderTrabajadores();
         // Si el trabajador está seleccionado en el formulario, actualizar
-        if (nomTrabSel.includes(nomTrabajadores[i].nombre)) {
+        const nombreCompleto = empNombreCompleto(empleados[idx]);
+        if (nomTrabSel.includes(nombreCompleto)) {
           if (nomTrabSel.length === 1) { $('nom-sueldo-dia').value = String(nuevo); delete $('nom-monto').dataset.editado; nomRecalcularMonto(); }
           else nomRenderPreviewMulti();
         }
@@ -4679,17 +5054,21 @@
     });
     tbody.querySelectorAll('.trab-sueldo-input').forEach((inp) => {
       inp.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') tbody.querySelector(`.trab-sueldo-set[data-i="${inp.dataset.i}"]`).click();
+        if (e.key === 'Enter') tbody.querySelector(`.trab-sueldo-set[data-id="${inp.dataset.id}"]`).click();
       });
     });
     tbody.querySelectorAll('.trab-nom-del').forEach((btn) => {
       btn.addEventListener('click', async () => {
-        const i = Number(btn.dataset.i);
-        if (!await gcConfirm(`¿Eliminar a ${nomTrabajadores[i].nombre}? (sus pagos ya registrados no se borran)`, { okText: 'Eliminar', danger: true })) return;
-        nomTrabajadores.splice(i, 1);
-        await nomSaveTrab();
+        const id = btn.dataset.id;
+        const idx = empleados.findIndex((e) => e.id === id);
+        if (idx < 0) return;
+        const nombre = empNombreCompleto(empleados[idx]);
+        if (!await gcConfirm(`¿Marcar a ${nombre} como inactivo? Ya no aparecerá para nuevos pagos, pero su información y sus pagos ya registrados se conservan. Puedes reactivarlo luego desde Ajustes → Empleados.`, { okText: 'Marcar inactivo', danger: true })) return;
+        empleados[idx].estado = 'inactivo';
+        await saveEmpleados();
+        nomRefreshDl();
         nomRenderTrabajadores();
-        toast('Trabajador eliminado', 'info');
+        toast('Trabajador marcado como inactivo', 'info');
       });
     });
   }
@@ -4698,8 +5077,12 @@
     const sueldo = parseFloat(($('trab-nom-sueldo').value || '0').replace(',', '.')) || 0;
     if (!val) return;
     if (nomBuscarTrab(val)) { toast('Ya existe', 'info'); return; }
-    nomTrabajadores.push({ nombre: val, sueldo });
-    await nomSaveTrab();
+    empleados.push({
+      id: 'emp-' + Date.now(), nombre: val, apellido: '', rol: '', estado: 'activo', sueldo,
+      tel: '', email: '', inicio: '', ss: '', emergencia: '', direccion: '', notas: ''
+    });
+    await saveEmpleados();
+    nomRefreshDl();
     $('trab-nom-nuevo').value = '';
     $('trab-nom-sueldo').value = '';
     nomRenderTrabajadores();
@@ -4715,14 +5098,18 @@
       tab.addEventListener('click', async () => {
         if (!nomCargado) {
           nomCargado = true;
-          // Las dos lecturas son independientes: se piden a la vez (más rápido,
+          // Las tres lecturas son independientes: se piden a la vez (más rápido,
           // sobre todo con conexión lenta) en vez de una tras otra.
-          const [rDocs, rTrab] = await Promise.all([
+          const [rDocs, rEmp, rViejo] = await Promise.all([
             window.storage.get(NOM_KEY).catch(() => null),
-            window.storage.get(TRAB_NOM_KEY).catch(() => null)
+            window.storage.get(STORAGE_EMPLEADOS).catch(() => null),
+            window.storage.get(TRAB_NOM_KEY_VIEJO).catch(() => null)
           ]);
           try { nomDocs = JSON.parse(rDocs.value); } catch (e) { nomDocs = []; }
-          try { nomTrabajadores = nomNormalizarTrab(JSON.parse(rTrab.value)); } catch (e) { nomTrabajadores = []; }
+          try { empleados = JSON.parse(rEmp.value); } catch (e) { /* puede que ya se hayan cargado antes en esta sesión */ }
+          // Migración de una sola vez: si había trabajadores en el formato viejo
+          // que aún no están en Empleados, se agregan ahí (sin duplicar).
+          if (rViejo) { try { await nomMigrarTrabajadoresViejos(JSON.parse(rViejo.value)); } catch (e) {} }
           nomRefreshDl();
           nomCalMes = new Date(); nomCalMes.setDate(1);
           nomRenderChips();
