@@ -507,7 +507,8 @@
 
   <!-- NAV TABS -->
   <nav class="gc-nav">
-    <button class="gc-tab active" data-tab="movimientos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Registro</button>
+    <button class="gc-tab active" data-tab="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Inicio</button>
+    <button class="gc-tab" data-tab="movimientos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Registro</button>
     <button class="gc-tab" data-tab="facturas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Facturas</button>
     <button class="gc-tab" data-tab="nomina"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Nómina</button>
     <button class="gc-tab" data-tab="buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Buscar</button>
@@ -516,8 +517,15 @@
 
   <div class="gc-body">
 
+    <!-- Panel: Inicio (tablero) -->
+    <div class="gc-panel active" id="panel-inicio">
+      <div id="inicio-cont">
+        <div class="gc-empty">Cargando…</div>
+      </div>
+    </div>
+
   <!-- ===== MOVIMIENTOS (hub con carpetas) ===== -->
-  <div class="gc-panel active" id="panel-movimientos">
+  <div class="gc-panel" id="panel-movimientos">
     <div class="inv-subnav">
       <button class="mov-subtab active" data-msub="movs">Movimientos</button>
       <button class="mov-subtab" data-msub="invoices">Invoices guardados</button>
@@ -1190,7 +1198,7 @@
       <div class="gc-empty" id="inv-list-empty" style="display:none;">No hay facturas guardadas aún.</div>
       <div style="overflow-x:auto;">
         <table class="inv-list-t" id="inv-list-tbl" style="display:none;">
-          <thead><tr><th>Invoice #</th><th>Fecha</th><th>Cliente</th><th class="r">Total</th><th></th></tr></thead>
+          <thead><tr><th>Invoice #</th><th>Fecha</th><th>Cliente</th><th class="r">Total</th><th>Estado</th><th></th></tr></thead>
           <tbody id="inv-list-tbody"></tbody>
         </table>
       </div>
@@ -1501,7 +1509,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v26 · 01 sep';
+  const APP_VERSION = 'v27 · 01 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -1665,6 +1673,7 @@
       tab.classList.add('active');
       $('panel-' + tab.dataset.tab).classList.add('active');
       if (tab.dataset.tab === 'buscar') { renderAnios(); renderBusqueda(); renderResumenTaxas(); renderTotalPorSocio(); }
+      if (tab.dataset.tab === 'inicio') { cargarTableroInicio(); }
     });
   });
 
@@ -1707,6 +1716,7 @@
     renderMovimientos();
     actualizarStats();
     refrescarSugerenciasDesc();
+    if (typeof cargarTableroInicio === 'function') cargarTableroInicio();
   }
 
   async function saveMov() {
@@ -1938,6 +1948,102 @@
   });
 
   // ---- Hoja de movimientos agrupada por semana ----
+
+  // ====================================================================
+  // TABLERO DE INICIO — resumen antes de entrar a Registro o Nómina
+  // ====================================================================
+  async function cargarTableroInicio() {
+    const cont = $('inicio-cont');
+    if (!cont) return;
+
+    // Facturas y Nómina se cargan aquí de forma independiente (en paralelo),
+    // sin depender de que esas pestañas ya se hayan visitado antes.
+    const [rInv, rNom] = await Promise.all([
+      window.storage.get(INV_KEY).catch(() => null),
+      window.storage.get(NOM_KEY).catch(() => null),
+    ]);
+    let facturas = [], nomina = [];
+    try { facturas = JSON.parse(rInv.value); } catch (e) {}
+    try { nomina = JSON.parse(rNom.value); } catch (e) {}
+
+    // ---- Este mes ----
+    const hoy = today();
+    const mesActual = hoy.slice(0, 7); // "2026-09"
+    const movMes = movimientos.filter((m) => (m.fecha || '').startsWith(mesActual));
+    const ingMes = movMes.filter((m) => m.tipo === 'ingreso').reduce((s, m) => s + (Number(m.monto) || 0), 0);
+    const gasMes = movMes.filter((m) => m.tipo === 'gasto').reduce((s, m) => s + (Number(m.monto) || 0), 0);
+    const netMes = ingMes - gasMes;
+    const nombreMes = MESES_ES[Number(mesActual.slice(5, 7)) - 1];
+
+    // ---- Facturas pendientes de cobro ----
+    const pendientes = facturas.filter((f) => !f.pagada).sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
+    const totalPendiente = pendientes.reduce((s, f) => s + (Number(f.total) || 0), 0);
+
+    // ---- Nómina de esta semana ----
+    const semActKey = weekInfo(hoy).key;
+    const nomSemana = nomina.filter((n) => {
+      const dias = Array.isArray(n.dias) ? n.dias : [];
+      const ref = dias[0] || (n.creadoEn || '').slice(0, 10);
+      return ref && weekInfo(ref).key === semActKey;
+    });
+    const totalNomSemana = nomSemana.reduce((s, n) => s + (Number(n.monto) || 0), 0);
+    const porTrabajador = new Map();
+    nomSemana.forEach((n) => { porTrabajador.set(n.trabajador, (porTrabajador.get(n.trabajador) || 0) + (Number(n.monto) || 0)); });
+    const listaTrabajadores = [...porTrabajador.entries()].sort((a, b) => b[1] - a[1]);
+
+    cont.innerHTML = `
+      <div class="gc-note"><strong>Resumen de ${escapeHtml(nombreMes)}</strong> — así va tu negocio de un vistazo. Para ver el detalle, entra a Registro, Facturas o Nómina.</div>
+
+      <div class="gc-stats">
+        <div class="gc-stat ing"><div class="gc-stat-icon">↑</div><div><div class="gc-stat-label">Ingresos del mes</div><div class="gc-stat-val">${fmt(ingMes)}</div></div></div>
+        <div class="gc-stat gas"><div class="gc-stat-icon">↓</div><div><div class="gc-stat-label">Gastos del mes</div><div class="gc-stat-val">${fmt(gasMes)}</div></div></div>
+        <div class="gc-stat net" style="grid-column:1 / -1;"><div class="gc-stat-icon">≈</div><div><div class="gc-stat-label">Neto del mes</div><div class="gc-stat-val" style="color:${netMes >= 0 ? 'var(--teal)' : 'var(--ember)'};">${fmt(netMes)}</div></div></div>
+      </div>
+
+      <div class="gc-card" style="margin-top:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+          <p class="gc-card-title" style="margin:0;">Facturas pendientes de cobro</p>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:700;color:${pendientes.length ? 'var(--ember)' : 'var(--teal)'};">${fmt(totalPendiente)}</span>
+        </div>
+        <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">${pendientes.length} factura${pendientes.length === 1 ? '' : 's'} sin marcar como pagada${pendientes.length === 1 ? '' : 's'}.</p>
+        ${pendientes.length === 0 ? '<div class="gc-empty">No hay facturas pendientes — todo cobrado ✓</div>' : pendientes.slice(0, 5).map((f) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #F0F4FA;gap:10px;">
+            <div style="min-width:0;">
+              <div style="font-weight:600;font-size:13px;color:var(--ink);">${escapeHtml(f.numero || '')} ${f.cliente ? '· ' + escapeHtml(f.cliente) : ''}</div>
+              <div style="font-size:11.5px;color:var(--muted);">${escapeHtml(f.fecha || '')}</div>
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--ember);white-space:nowrap;">${fmt(f.total)}</div>
+          </div>`).join('')}
+        ${pendientes.length > 5 ? `<p style="font-size:12px;color:var(--muted);margin-top:10px;">y ${pendientes.length - 5} más…</p>` : ''}
+      </div>
+
+      <div class="gc-card" style="margin-top:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+          <p class="gc-card-title" style="margin:0;">Nómina de esta semana</p>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:700;color:var(--ink);">${fmt(totalNomSemana)}</span>
+        </div>
+        <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Pagado hasta ahora esta semana.</p>
+        ${listaTrabajadores.length === 0 ? '<div class="gc-empty">Aún no hay pagos registrados esta semana.</div>' : listaTrabajadores.map(([nombre, monto]) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #F0F4FA;">
+            <div style="font-weight:600;font-size:13px;color:var(--ink);">${escapeHtml(nombre)}</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--teal);">${fmt(monto)}</div>
+          </div>`).join('')}
+      </div>
+
+      <div class="gc-card" style="margin-top:16px;">
+        <p class="gc-card-title">Accesos rápidos</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
+          <button type="button" class="gc-save-btn" id="inicio-ir-movimiento">+ Movimiento</button>
+          <button type="button" class="gc-action-btn" id="inicio-ir-factura">+ Factura</button>
+          <button type="button" class="gc-action-btn" id="inicio-ir-nomina">+ Pago de nómina</button>
+        </div>
+      </div>
+    `;
+
+    if ($('inicio-ir-movimiento')) $('inicio-ir-movimiento').addEventListener('click', () => { document.querySelector('.gc-tab[data-tab="movimientos"]').click(); });
+    if ($('inicio-ir-factura')) $('inicio-ir-factura').addEventListener('click', () => { document.querySelector('.gc-tab[data-tab="facturas"]').click(); });
+    if ($('inicio-ir-nomina')) $('inicio-ir-nomina').addEventListener('click', () => { document.querySelector('.gc-tab[data-tab="nomina"]').click(); });
+  }
 
   function actualizarStats() {
     const hoy = today();
@@ -4289,11 +4395,14 @@
     });
     if (!items.length) { toast('Agrega al menos un trabajo', 'error'); return; }
     const tots = invCalcTotales();
+    const idExistente = $('inv-editando').value;
+    const existente = idExistente ? invDocs.find(i => i.id === idExistente) : null;
     const inv = {
-      id: $('inv-editando').value || Date.now().toString(),
+      id: idExistente || Date.now().toString(),
       numero: num, fecha: $('inv-fecha').value, cliente: $('inv-cliente').value.trim(),
       direccionEmisor: $('inv-direccion-emisor').value.trim(),
-      notas: $('inv-notas').value.trim(), items, ...tots, creadoEn: new Date().toISOString()
+      notas: $('inv-notas').value.trim(), items, ...tots, creadoEn: new Date().toISOString(),
+      pagada: existente ? !!existente.pagada : false // nueva = pendiente de cobro; si ya existía, se conserva su estado
     };
     const idx = invDocs.findIndex(i => i.id===inv.id);
     if (idx>=0) invDocs[idx]=inv; else invDocs.push(inv);
@@ -4427,17 +4536,31 @@
 
     filtradas.forEach(inv => {
       const tr=document.createElement('tr');
+      const pagada = !!inv.pagada;
       tr.innerHTML=`
         <td style="font-family:'IBM Plex Mono',monospace;font-weight:600;">${escapeHtml(inv.numero||'')}</td>
         <td>${inv.fecha||''}</td>
         <td style="font-weight:500;">${escapeHtml(inv.cliente||'—')}</td>
         <td class="r" style="font-weight:700;color:var(--teal);font-family:'IBM Plex Mono',monospace;">${invFmt(inv.total)}</td>
         <td style="white-space:nowrap;">
+          <button class="inv-toggle-pagada" data-id="${inv.id}" style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;border:1.5px solid ${pagada ? '#2E8B84' : '#C6551E'};background:${pagada ? '#E3F5F1' : '#FBEEE6'};color:${pagada ? '#0E6F65' : '#C6551E'};cursor:pointer;">${pagada ? 'Pagada' : 'Pendiente'}</button>
+        </td>
+        <td style="white-space:nowrap;">
           <button class="gc-action-btn" style="padding:4px 10px;font-size:11.5px;" data-a="ver" data-id="${inv.id}">Ver</button>
           <button class="gc-action-btn" style="padding:4px 10px;font-size:11.5px;margin-left:4px;" data-a="editar" data-id="${inv.id}">Editar</button>
           <button class="gc-del" style="margin-left:4px;" data-a="borrar" data-id="${inv.id}">✕</button>
         </td>`;
       tbody.appendChild(tr);
+    });
+    tbody.querySelectorAll('.inv-toggle-pagada').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const inv = invDocs.find(i => i.id === btn.dataset.id);
+        if (!inv) return;
+        inv.pagada = !inv.pagada;
+        await invSaveInv();
+        invRenderLista();
+        toast(inv.pagada ? 'Marcada como pagada ✓' : 'Marcada como pendiente de cobro', inv.pagada ? 'success' : 'info');
+      });
     });
     tbody.querySelectorAll('[data-a]').forEach(btn => {
       btn.addEventListener('click', async e => {
