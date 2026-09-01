@@ -1509,7 +1509,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v28 · 01 sep';
+  const APP_VERSION = 'v29 · 01 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -4818,10 +4818,17 @@
     const rango = wk ? nomWeekRango(wk) : null;
     const semTxt = rango ? ` (semana del ${nomFechaCortaTexto(rango.inicio)} al ${nomFechaCortaTexto(rango.fin)})` : '';
     const desc = `Nómina — ${dias.length} día(s)${semTxt}`;
-    const movId = 'nom-' + entrada.id;
-    const idx = movimientos.findIndex((m) => m.id === movId);
-    const mov = { id: movId, fecha, tipo: 'gasto', cat, monto: Number(entrada.monto) || 0, desc, nomAuto: true };
-    if (idx >= 0) movimientos[idx] = mov; else movimientos.push(mov);
+    // nomId (texto) liga este gasto con el pago de nómina. El id del
+    // movimiento en sí se mantiene NUMÉRICO, igual que todos los demás
+    // gastos/ingresos, porque el resto de Registro (editar, duplicar,
+    // borrar, ordenar) espera id numérico.
+    const nomId = String(entrada.id);
+    const idx = movimientos.findIndex((m) => m.nomId === nomId);
+    if (idx >= 0) {
+      movimientos[idx] = { ...movimientos[idx], fecha, tipo: 'gasto', cat, monto: Number(entrada.monto) || 0, desc, nomId, nomAuto: true };
+    } else {
+      movimientos.push({ id: Date.now() + Math.floor(Math.random() * 100000), fecha, tipo: 'gasto', cat, monto: Number(entrada.monto) || 0, desc, nomId, nomAuto: true });
+    }
     saveMov();
     if (typeof renderMovimientos === 'function') renderMovimientos();
     if (typeof renderReparto === 'function') renderReparto();
@@ -4829,9 +4836,9 @@
 
   // Quita el gasto en Registro ligado a un pago de nómina que se eliminó.
   function nomEliminarMovimientoLigado(entradaId) {
-    const movId = 'nom-' + entradaId;
+    const nomId = String(entradaId);
     const antes = movimientos.length;
-    movimientos = movimientos.filter((m) => m.id !== movId);
+    movimientos = movimientos.filter((m) => m.nomId !== nomId);
     if (movimientos.length !== antes) {
       saveMov();
       if (typeof renderMovimientos === 'function') renderMovimientos();
