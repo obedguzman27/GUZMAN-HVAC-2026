@@ -1509,7 +1509,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v27 · 01 sep';
+  const APP_VERSION = 'v28 · 01 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -4791,6 +4791,54 @@
 
   async function nomSaveDocs() { await window.storage.set(NOM_KEY, JSON.stringify(nomDocs)); }
 
+  // ---- Pase automático a Registro (con 1 semana de resago) ----
+  // Cuando se registra un pago de nómina, el gasto correspondiente se cobra
+  // en Registro una semana DESPUÉS de los días trabajados (así se refleja
+  // cuando de verdad se paga, no cuando se trabajó). Ej.: si trabajó del
+  // lunes 24 al viernes 28, el gasto en Registro cae en la semana del 31 al 4.
+  function nomFechaResagoParaCobro(diasArr) {
+    const dias = Array.isArray(diasArr) ? diasArr.slice().sort() : [];
+    const refDay = dias[0] || nomToday();
+    const d = new Date(refDay + 'T00:00:00');
+    if (isNaN(d)) return nomToday();
+    d.setDate(d.getDate() + 7); // una semana de resago
+    return d.toISOString().slice(0, 10);
+  }
+
+  // Crea (o actualiza, si ya existía) el gasto en Registro ligado a este
+  // pago de nómina. Se identifica con el id "nom-<id del pago>" para poder
+  // encontrarlo de nuevo si el pago se edita o se borra.
+  function nomCrearOActualizarMovimiento(entrada) {
+    if (!entrada || !entrada.trabajador || !(Number(entrada.monto) > 0)) return;
+    const dias = Array.isArray(entrada.dias) ? entrada.dias.slice().sort() : [];
+    const fecha = nomFechaResagoParaCobro(dias);
+    const cat = entrada.trabajador;
+    if (!catGastos.includes(cat)) { catGastos.push(cat); saveCatGastos(); if (typeof renderCategorias === 'function') renderCategorias(); }
+    const wk = dias.length ? nomWeekKey(dias[0]) : '';
+    const rango = wk ? nomWeekRango(wk) : null;
+    const semTxt = rango ? ` (semana del ${nomFechaCortaTexto(rango.inicio)} al ${nomFechaCortaTexto(rango.fin)})` : '';
+    const desc = `Nómina — ${dias.length} día(s)${semTxt}`;
+    const movId = 'nom-' + entrada.id;
+    const idx = movimientos.findIndex((m) => m.id === movId);
+    const mov = { id: movId, fecha, tipo: 'gasto', cat, monto: Number(entrada.monto) || 0, desc, nomAuto: true };
+    if (idx >= 0) movimientos[idx] = mov; else movimientos.push(mov);
+    saveMov();
+    if (typeof renderMovimientos === 'function') renderMovimientos();
+    if (typeof renderReparto === 'function') renderReparto();
+  }
+
+  // Quita el gasto en Registro ligado a un pago de nómina que se eliminó.
+  function nomEliminarMovimientoLigado(entradaId) {
+    const movId = 'nom-' + entradaId;
+    const antes = movimientos.length;
+    movimientos = movimientos.filter((m) => m.id !== movId);
+    if (movimientos.length !== antes) {
+      saveMov();
+      if (typeof renderMovimientos === 'function') renderMovimientos();
+      if (typeof renderReparto === 'function') renderReparto();
+    }
+  }
+
   function nomRefreshDl() {
     // Solo trabajadores activos aparecen para buscar/seleccionar
     const activos = empleados.filter((e) => e.estado !== 'inactivo');
@@ -5042,6 +5090,7 @@
       };
       const idx = nomDocs.findIndex((n) => n.id === entrada.id);
       if (idx >= 0) nomDocs[idx] = entrada; else nomDocs.push(entrada);
+      nomCrearOActualizarMovimiento(entrada);
       guardados = 1;
     } else {
       // Varios trabajadores: un pago por cada uno (días × su sueldo + extra)
@@ -5049,12 +5098,14 @@
         const t = nomBuscarTrab(nombre) || { nombre, sueldo: 0 };
         const sueldo = t.sueldo || 0;
         const monto = (nomDiasSel.length * sueldo) + extraMonto;
-        nomDocs.push({
+        const nuevoDoc = {
           id: Date.now().toString() + '-' + Math.random().toString(36).slice(2, 7),
           trabajador: nombre, dias: [...nomDiasSel],
           sueldoDia: sueldo, extraDesc, extraMonto, monto, nota,
           creadoEn: new Date().toISOString()
-        });
+        };
+        nomDocs.push(nuevoDoc);
+        nomCrearOActualizarMovimiento(nuevoDoc);
         guardados++;
       }
     }
@@ -5289,6 +5340,7 @@
         if (!await gcConfirm('¿Eliminar este pago?', { okText: 'Eliminar', danger: true })) return;
         nomDocs = nomDocs.filter((x) => x.id !== btn.dataset.id);
         await nomSaveDocs();
+        nomEliminarMovimientoLigado(btn.dataset.id);
         toast('Pago eliminado', 'info');
         nomRenderHist();
       });
@@ -5764,6 +5816,7 @@
       if (!await gcConfirm('¿Eliminar este pago?', { okText: 'Eliminar', danger: true })) return;
       nomDocs = nomDocs.filter((x) => x.id !== b.dataset.id);
       await nomSaveDocs();
+      nomEliminarMovimientoLigado(b.dataset.id);
       toast('Pago eliminado', 'info');
       nomRenderRegLedger();
     }));
