@@ -244,6 +244,19 @@
     if (key.startsWith('__')) return key;
     return prefijoActual() + key;
   }
+  // Lee una clave de una base de datos ESPECÍFICA (no necesariamente la
+  // "activa" en este momento) — usado por el visor para ver varias bases de
+  // datos a la vez, sin tener que cambiar entre ellas.
+  window.GH_LEER_DE_CUENTA = async (codigoCuenta, key) => {
+    await sesionLista;
+    const pfx = (codigoCuenta && codigoCuenta !== 'principal') ? ('c:' + codigoCuenta + '::') : '';
+    const claveCompleta = key.startsWith('__') ? key : (pfx + key);
+    try {
+      const { data, error } = await client.from('datos_app').select('valor').eq('clave', claveCompleta).maybeSingle();
+      if (error || !data) return null;
+      return data.valor;
+    } catch (e) { return null; }
+  };
 
   // Lee qué cuenta tiene asignada el usuario actual (por defecto "principal")
   async function cargarCuentaActiva() {

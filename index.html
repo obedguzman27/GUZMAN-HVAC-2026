@@ -851,6 +851,10 @@
           Tus datos se sincronizan en la nube y están disponibles en todos tus dispositivos con tu usuario. Aun así, puedes descargar un respaldo cuando quieras.
           <br><span style="font-size:11px;color:var(--muted);">Versión <span id="app-version-acerca"></span></span>
         </p>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border-soft);">
+          <button type="button" class="gc-action-btn" id="btn-forzar-actualizacion">Buscar actualización ahora</button>
+          <p id="forzar-act-status" style="font-size:12px;color:var(--muted);margin-top:8px;"></p>
+        </div>
       </div>
     </div>
 
@@ -1497,7 +1501,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v23 · 29 ago';
+  const APP_VERSION = 'v26 · 01 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -2021,7 +2025,7 @@
       const g = grupos.get(key);
       const trWeek = document.createElement('tr');
       trWeek.className = 'gc-week-row';
-      trWeek.innerHTML = `<td colspan="6">${g.label}</td>`;
+      trWeek.innerHTML = `<td colspan="6">${escapeHtml(g.label)}</td>`;
       tbody.appendChild(trWeek);
 
       g.items.forEach((m) => {
@@ -2959,18 +2963,28 @@
 
   // ---- Respaldo completo (para guardar en OneDrive) ----
   $('btn-descargar-respaldo').addEventListener('click', async () => {
-    // Leer datos de todos los módulos (algunos viven en su propia clave de storage)
+    // Leer datos de todos los módulos EN PARALELO (antes eran 8 lecturas en
+    // fila, una tras otra — esto tarda lo mismo que la más lenta, no la suma).
     let empleadosData = [], facturasData = [], coloniasData = [], clientesData = [], trabajosData = [];
-    let nominaData = [], trabajadoresData = [];
-    try { const r = await window.storage.get('empleados'); empleadosData = JSON.parse(r.value); } catch(e){}
-    try { const r = await window.storage.get('gh-invoices'); facturasData = JSON.parse(r.value); } catch(e){}
-    try { const r = await window.storage.get('gh-colonias'); coloniasData = JSON.parse(r.value); } catch(e){}
-    try { const r = await window.storage.get('gh-clientes'); clientesData = JSON.parse(r.value); } catch(e){}
-    try { const r = await window.storage.get('gh-trabajos'); trabajosData = JSON.parse(r.value); } catch(e){}
-    try { const r = await window.storage.get('gh-nomina'); nominaData = JSON.parse(r.value); } catch(e){}
-    try { const r = await window.storage.get('gh-trabajadores'); trabajadoresData = JSON.parse(r.value); } catch(e){}
-    let recibosData = [];
-    try { const r = await window.storage.get('gh-recibos-semanales'); recibosData = JSON.parse(r.value); } catch(e){}
+    let nominaData = [], trabajadoresData = [], recibosData = [];
+    const [rEmp, rFact, rCol, rCli, rTrab, rNom, rTrabj, rRecibos] = await Promise.all([
+      window.storage.get('empleados').catch(() => null),
+      window.storage.get('gh-invoices').catch(() => null),
+      window.storage.get('gh-colonias').catch(() => null),
+      window.storage.get('gh-clientes').catch(() => null),
+      window.storage.get('gh-trabajos').catch(() => null),
+      window.storage.get('gh-nomina').catch(() => null),
+      window.storage.get('gh-trabajadores').catch(() => null),
+      window.storage.get('gh-recibos-semanales').catch(() => null),
+    ]);
+    try { empleadosData = JSON.parse(rEmp.value); } catch (e) {}
+    try { facturasData = JSON.parse(rFact.value); } catch (e) {}
+    try { coloniasData = JSON.parse(rCol.value); } catch (e) {}
+    try { clientesData = JSON.parse(rCli.value); } catch (e) {}
+    try { trabajosData = JSON.parse(rTrab.value); } catch (e) {}
+    try { nominaData = JSON.parse(rNom.value); } catch (e) {}
+    try { trabajadoresData = JSON.parse(rTrabj.value); } catch (e) {}
+    try { recibosData = JSON.parse(rRecibos.value); } catch (e) {}
 
     const respaldo = {
       app: 'Kontaly',
@@ -3471,6 +3485,45 @@
   }
 
   // Guardar datos de factura (nombre + dirección) — en la nube
+  // ---- Forzar actualización de la app desde Ajustes ----
+  if ($('btn-forzar-actualizacion')) {
+    $('btn-forzar-actualizacion').addEventListener('click', async () => {
+      const btn = $('btn-forzar-actualizacion');
+      const status = $('forzar-act-status');
+      if (!('serviceWorker' in navigator)) {
+        status.textContent = 'Tu navegador no soporta esto. Cierra la app por completo y ábrela de nuevo.';
+        return;
+      }
+      btn.disabled = true;
+      status.textContent = 'Buscando una versión nueva…';
+      try {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (!reg) {
+          status.textContent = 'No se pudo revisar. Cierra la app por completo y ábrela de nuevo.';
+          btn.disabled = false;
+          return;
+        }
+        await reg.update();
+        // Dar tiempo a que, si hay una versión nueva, termine de instalarse
+        // (esto dispara los mismos avisos 'updatefound'/'statechange' de siempre).
+        const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
+        await esperar(1500);
+        if (!reg.waiting && reg.installing) await esperar(1500); // seguía instalando, dar un poco más de tiempo
+        if (reg.waiting) {
+          status.textContent = 'Encontramos una versión nueva — actualizando…';
+          reg.waiting.postMessage('skip-waiting');
+          // El listener de controllerchange que ya existe recarga la página solo.
+        } else {
+          status.textContent = `Ya tienes la versión más reciente (${APP_VERSION}).`;
+          btn.disabled = false;
+        }
+      } catch (e) {
+        status.textContent = 'No se pudo revisar la actualización. Intenta de nuevo.';
+        btn.disabled = false;
+      }
+    });
+  }
+
   $('aj-btn-guardar-factura').addEventListener('click', async () => {
     cfgFacturaSigueSocio = $('aj-factura-sigue-socio').checked;
     cfgFacturaNombre = cfgFacturaSigueSocio ? cfgSocioMitad : ($('aj-factura-nombre').value.trim() || cfgFacturaNombre);
@@ -4535,10 +4588,18 @@
       tab.addEventListener('click', async () => {
         // Cargar datos si aún no están inicializados
         if (!$('inv-num').value) {
-          try{const r=await window.storage.get(INV_KEY);invDocs=JSON.parse(r.value);}catch(e){invDocs=[];}
-          try{const r=await window.storage.get(COL_KEY);invColonias=JSON.parse(r.value);}catch(e){invColonias=[...INV_COL_DEFAULT];await invSaveCol();}
-          try{const r=await window.storage.get(CLI_KEY);invClientes=JSON.parse(r.value);}catch(e){invClientes=[...INV_CLI_DEFAULT];await invSaveCli();}
-          try{const r=await window.storage.get(TRB_KEY);invTrabajos=JSON.parse(r.value);}catch(e){invTrabajos=[...INV_TRB_DEFAULT];await invSaveTrb();}
+          // Las 4 lecturas son independientes: se piden a la vez (antes eran
+          // una tras otra, tardando la suma de las 4 en vez del máximo).
+          const [rInv, rCol, rCli, rTrb] = await Promise.all([
+            window.storage.get(INV_KEY).catch(() => null),
+            window.storage.get(COL_KEY).catch(() => null),
+            window.storage.get(CLI_KEY).catch(() => null),
+            window.storage.get(TRB_KEY).catch(() => null),
+          ]);
+          try { invDocs = JSON.parse(rInv.value); } catch (e) { invDocs = []; }
+          try { invColonias = JSON.parse(rCol.value); } catch (e) { invColonias = [...INV_COL_DEFAULT]; await invSaveCol(); }
+          try { invClientes = JSON.parse(rCli.value); } catch (e) { invClientes = [...INV_CLI_DEFAULT]; await invSaveCli(); }
+          try { invTrabajos = JSON.parse(rTrb.value); } catch (e) { invTrabajos = [...INV_TRB_DEFAULT]; await invSaveTrb(); }
           invRefreshDlClientes(); invRefreshDlTrabajos();
           $('inv-num').value = invAutoNum();
           $('inv-fecha').value = invToday();
@@ -5609,10 +5670,10 @@
   window.GH_ESPERAR_SESION().then(() => {
     const rol = window.GH_ROL;
     revelarAppNormal();
-    if (rol === 'visor') aplicarModoSoloLectura();
+    if (rol === 'visor') aplicarModoVisorMultiCuenta();
     // admin = acceso total (con panel de administración)
     // empleado = acceso normal para editar su base de datos, sin administración
-    // visor = solo lectura
+    // visor = una pestaña por cada base de datos que el admin le dio, solo lectura
   });
 
   function revelarAppNormal() {
@@ -5620,145 +5681,311 @@
     if (oculto) oculto.remove();
   }
 
-  function aplicarModoSoloLectura() {
-    // Ocultar todas las pestañas del menú excepto Registro y Nómina.
-    document.querySelectorAll('.gc-tab').forEach((t) => {
-      const permitido = t.dataset.tab === 'movimientos' || t.dataset.tab === 'nomina';
-      t.style.display = permitido ? '' : 'none';
-    });
-    // Si quedó activa una pestaña no permitida, mandarlo a Registro.
-    const activa = document.querySelector('.gc-tab.active');
-    if (activa && activa.dataset.tab !== 'movimientos' && activa.dataset.tab !== 'nomina') {
-      document.querySelector('.gc-tab[data-tab="movimientos"]')?.click();
-    }
-    // Dentro de Registro: solo "Invoices guardados". Dentro de Nómina: solo "Recibo semanal".
-    document.querySelectorAll('.mov-subtab').forEach((t) => {
-      t.style.display = t.dataset.msub === 'invoices' ? '' : 'none';
-    });
-    document.querySelectorAll('.nom-subtab').forEach((t) => {
-      t.style.display = t.dataset.nsub === 'semanal' ? '' : 'none';
-    });
-
-    // Cargar los datos de Nómina y terminar mostrando Registro → Invoices guardados.
-    (async () => {
-      const tabMov = document.querySelector('.gc-tab[data-tab="movimientos"]');
-      const tabNomina = document.querySelector('.gc-tab[data-tab="nomina"]');
-      const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
-
-      if (tabNomina) {
-        tabNomina.click();
-        await esperar(900);
-        document.querySelector('.nom-subtab[data-nsub="semanal"]')?.click();
-        await esperar(200);
-      }
-      // Terminar en Registro, abriendo la carpeta de Invoices guardados
-      if (tabMov) {
-        tabMov.click();
-        await esperar(200);
-        document.querySelector('.mov-subtab[data-msub="invoices"]')?.click();
-        await esperar(200);
-      }
-    })();
-
-    mostrarBannerVisor();
-
-    document.body.classList.add('gh-modo-visor');
-    const style = document.createElement('style');
-    style.textContent = `
-      /* Apaga por completo cualquier campo o botón dentro de los paneles... */
-      body.gh-modo-visor .gc-panel input,
-      body.gh-modo-visor .gc-panel select,
-      body.gh-modo-visor .gc-panel textarea,
-      body.gh-modo-visor .gc-panel button {
-        pointer-events: none !important;
-        opacity: .45 !important;
-      }
-      /* ...excepto lo que sirve para VER y DESCARGAR datos, y navegar.
-         (Con la MISMA especificidad que el bloqueo de arriba —incluyendo el
-         tipo de elemento— para que esta lista sí gane; si no, el bloqueo
-         gana por ser más específico aunque estas reglas vengan después.) */
-      body.gh-modo-visor .gc-tab,
-      body.gh-modo-visor button.mov-subtab,
-      body.gh-modo-visor button.nom-subtab,
-      body.gh-modo-visor .inv-subtab,
-      body.gh-modo-visor input[type="search"],
-      body.gh-modo-visor #nom-reg-buscar,
-      body.gh-modo-visor #m-buscar,
-      body.gh-modo-visor button.ver-btn,
-      body.gh-modo-visor button.gc-ver-invoice-btn,
-      body.gh-modo-visor button.nom-sem-ver,
-      body.gh-modo-visor button.nom-sem-imp,
-      body.gh-modo-visor button[id*="ver-"],
-      body.gh-modo-visor button[id*="descargar"],
-      body.gh-modo-visor button[id*="imprimir"],
-      body.gh-modo-visor button[id*="copia"],
-      body.gh-modo-visor .gc-print-toolbar button,
-      body.gh-modo-visor .nom-sem-card button {
-        pointer-events: auto !important;
-        opacity: 1 !important;
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  // Banner de arriba: en qué base de datos está, y (si el admin le dio acceso
-  // a más de una) un selector para cambiar entre ellas — sin poder editar nada.
-  // (Este script vive en su propio <script>, por eso trae su propio escapeHtml:
-  // el de la app principal no es accesible desde aquí.)
+  // ============================================================
+  // MODO VISOR — una pestaña por cada base de datos que el admin
+  // le haya dado, cada una con Invoices guardados + Recibo semanal.
+  // Todo de solo lectura. (Script aislado: trae sus propias
+  // funciones auxiliares — escapeHtml/fmt/etc. de la app principal
+  // no son accesibles desde aquí.)
+  // ============================================================
   function escapeHtmlVisor(str) {
     const d = document.createElement('div');
     d.textContent = str == null ? '' : String(str);
     return d.innerHTML;
   }
-  async function mostrarBannerVisor() {
-    if (document.getElementById('gh-banner-visor')) return;
-    const banner = document.createElement('div');
-    banner.id = 'gh-banner-visor';
-    banner.style.cssText = 'background:#EAF3FF;color:#1A4B8C;font-size:12.5px;padding:10px 20px;text-align:center;border-bottom:1px solid #C7DFFB;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;';
+  function fmtVisor(n) {
+    return '$' + (Number(n) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function diaCortoVisor(fechaStr) {
+    const d = new Date(fechaStr + 'T00:00:00');
+    if (isNaN(d)) return fechaStr;
+    const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    return `${dias[d.getDay()]} ${d.getDate()}`;
+  }
+  function weekKeyVisor(fechaStr) {
+    const d = new Date(fechaStr + 'T00:00:00');
+    if (isNaN(d)) return '';
+    const day = (d.getDay() + 6) % 7;
+    const lunes = new Date(d); lunes.setDate(d.getDate() - day);
+    return lunes.toISOString().slice(0, 10);
+  }
+  function weekRangoVisor(weekKey) {
+    const lunes = new Date(weekKey + 'T00:00:00');
+    const domingo = new Date(lunes); domingo.setDate(lunes.getDate() + 6);
+    return { inicio: weekKey, fin: domingo.toISOString().slice(0, 10) };
+  }
+  function fechaCortaVisor(fechaStr) {
+    const d = new Date(fechaStr + 'T00:00:00');
+    if (isNaN(d)) return fechaStr;
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}`;
+  }
 
-    const cuentaActual = (typeof window.GH_GET_CUENTA === 'function') ? window.GH_GET_CUENTA() : 'principal';
-    let permitidas = null;
+  async function aplicarModoVisorMultiCuenta() {
+    // 1. ¿A qué bases de datos tiene acceso? (el admin las eligió en Ajustes → Avanzado → Usuarios)
+    let cuentas = null;
+    try { if (typeof window.GH_MIS_CUENTAS_VISOR === 'function') cuentas = await window.GH_MIS_CUENTAS_VISOR(); } catch (e) {}
+    if (!Array.isArray(cuentas) || cuentas.length === 0) {
+      // Respaldo: si nunca se configuró una lista, usar solo su base de datos de siempre (como antes)
+      const activa = (typeof window.GH_GET_CUENTA === 'function') ? window.GH_GET_CUENTA() : 'principal';
+      cuentas = [activa];
+    }
+
+    // 2. Nombres amigables de cada base de datos
     let listaNombres = [];
     try {
-      if (typeof window.GH_MIS_CUENTAS_VISOR === 'function') permitidas = await window.GH_MIS_CUENTAS_VISOR();
       const r = await window.storage.get('__cuentas_lista');
       listaNombres = JSON.parse(r.value) || [];
     } catch (e) {}
     const nombreDe = (codigo) => {
       if (codigo === 'principal') return 'Principal';
-      const encontrado = listaNombres.find((c) => c.codigo === codigo);
-      return encontrado ? encontrado.nombre : codigo;
+      const enc = listaNombres.find((c) => c.codigo === codigo);
+      return enc ? enc.nombre : codigo;
     };
 
-    const texto = document.createElement('span');
-    texto.innerHTML = `Viendo: <strong>${escapeHtmlVisor(nombreDe(cuentaActual))}</strong> — Invoices guardados y Recibo semanal. Solo lectura.`;
-    banner.appendChild(texto);
-
-    if (Array.isArray(permitidas) && permitidas.length > 1) {
-      const sel = document.createElement('select');
-      sel.style.cssText = 'font-family:Inter,sans-serif;font-size:12px;padding:5px 8px;border:1px solid #9CC2EF;border-radius:6px;background:#fff;color:#1A4B8C;';
-      permitidas.forEach((codigo) => {
-        const opt = document.createElement('option');
-        opt.value = codigo; opt.textContent = nombreDe(codigo);
-        if (codigo === cuentaActual) opt.selected = true;
-        sel.appendChild(opt);
-      });
-      const avisoError = document.createElement('span');
-      avisoError.style.cssText = 'color:#C6551E;font-size:11.5px;display:none;';
-      sel.addEventListener('change', async () => {
-        avisoError.style.display = 'none';
-        try { await window.GH_SET_CUENTA(sel.value); location.reload(); }
-        catch (e) {
-          avisoError.textContent = 'No se pudo cambiar: ' + (e && e.message ? e.message : e);
-          avisoError.style.display = '';
-          sel.value = cuentaActual;
-        }
-      });
-      banner.appendChild(sel);
-      banner.appendChild(avisoError);
+    // 3. Cargar los datos de CADA base de datos permitida (invoices + nómina)
+    const datosPorCuenta = {};
+    for (const codigo of cuentas) {
+      let invoices = [], nomina = [];
+      try {
+        const rInv = await window.GH_LEER_DE_CUENTA(codigo, 'invoicesGuardados');
+        invoices = rInv ? JSON.parse(rInv) : [];
+      } catch (e) {}
+      try {
+        const rNom = await window.GH_LEER_DE_CUENTA(codigo, 'gh-nomina');
+        nomina = rNom ? JSON.parse(rNom) : [];
+      } catch (e) {}
+      datosPorCuenta[codigo] = { nombre: nombreDe(codigo), invoices, nomina };
     }
 
-    document.body.insertBefore(banner, document.body.firstChild);
+    construirInterfazVisor(cuentas, datosPorCuenta);
+  }
+
+  function construirInterfazVisor(cuentas, datosPorCuenta) {
+    // Ocultar el nav y los paneles normales de la app directamente por JS
+    // (más confiable que una hoja de estilos, que puede perder la pelea de
+    // especificidad contra el CSS grande de la app).
+    document.querySelectorAll('nav.gc-nav > .gc-tab').forEach((t) => {
+      t.style.setProperty('display', 'none', 'important');
+    });
+    document.querySelectorAll('.gc-body > .gc-panel').forEach((p) => {
+      p.style.setProperty('display', 'none', 'important');
+    });
+    document.body.classList.add('gh-modo-visor2');
+
+    const nav = document.querySelector('nav.gc-nav');
+    const body = document.querySelector('.gc-body');
+    if (!nav || !body) return;
+
+    // ---- Botones de navegación: uno por base de datos + "Ajustes" al final ----
+    cuentas.forEach((codigo, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'gc-tab visor-tab' + (i === 0 ? ' active' : '');
+      btn.dataset.visorCuenta = codigo;
+      btn.textContent = datosPorCuenta[codigo].nombre;
+      btn.addEventListener('click', () => activarPanelVisor(codigo));
+      nav.appendChild(btn);
+    });
+    const btnAjustes = document.createElement('button');
+    btnAjustes.className = 'gc-tab visor-tab';
+    btnAjustes.dataset.visorCuenta = '__ajustes';
+    btnAjustes.textContent = 'Ajustes';
+    btnAjustes.addEventListener('click', () => activarPanelVisor('__ajustes'));
+    nav.appendChild(btnAjustes);
+
+    // ---- Un panel por base de datos (Invoices guardados + Recibo semanal) ----
+    cuentas.forEach((codigo, i) => {
+      const d = datosPorCuenta[codigo];
+      const panel = document.createElement('div');
+      panel.className = 'gc-panel visor-panel' + (i === 0 ? ' active' : '');
+      panel.dataset.visorCuenta = codigo;
+      panel.innerHTML = `
+        <div class="inv-subnav">
+          <button type="button" class="mov-subtab active" data-vsub="invoices">Invoices guardados</button>
+          <button type="button" class="mov-subtab" data-vsub="semanal">Recibo semanal</button>
+        </div>
+        <div class="mov-subpanel active" data-vsub="invoices">${htmlInvoicesVisor(d)}</div>
+        <div class="mov-subpanel" data-vsub="semanal">${htmlReciboSemanalVisor(d)}</div>
+      `;
+      body.appendChild(panel);
+      panel.querySelectorAll('.mov-subtab').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          panel.querySelectorAll('.mov-subtab').forEach((t) => t.classList.remove('active'));
+          panel.querySelectorAll('.mov-subpanel').forEach((p) => p.classList.remove('active'));
+          tab.classList.add('active');
+          panel.querySelector(`.mov-subpanel[data-vsub="${tab.dataset.vsub}"]`).classList.add('active');
+        });
+      });
+    });
+
+    // ---- Panel de Ajustes (color de acento + cerrar sesión) ----
+    const panelAjustes = document.createElement('div');
+    panelAjustes.className = 'gc-panel visor-panel';
+    panelAjustes.dataset.visorCuenta = '__ajustes';
+    panelAjustes.innerHTML = `
+      <div class="gc-card">
+        <p class="gc-card-title">Apariencia</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Elige el color de acento de la app.</p>
+        <div id="visor-accent-picker" style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button type="button" class="visor-accent-sw" data-accent="cobre" title="Cobre" style="width:38px;height:38px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;background:linear-gradient(135deg,#C46E20,#A2560F);"></button>
+          <button type="button" class="visor-accent-sw" data-accent="teal" title="Teal" style="width:38px;height:38px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;background:linear-gradient(135deg,#0E8F82,#0B6F65);"></button>
+          <button type="button" class="visor-accent-sw" data-accent="indigo" title="Índigo" style="width:38px;height:38px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;background:linear-gradient(135deg,#4F6FA8,#3A5486);"></button>
+          <button type="button" class="visor-accent-sw" data-accent="verde" title="Verde" style="width:38px;height:38px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;background:linear-gradient(135deg,#4E9350,#397239);"></button>
+        </div>
+      </div>
+      <div class="gc-card" style="margin-top:16px;">
+        <p class="gc-card-title">Mi cuenta</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Conectado como <strong>${escapeHtmlVisor(window.GH_NOMBRE || 'usuario')}</strong> (visor)</p>
+        <button type="button" class="gc-action-btn" id="visor-btn-cerrar-sesion">Cerrar sesión</button>
+      </div>
+    `;
+    body.appendChild(panelAjustes);
+
+    // Color de acento (mismo sistema de guardado que el resto de la app: por cuenta, en la nube)
+    function aplicarAcentoVisor(nombre) {
+      if (nombre === 'cobre') document.documentElement.removeAttribute('data-accent');
+      else document.documentElement.setAttribute('data-accent', nombre);
+      panelAjustes.querySelectorAll('.visor-accent-sw').forEach((sw) => {
+        sw.classList.toggle('active', sw.dataset.accent === nombre);
+        sw.style.boxShadow = sw.dataset.accent === nombre ? '0 0 0 2.5px #fff, 0 0 0 4.5px var(--accent, #C46E20)' : 'none';
+      });
+    }
+    (async () => {
+      let guardado = 'cobre';
+      try { const r = await window.storage.get('kontaly-accent'); guardado = JSON.parse(r.value) || 'cobre'; } catch (e) {}
+      aplicarAcentoVisor(guardado);
+    })();
+    panelAjustes.querySelectorAll('.visor-accent-sw').forEach((sw) => {
+      sw.addEventListener('click', async () => {
+        aplicarAcentoVisor(sw.dataset.accent);
+        try { await window.storage.set('kontaly-accent', JSON.stringify(sw.dataset.accent)); } catch (e) {}
+      });
+    });
+    panelAjustes.querySelector('#visor-btn-cerrar-sesion').addEventListener('click', () => {
+      if (typeof window.GH_CERRAR_SESION === 'function') window.GH_CERRAR_SESION();
+    });
+
+    function activarPanelVisor(codigo) {
+      document.querySelectorAll('.visor-tab').forEach((t) => t.classList.toggle('active', t.dataset.visorCuenta === codigo));
+      document.querySelectorAll('.visor-panel').forEach((p) => p.classList.toggle('active', p.dataset.visorCuenta === codigo));
+    }
+
+    document.body.classList.add('gh-modo-visor');
+    aplicarBloqueoEdicionVisor();
+  }
+
+  // ---- HTML: tabla de Invoices guardados para una base de datos (solo lectura) ----
+  function htmlInvoicesVisor(d) {
+    if (!d.invoices || d.invoices.length === 0) {
+      return `<div class="gc-card"><div class="gc-empty">No hay invoices guardados en esta base de datos.</div></div>`;
+    }
+    const sorted = [...d.invoices].sort((a, b) => (b.guardadoEn || '').localeCompare(a.guardadoEn || ''));
+    // Columnas de socios: usa los "pagos" del invoice más reciente que los tenga (formato nuevo)
+    let nombresSocios = [];
+    const conPagos = sorted.find((i) => Array.isArray(i.pagos) && i.pagos.length);
+    if (conPagos) nombresSocios = conPagos.pagos.map((p) => p.nombre);
+    else nombresSocios = ['Socio 1', 'Socio 2'];
+
+    const filas = sorted.map((inv) => {
+      const fecha = inv.guardadoEn ? new Date(inv.guardadoEn).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }) : '';
+      const montos = nombresSocios.map((nom, i) => {
+        if (Array.isArray(inv.pagos) && inv.pagos[i]) return fmtVisor(inv.pagos[i].total);
+        if (i === 0) return fmtVisor(inv.pagoCra);
+        if (i === 1) return fmtVisor(inv.pagoGuzman);
+        return '—';
+      });
+      return `<tr>
+        <td>${escapeHtmlVisor(inv.label || '')}</td>
+        <td>${fecha}</td>
+        <td class="num">${fmtVisor(inv.gastosTotales)}</td>
+        ${montos.map((m) => `<td class="num">${m}</td>`).join('')}
+      </tr>`;
+    }).join('');
+
+    return `
+      <div class="gc-card">
+        <p class="gc-card-title">Invoices guardados</p>
+        <div style="overflow-x:auto;">
+          <table class="gc-ledger">
+            <thead><tr>
+              <th>Semana</th><th>Guardado</th><th class="num">Gastos</th>
+              ${nombresSocios.map((n) => `<th class="num">${escapeHtmlVisor(n)}</th>`).join('')}
+            </tr></thead>
+            <tbody>${filas}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }
+
+  // ---- HTML: Recibo semanal para una base de datos (solo lectura) ----
+  function htmlReciboSemanalVisor(d) {
+    if (!d.nomina || d.nomina.length === 0) {
+      return `<div class="gc-card"><div class="gc-empty">No hay pagos de nómina en esta base de datos.</div></div>`;
+    }
+    const semanas = new Map();
+    d.nomina.forEach((n) => {
+      const dias = Array.isArray(n.dias) ? n.dias.slice().sort() : [];
+      const refDay = dias[0] || (n.creadoEn || '').slice(0, 10);
+      if (!refDay) return;
+      const wk = weekKeyVisor(refDay);
+      if (!wk) return;
+      if (!semanas.has(wk)) semanas.set(wk, new Map());
+      const trabMap = semanas.get(wk);
+      if (!trabMap.has(n.trabajador)) trabMap.set(n.trabajador, { dias: [], monto: 0 });
+      const t = trabMap.get(n.trabajador);
+      t.dias.push(...dias);
+      t.monto += Number(n.monto) || 0;
+    });
+
+    const claves = [...semanas.keys()].sort((a, b) => b.localeCompare(a));
+    const tarjetas = claves.map((wk) => {
+      const trabMap = semanas.get(wk);
+      const rango = weekRangoVisor(wk);
+      let totalSemana = 0;
+      let filas = '';
+      [...trabMap.entries()].forEach(([nombre, t]) => {
+        totalSemana += t.monto;
+        const diasUnicos = [...new Set(t.dias)].sort();
+        const diasTxt = diasUnicos.map(diaCortoVisor).join(', ');
+        filas += `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #F0F4FA;gap:12px;">
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:600;color:var(--ink);font-size:13.5px;">${escapeHtmlVisor(nombre)}</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px;">trabajó: ${escapeHtmlVisor(diasTxt)} <span style="color:var(--navy);font-weight:600;">(${diasUnicos.length} día${diasUnicos.length !== 1 ? 's' : ''})</span></div>
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--teal);font-size:14px;white-space:nowrap;">${fmtVisor(t.monto)}</div>
+          </div>`;
+      });
+      return `
+        <div class="gc-card" style="margin-bottom:16px;">
+          <p style="font-family:'Zilla Slab',serif;font-size:15px;font-weight:600;color:var(--ink);margin-bottom:12px;">Semana del ${fechaCortaVisor(rango.inicio)} al ${fechaCortaVisor(rango.fin)}</p>
+          <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+            ${filas}
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--navy);color:#fff;">
+              <span style="font-weight:600;font-size:13px;">TOTAL DE LA SEMANA</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:15px;">${fmtVisor(totalSemana)}</span>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+    return tarjetas || `<div class="gc-card"><div class="gc-empty">No hay pagos de nómina en esta base de datos.</div></div>`;
+  }
+
+  // Bloqueo de edición: por si algún elemento interactivo quedara dentro de
+  // estos paneles nuevos, no se puede editar nada (todo es texto/tablas, pero
+  // esto es un respaldo).
+  function aplicarBloqueoEdicionVisor() {
+    document.body.insertAdjacentHTML('afterbegin', `<div id="gh-banner-visor" style="background:#EAF3FF;color:#1A4B8C;font-size:12.5px;padding:10px 20px;text-align:center;border-bottom:1px solid #C7DFFB;">Modo visor — puedes ver y descargar, no editar.</div>`);
+    const style = document.createElement('style');
+    style.textContent = `
+      body.gh-modo-visor .visor-panel input,
+      body.gh-modo-visor .visor-panel select,
+      body.gh-modo-visor .visor-panel textarea {
+        pointer-events: none !important;
+        opacity: .6 !important;
+      }
+    `;
+    document.head.appendChild(style);
   }
 })();
 </script>
