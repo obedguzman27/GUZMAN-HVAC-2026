@@ -982,64 +982,28 @@
   <!-- Registrar pago -->
   <div class="nom-subpanel active" id="nom-sub-registro">
     <div class="gc-card">
-      <p class="gc-card-title">Registrar pago a trabajador</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <button type="button" id="nom-grid-sem-prev" class="gc-action-btn" style="padding:8px 16px;font-size:16px;">‹</button>
+        <p class="gc-card-title" id="nom-grid-sem-titulo" style="margin:0;text-align:center;"></p>
+        <button type="button" id="nom-grid-sem-next" class="gc-action-btn" style="padding:8px 16px;font-size:16px;">›</button>
+      </div>
+      <p style="font-size:12.5px;color:var(--muted);text-align:center;margin-bottom:16px;">Toca los días que trabajó cada quien esta semana. El monto se calcula solo (días × sueldo), editable.</p>
 
-      <!-- Trabajadores (escribe/busca y agrega, sin límite) -->
-      <div class="gc-field" style="margin-bottom:14px;">
-        <label>Trabajadores (escribe o busca y agrega los que necesites)</label>
-        <div style="display:flex;gap:8px;">
-          <input type="text" id="nom-trab-buscar" list="dl-trab-todos" placeholder="Escribe o busca un trabajador…" autocomplete="off" style="flex:1;">
-          <datalist id="dl-trab-todos"></datalist>
-          <button type="button" class="gc-action-btn" id="nom-btn-add-trab">+ Agregar</button>
-        </div>
-        <div id="nom-trab-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;"></div>
-        <p id="nom-trab-info" style="font-size:12px;color:var(--muted);margin-top:6px;"></p>
+      <!-- Agregar trabajador (escribe/busca; si es nuevo, lo crea) -->
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <input type="text" id="nom-grid-buscar" list="dl-trab-todos" placeholder="Agregar otro trabajador a esta semana…" autocomplete="off"
+          style="flex:1;font-family:'Inter',sans-serif;font-size:13.5px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
+        <datalist id="dl-trab-todos"></datalist>
+        <button type="button" class="gc-action-btn" id="nom-grid-btn-add">+ Agregar</button>
       </div>
 
-      <!-- Sueldo (solo cuando hay 1 seleccionado) -->
-      <div class="gc-field" id="nom-sueldo-wrap" style="margin-bottom:14px;">
-        <label>Sueldo por día de este trabajador (editable)</label>
-        <input type="text" id="nom-sueldo-dia" inputmode="decimal" placeholder="$ por día" autocomplete="off" style="background:#EEF2FF;font-weight:600;">
-      </div>
+      <div id="nom-grid-lista"></div>
+      <div class="gc-empty" id="nom-grid-empty" style="display:none;">No hay trabajadores todavía. Agrégalos arriba.</div>
 
-      <div class="gc-field" style="margin-bottom:14px;">
-        <label>Días que trabajó (toca los días de la semana)</label>
-        <div id="nom-semana-picker" style="background:#F5F8FC;border:1.5px solid var(--border);border-radius:14px;padding:18px;max-width:460px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-            <button type="button" id="nom-sem-prev" class="gc-action-btn" style="padding:8px 16px;font-size:16px;">‹</button>
-            <div id="nom-sem-titulo" style="font-weight:700;font-size:14.5px;color:var(--ink);text-align:center;"></div>
-            <button type="button" id="nom-sem-next" class="gc-action-btn" style="padding:8px 16px;font-size:16px;">›</button>
-          </div>
-          <div id="nom-sem-dias-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:7px;"></div>
-        </div>
-        <div id="nom-dias-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;"></div>
-        <p id="nom-dias-info" style="font-size:12px;color:var(--muted);margin-top:6px;"></p>
+      <div style="display:flex;justify-content:flex-end;margin-top:14px;">
+        <button class="gc-save-btn" id="nom-grid-guardar">Guardar cambios de la semana</button>
       </div>
-
-      <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px;padding:14px;background:#FDEEE6;border-radius:10px;border:1px solid #F0C9B4;">
-        <div class="gc-field"><label>Extra (opcional) — concepto</label><input type="text" id="nom-extra-desc" autocomplete="off"></div>
-        <div class="gc-field"><label>Monto del extra ($)</label><input type="text" id="nom-extra-monto" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 2fr;gap:14px;margin-bottom:14px;">
-        <div class="gc-field" id="nom-monto-wrap"><label>Monto total ($) — se calcula solo, editable</label><input type="text" id="nom-monto" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
-        <div class="gc-field"><label>Nota (opcional)</label><input type="text" id="nom-nota" autocomplete="off"></div>
-      </div>
-      <div id="nom-preview-multi" style="display:none;background:#EEF2FF;border:1px solid #C7D6EC;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--ink);"></div>
-
-      <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button class="gc-action-btn" id="nom-btn-limpiar">Limpiar</button>
-        <button class="gc-save-btn" id="nom-btn-guardar">Guardar pago</button>
-      </div>
-      <input type="hidden" id="nom-editando" value="">
       <p id="nom-status" style="font-size:12px;color:var(--muted);text-align:right;margin-top:8px;height:14px;"></p>
-    </div>
-
-    <!-- Pagos de esta semana -->
-    <div class="gc-card">
-      <p class="gc-card-title">Pagos de esta semana</p>
-      <div class="gc-empty" id="nom-semana-empty" style="display:none;">Aún no has guardado pagos esta semana.</div>
-      <div id="nom-semana-lista"></div>
     </div>
   </div>
 
@@ -1133,25 +1097,6 @@
     <button class="gc-action-btn" id="nom-btn-cerrar-recibo" style="background:#fff;">Cerrar</button>
   </div>
   <div class="inv-print-sheet" id="nom-recibo-content"></div>
-</div>
-
-<!-- Modal: Editar semana de nómina (incluye a todos los trabajadores) -->
-<div class="emp-modal-overlay" id="nom-es-modal" style="display:none;">
-  <div class="emp-modal" style="max-width:640px;">
-    <div class="emp-modal-header">
-      <p class="emp-modal-title" id="nom-es-titulo">Editar semana</p>
-      <button class="emp-modal-close" id="nom-es-cerrar">✕</button>
-    </div>
-    <div class="emp-modal-body">
-      <p style="font-size:12.5px;color:var(--muted);margin-bottom:16px;">Toca los días de cada trabajador para esta semana. El monto se calcula solo (días × sueldo) pero lo puedes cambiar a mano. Deja a alguien en 0 días para quitarlo de esta semana.</p>
-      <div id="nom-es-lista"></div>
-      <div class="emp-modal-actions">
-        <button class="gc-save-btn" id="nom-es-guardar">Guardar cambios de la semana</button>
-        <button class="gc-action-btn" id="nom-es-cancelar">Cancelar</button>
-      </div>
-      <p id="nom-es-status" style="font-size:12px;margin-top:10px;color:var(--muted);"></p>
-    </div>
-  </div>
 </div>
 
 <!-- ===== FACTURAS ===== -->
@@ -1528,7 +1473,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v33 · 01 sep';
+  const APP_VERSION = 'v34 · 01 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -3396,8 +3341,7 @@
           nomCargado = true; // ya quedó cargado con lo restaurado; evita que un futuro click lo pise
           nomRefreshDl();
           nomRenderRegLedger(); nomRenderHist(); nomRenderTrabajadores(); nomRenderSemanal();
-          if (typeof nomRenderSemanaActual === 'function') nomRenderSemanaActual();
-          if (typeof nomActualizarModoTrab === 'function') nomActualizarModoTrab();
+          if (typeof nomGridAbrirSemana === 'function') nomGridAbrirSemana();
         } catch (e) {}
 
         renderCategorias();
@@ -4844,8 +4788,7 @@
   // ====================================================================
   const NOM_KEY = 'gh-nomina'; // entradas de pago
   const TRAB_NOM_KEY_VIEJO = 'gh-trabajadores'; // formato viejo [{nombre, sueldo}] — solo para migrar una vez
-  let nomDocs = [], nomEditando = null;
-  let nomDiasSel = []; // fechas seleccionadas para el pago actual
+  let nomDocs = [];
 
   const nomFmt = n => '$'+(Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   const nomToday = () => new Date().toISOString().slice(0,10);
@@ -4898,109 +4841,13 @@
       const dl = document.getElementById(id);
       if (dl) dl.innerHTML = activos.map((e) => `<option value="${escapeHtml(empNombreCompleto(e))}">`).join('');
     });
-    if (typeof nomRenderTrabChips === 'function') nomRenderTrabChips();
   }
 
-  // Lee el sueldo por día del campo editable (acepta "$150.00" o "150")
-  function nomLeerSueldoCampo() {
-    const v = ($('nom-sueldo-dia').value || '').replace(/[^0-9.,]/g, '').replace(',', '.');
-    return parseFloat(v) || 0;
-  }
-
-  // ---- Trabajadores: buscar/escribir y agregar (sin mostrar todos, sin límite) ----
-  let nomTrabSel = []; // nombres de trabajadores seleccionados
-
-  // Muestra SOLO los trabajadores seleccionados como chips removibles
-  function nomRenderTrabChips() {
-    const cont = $('nom-trab-chips');
-    if (!cont) return;
-    cont.innerHTML = '';
-    nomTrabSel.forEach((nombre, idx) => {
-      const chip = document.createElement('div');
-      chip.className = 'inv-chip';
-      chip.innerHTML = `<span>${escapeHtml(nombre)}</span><button type="button" data-i="${idx}">✕</button>`;
-      chip.querySelector('button').addEventListener('click', () => {
-        nomTrabSel.splice(idx, 1);
-        nomActualizarModoTrab();
-      });
-      cont.appendChild(chip);
-    });
-    const info = $('nom-trab-info');
-    if (info) info.textContent = nomTrabSel.length
-      ? `${nomTrabSel.length} trabajador(es) seleccionado(s)`
-      : 'Escribe un nombre y pulsa “+ Agregar”. Puedes agregar los que quieras.';
-  }
-
-  // Ajusta la vista según cuántos trabajadores estén seleccionados
-  function nomActualizarModoTrab() {
-    nomRenderTrabChips();
-    const n = nomTrabSel.length;
-    if (n === 1) {
-      // Modo un solo trabajador: sueldo + monto editables (como antes)
-      $('nom-sueldo-wrap').style.display = 'block';
-      $('nom-monto-wrap').style.display = 'block';
-      $('nom-preview-multi').style.display = 'none';
-      const t = nomBuscarTrab(nomTrabSel[0]);
-      if (t && !$('nom-sueldo-dia').dataset.tocado) $('nom-sueldo-dia').value = t && t.sueldo ? String(t.sueldo) : '';
-      delete $('nom-monto').dataset.editado;
-      nomRecalcularMonto();
-    } else {
-      // 0 o varios: ocultar sueldo/monto único; mostrar vista previa si hay varios
-      $('nom-sueldo-wrap').style.display = 'none';
-      $('nom-monto-wrap').style.display = 'none';
-      nomRenderPreviewMulti();
-    }
-  }
-
-  function nomRenderPreviewMulti() {
-    const box = $('nom-preview-multi');
-    if (nomTrabSel.length < 2) { box.style.display = 'none'; return; }
-    const extra = parseFloat(($('nom-extra-monto').value || '0').replace(',', '.')) || 0;
-    const filas = nomTrabSel.map((nombre) => {
-      const t = nomBuscarTrab(nombre);
-      const sueldo = t ? (t.sueldo || 0) : 0;
-      const total = (nomDiasSel.length * sueldo) + extra;
-      return `<div style="display:flex;justify-content:space-between;padding:3px 0;"><span>${escapeHtml(nombre)} <span style="color:var(--muted);">(${nomDiasSel.length}d × ${fmt(sueldo)}${extra?` + ${fmt(extra)}`:''})</span></span><strong>${fmt(total)}</strong></div>`;
-    }).join('');
-    box.innerHTML = `<div style="font-weight:700;margin-bottom:6px;">Se guardarán ${nomTrabSel.length} pagos:</div>${filas}<p style="font-size:11px;color:var(--muted);margin:8px 0 0;">Cada trabajador usa su propio sueldo (edítalo en la pestaña Trabajadores).</p>`;
-    box.style.display = 'block';
-  }
-
-  // Agregar el trabajador escrito/buscado a la selección
-  async function nomAgregarTrabSel() {
-    const nombre = $('nom-trab-buscar').value.trim();
-    if (!nombre) return;
-    // Buscar coincidencia exacta ignorando mayúsculas; si no existe, crearlo como Empleado nuevo
-    const existente = nomBuscarTrab(nombre);
-    const nombreFinal = existente ? empNombreCompleto(existente) : nombre;
-    if (!existente) {
-      empleados.push({
-        id: 'emp-' + Date.now(), nombre, apellido: '', rol: '', estado: 'activo', sueldo: 0,
-        tel: '', email: '', inicio: '', ss: '', emergencia: '', direccion: '', notas: ''
-      });
-      await saveEmpleados();
-      nomRefreshDl();
-    }
-    if (!nomTrabSel.includes(nombreFinal)) nomTrabSel.push(nombreFinal);
-    $('nom-trab-buscar').value = '';
-    nomActualizarModoTrab();
-    $('nom-trab-buscar').focus();
-  }
-  $('nom-btn-add-trab').addEventListener('click', nomAgregarTrabSel);
-  $('nom-trab-buscar').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); nomAgregarTrabSel(); } });
-
-  // Al editar el sueldo directamente, recalcular el total
-  $('nom-sueldo-dia').addEventListener('input', () => {
-    $('nom-sueldo-dia').dataset.tocado = '1';
-    delete $('nom-monto').dataset.editado;
-    nomRecalcularMonto();
-  });
-
-  // ---- Selección de días (por semana, como en Editar semana — toca los
-  // días de esa semana, y te mueves de semana en semana con ‹ ›) ----
+  // ---- Semana activa del formulario de Registrar pago ----
   let nomRegSemanaOffset = 0; // 0 = semana actual, -1 = semana pasada, +1 = próxima
+  let nomGridFilas = []; // [{ nombre, sueldo, dias:[...], monto, montoTocado, pagos:[ids], nota, extraDesc, extraMonto, extraAbierto }]
 
-  function nomRegFechasSemana() {
+  function nomGridFechasSemana() {
     const base = new Date();
     base.setDate(base.getDate() + nomRegSemanaOffset * 7);
     const dowLun = (base.getDay() + 6) % 7; // 0 = lunes
@@ -5010,82 +4857,165 @@
     return out;
   }
 
-  function nomCalRender() {
-    const grid = $('nom-sem-dias-grid');
-    if (!grid) return;
-    const fechas = nomRegFechasSemana();
-    const letras = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
-    const hoyStr = nomToday();
-    $('nom-sem-titulo').textContent = `Semana del ${nomFechaCortaTexto(fechas[0])} al ${nomFechaCortaTexto(fechas[6])}`;
+  // Arma la lista de TODOS los trabajadores activos (+ cualquiera con pago
+  // esta semana aunque ahora esté inactivo) para la semana actualmente
+  // seleccionada, con sus días/monto ya guardados (si los hay).
+  function nomGridAbrirSemana() {
+    const fechas = nomGridFechasSemana();
+    $('nom-grid-sem-titulo').textContent = `Semana del ${nomFechaCortaTexto(fechas[0])} al ${nomFechaCortaTexto(fechas[6])}`;
+    const wk = fechas[0];
+    const semanas = nomAgruparSemanas();
+    const trabMap = semanas.get(wk) || new Map();
+    const activos = empleados.filter((e) => e.estado !== 'inactivo').map((e) => empNombreCompleto(e));
+    const nombresConPago = [...trabMap.keys()];
+    const nombres = [...new Set([...activos, ...nombresConPago])];
 
-    grid.innerHTML = fechas.map((fecha, i) => {
-      const seleccionado = nomDiasSel.includes(fecha);
-      const esHoy = fecha === hoyStr;
-      const fondo = seleccionado ? 'var(--navy)' : '#fff';
-      const borde = seleccionado ? 'var(--navy)' : (esHoy ? 'var(--teal)' : 'var(--border)');
-      const d = new Date(fecha + 'T00:00:00');
-      return `<button type="button" class="nom-sem-dia-btn" data-fecha="${fecha}"
-        style="height:52px;border-radius:10px;font-size:15.5px;font-weight:600;cursor:pointer;
-        border:1.5px solid ${borde};background:${fondo};color:${seleccionado ? '#fff' : 'var(--ink)'};
-        display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;transition:background .1s,color .1s;">
-        <span style="font-size:9.5px;font-weight:700;opacity:.75;">${letras[i]}</span>${d.getDate()}</button>`;
+    nomGridFilas = nombres.map((nombre) => {
+      const t = nomBuscarTrab(nombre);
+      const existente = trabMap.get(nombre);
+      const dias = existente ? [...new Set(existente.dias)].sort() : [];
+      const monto = existente ? existente.monto : 0;
+      const pagos = existente ? existente.pagos.map((p) => p.id) : [];
+      const primerPago = existente && existente.pagos.length ? existente.pagos[0] : null;
+      return {
+        nombre, sueldo: t ? (t.sueldo || 0) : 0, dias, monto, montoTocado: false, pagos, tocado: false,
+        nota: primerPago ? (primerPago.nota || '') : '',
+        extraDesc: primerPago ? (primerPago.extraDesc || '') : '',
+        extraMonto: primerPago ? (Number(primerPago.extraMonto) || 0) : 0,
+        extraAbierto: false
+      };
+    }).sort((a, b) => {
+      if ((b.dias.length > 0) !== (a.dias.length > 0)) return (b.dias.length > 0) ? 1 : -1;
+      return a.nombre.localeCompare(b.nombre);
+    });
+
+    nomGridRender();
+  }
+
+  function nomGridRender() {
+    const cont = $('nom-grid-lista');
+    if (!cont) return;
+    $('nom-grid-empty').style.display = nomGridFilas.length === 0 ? 'block' : 'none';
+    const fechas = nomGridFechasSemana();
+    const letras = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+
+    cont.innerHTML = nomGridFilas.map((fila, fi) => {
+      const botones = fechas.map((f, i) => {
+        const d = new Date(f + 'T00:00:00');
+        const sel = fila.dias.includes(f);
+        return `<button type="button" class="nom-grid-dia" data-fi="${fi}" data-fecha="${f}"
+          style="height:44px;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer;
+          border:1.5px solid ${sel ? 'var(--navy)' : 'var(--border)'};
+          background:${sel ? 'var(--navy)' : '#fff'};color:${sel ? '#fff' : 'var(--ink)'};
+          display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.25;">
+          <span style="font-size:9.5px;opacity:.8;">${letras[i]}</span>${d.getDate()}</button>`;
+      }).join('');
+      return `
+        <div class="gc-card" data-grid-nombre="${escapeHtml(fila.nombre)}" style="margin-bottom:10px;padding:12px 14px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;">
+            <div>
+              <div style="font-weight:600;font-size:13.5px;color:var(--ink);">${escapeHtml(fila.nombre)}</div>
+              <div style="font-size:11px;color:var(--muted);">sueldo: ${nomFmt(fila.sueldo)}/día${fila.pagos.length > 1 ? ' · varios pagos (se juntan al guardar)' : ''}</div>
+              <button type="button" class="nom-grid-extra-toggle" data-fi="${fi}" style="background:none;border:none;padding:0;margin-top:4px;font-size:11px;color:var(--teal-dk);text-decoration:underline;cursor:pointer;">${fila.extraMonto ? `Extra: ${nomFmt(fila.extraMonto)} ✎` : '+ agregar extra'}</button>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;">Monto</div>
+              <input type="text" class="nom-grid-monto" data-fi="${fi}" value="${fila.monto ? fila.monto.toFixed(2) : ''}" inputmode="decimal" placeholder="0.00"
+                style="width:92px;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:700;padding:6px 8px;border:1.5px solid var(--border);border-radius:8px;">
+            </div>
+          </div>
+          ${fila.extraAbierto ? `
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-bottom:10px;padding:10px;background:#FDEEE6;border-radius:8px;border:1px solid #F0C9B4;">
+            <div><label style="font-size:10px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:3px;">Concepto</label><input type="text" class="nom-grid-extra-desc" data-fi="${fi}" value="${escapeHtml(fila.extraDesc || '')}" style="width:100%;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:12.5px;box-sizing:border-box;"></div>
+            <div><label style="font-size:10px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:3px;">Monto extra</label><input type="text" class="nom-grid-extra-monto" data-fi="${fi}" value="${fila.extraMonto ? fila.extraMonto.toFixed(2) : ''}" inputmode="decimal" placeholder="0.00" style="width:100%;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:12.5px;box-sizing:border-box;"></div>
+          </div>` : ''}
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;">${botones}</div>
+        </div>`;
     }).join('');
 
-    grid.querySelectorAll('.nom-sem-dia-btn').forEach((btn) => {
+    cont.querySelectorAll('.nom-grid-dia').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const fecha = btn.dataset.fecha;
-        const idx = nomDiasSel.indexOf(fecha);
-        if (idx >= 0) nomDiasSel.splice(idx, 1);
-        else { nomDiasSel.push(fecha); nomDiasSel.sort(); }
-        nomRenderChips();
-        nomRecalcularMonto();
+        const fi = Number(btn.dataset.fi);
+        const fila = nomGridFilas[fi];
+        const f = btn.dataset.fecha;
+        const idx = fila.dias.indexOf(f);
+        if (idx >= 0) fila.dias.splice(idx, 1); else { fila.dias.push(f); fila.dias.sort(); }
+        fila.tocado = true;
+        if (!fila.montoTocado) fila.monto = (fila.dias.length * fila.sueldo) + (fila.extraMonto || 0);
+        nomGridRender();
+      });
+    });
+    cont.querySelectorAll('.nom-grid-monto').forEach((inp) => {
+      inp.addEventListener('input', () => {
+        const fi = Number(inp.dataset.fi);
+        nomGridFilas[fi].montoTocado = true;
+        nomGridFilas[fi].tocado = true;
+        nomGridFilas[fi].monto = parseFloat(inp.value.replace(',', '.')) || 0;
+      });
+    });
+    cont.querySelectorAll('.nom-grid-extra-toggle').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const fi = Number(btn.dataset.fi);
+        nomGridFilas[fi].extraAbierto = !nomGridFilas[fi].extraAbierto;
+        nomGridRender();
+      });
+    });
+    cont.querySelectorAll('.nom-grid-extra-desc').forEach((inp) => {
+      inp.addEventListener('input', () => {
+        const fi = Number(inp.dataset.fi);
+        nomGridFilas[fi].extraDesc = inp.value;
+        nomGridFilas[fi].tocado = true;
+      });
+    });
+    cont.querySelectorAll('.nom-grid-extra-monto').forEach((inp) => {
+      inp.addEventListener('input', () => {
+        const fi = Number(inp.dataset.fi);
+        const fila = nomGridFilas[fi];
+        fila.extraMonto = parseFloat(inp.value.replace(',', '.')) || 0;
+        fila.tocado = true;
+        if (!fila.montoTocado) {
+          fila.monto = (fila.dias.length * fila.sueldo) + fila.extraMonto;
+          const montoInp = cont.querySelector(`.nom-grid-monto[data-fi="${fi}"]`);
+          if (montoInp) montoInp.value = fila.monto ? fila.monto.toFixed(2) : '';
+        }
       });
     });
   }
-  $('nom-sem-prev').addEventListener('click', () => { nomRegSemanaOffset--; nomCalRender(); });
-  $('nom-sem-next').addEventListener('click', () => { nomRegSemanaOffset++; nomCalRender(); });
-  nomCalRender();
 
-  function nomRenderChips() {
-    const cont = $('nom-dias-chips');
-    cont.innerHTML = '';
-    nomDiasSel.forEach((f, i) => {
-      const chip = document.createElement('div');
-      chip.className = 'inv-chip';
-      // Mostrar fecha con día de la semana
-      const d = new Date(f + 'T00:00:00');
-      const dias = ['dom','lun','mar','mié','jue','vie','sáb'];
-      const etiqueta = isNaN(d) ? f : `${dias[d.getDay()]} ${f}`;
-      chip.innerHTML = `<span>${etiqueta}</span><button type="button" data-i="${i}">✕</button>`;
-      chip.querySelector('button').addEventListener('click', () => {
-        nomDiasSel.splice(i, 1);
-        nomRenderChips();
-        nomRecalcularMonto();
-      });
-      cont.appendChild(chip);
-    });
-    $('nom-dias-info').textContent = nomDiasSel.length
-      ? `${nomDiasSel.length} día(s) seleccionado(s)`
-      : 'Aún no has tocado ningún día. Toca todos los que necesites en el calendario de arriba.';
-    nomCalRender();
-  }
+  $('nom-grid-sem-prev').addEventListener('click', () => { nomRegSemanaOffset--; nomGridAbrirSemana(); });
+  $('nom-grid-sem-next').addEventListener('click', () => { nomRegSemanaOffset++; nomGridAbrirSemana(); });
 
-  function nomRecalcularMonto() {
-    const sueldo = nomLeerSueldoCampo(); // usa el sueldo del campo (editable)
-    const extra = parseFloat(($('nom-extra-monto').value || '0').replace(',', '.')) || 0;
-    const total = (nomDiasSel.length * sueldo) + extra;
-    // Solo autollenar si el usuario no ha editado manualmente (o está vacío)
-    if (!$('nom-monto').dataset.editado || $('nom-monto').value === '') {
-      $('nom-monto').value = total > 0 ? total.toFixed(2) : '';
+  // Agregar un trabajador nuevo a la lista de esta semana (si el nombre no
+  // existe en Empleados, lo crea con sueldo $0, editable luego).
+  async function nomGridAgregarTrabajador() {
+    const nombre = $('nom-grid-buscar').value.trim();
+    if (!nombre) return;
+    const existente = nomBuscarTrab(nombre);
+    const nombreFinal = existente ? empNombreCompleto(existente) : nombre;
+    if (nomGridFilas.some((f) => f.nombre === nombreFinal)) {
+      $('nom-grid-buscar').value = '';
+      toast('Ya está en la lista de esta semana', 'info');
+      return;
     }
-    if (nomTrabSel.length >= 2) nomRenderPreviewMulti();
+    let sueldo = 0;
+    if (!existente) {
+      empleados.push({
+        id: 'emp-' + Date.now(), nombre, apellido: '', rol: '', estado: 'activo', sueldo: 0,
+        tel: '', email: '', inicio: '', ss: '', emergencia: '', direccion: '', notas: ''
+      });
+      await saveEmpleados();
+      nomRefreshDl();
+    } else {
+      sueldo = existente.sueldo || 0;
+    }
+    nomGridFilas.push({ nombre: nombreFinal, sueldo, dias: [], monto: 0, montoTocado: false, pagos: [], tocado: false, nota: '', extraDesc: '', extraMonto: 0, extraAbierto: false });
+    nomGridFilas.sort((a, b) => { if ((b.dias.length > 0) !== (a.dias.length > 0)) return (b.dias.length > 0) ? 1 : -1; return a.nombre.localeCompare(b.nombre); });
+    $('nom-grid-buscar').value = '';
+    nomGridRender();
+    $('nom-grid-buscar').focus();
   }
-  $('nom-monto').addEventListener('input', () => { $('nom-monto').dataset.editado = '1'; });
-  $('nom-extra-monto').addEventListener('input', () => {
-    // Al cambiar el extra, recalcular el total (quitar la marca de editado para reflejarlo)
-    delete $('nom-monto').dataset.editado;
-    nomRecalcularMonto();
-  });
+  $('nom-grid-btn-add').addEventListener('click', nomGridAgregarTrabajador);
+  $('nom-grid-buscar').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); nomGridAgregarTrabajador(); } });
 
   // Nombre completo del día con fecha: "Lunes 4 de Agosto de 2026"
   function nomFechaCompleta(fechaStr) {
@@ -5096,137 +5026,83 @@
     return `${dias[d.getDay()]} ${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`;
   }
 
-  // ---- Guardar pago ----
-  $('nom-btn-guardar').addEventListener('click', async () => {
-    const nota = $('nom-nota').value.trim();
-    const extraDesc = $('nom-extra-desc').value.trim();
-    const extraMonto = parseFloat(($('nom-extra-monto').value || '0').replace(',', '.')) || 0;
-
-    if (nomTrabSel.length === 0) { $('nom-status').textContent = 'Toca al menos un trabajador'; setTimeout(()=>{$('nom-status').textContent='';},2000); return; }
-    if (nomDiasSel.length === 0) { $('nom-status').textContent = 'Toca al menos un día en el calendario'; setTimeout(()=>{$('nom-status').textContent='';},2000); return; }
-
-    const editando = !!nomEditando;
-    let guardados = 0;
-
-    if (editando || nomTrabSel.length === 1) {
-      // Un solo trabajador (o editando): usa sueldo + monto editable
-      const trabajador = nomTrabSel[0];
-      const monto = parseFloat(($('nom-monto').value || '0').replace(',', '.')) || 0;
-      if (monto <= 0) { $('nom-status').textContent = 'El monto no puede ser cero'; setTimeout(()=>{$('nom-status').textContent='';},2000); return; }
-      let t = nomBuscarTrab(trabajador);
-      const sueldoCampo = nomLeerSueldoCampo();
-      if (!t) {
-        t = { id: 'emp-' + Date.now(), nombre: trabajador, apellido: '', rol: '', estado: 'activo', sueldo: sueldoCampo, tel: '', email: '', inicio: '', ss: '', emergencia: '', direccion: '', notas: '' };
-        empleados.push(t); await saveEmpleados(); nomRefreshDl();
+  // ---- Guardar cambios de la semana (crea/actualiza/quita pagos de todos los trabajadores a la vez) ----
+  $('nom-grid-guardar').addEventListener('click', async () => {
+    let creados = 0, actualizados = 0, borrados = 0;
+    nomGridFilas.forEach((fila) => {
+      if (!fila.tocado) return; // nadie tocó esta fila — no hay nada que guardar
+      if (fila.dias.length > 0) {
+        const idPrincipal = fila.pagos[0] || (Date.now().toString() + '-' + Math.random().toString(36).slice(2, 7));
+        const original = fila.pagos[0] ? nomDocs.find((n) => n.id === fila.pagos[0]) : null;
+        const entrada = {
+          id: idPrincipal, trabajador: fila.nombre, dias: [...fila.dias],
+          sueldoDia: fila.sueldo, extraDesc: fila.extraDesc || '', extraMonto: fila.extraMonto || 0,
+          monto: fila.monto, nota: fila.nota || '',
+          creadoEn: original ? original.creadoEn : new Date().toISOString()
+        };
+        const idx = nomDocs.findIndex((n) => n.id === idPrincipal);
+        if (idx >= 0) { nomDocs[idx] = entrada; actualizados++; } else { nomDocs.push(entrada); creados++; }
+        if (fila.pagos.length > 1) {
+          const extras = fila.pagos.slice(1);
+          nomDocs = nomDocs.filter((n) => !extras.includes(n.id));
+        }
+      } else if (fila.pagos.length > 0) {
+        nomDocs = nomDocs.filter((n) => !fila.pagos.includes(n.id));
+        borrados += fila.pagos.length;
       }
-      const entrada = {
-        id: nomEditando || Date.now().toString(),
-        trabajador, dias: [...nomDiasSel],
-        sueldoDia: sueldoCampo || t.sueldo,
-        extraDesc, extraMonto, monto, nota,
-        creadoEn: new Date().toISOString()
-      };
-      const idx = nomDocs.findIndex((n) => n.id === entrada.id);
-      if (idx >= 0) nomDocs[idx] = entrada; else nomDocs.push(entrada);
-      guardados = 1;
-    } else {
-      // Varios trabajadores: un pago por cada uno (días × su sueldo + extra)
-      for (const nombre of nomTrabSel) {
-        const t = nomBuscarTrab(nombre) || { nombre, sueldo: 0 };
-        const sueldo = t.sueldo || 0;
-        const monto = (nomDiasSel.length * sueldo) + extraMonto;
-        nomDocs.push({
-          id: Date.now().toString() + '-' + Math.random().toString(36).slice(2, 7),
-          trabajador: nombre, dias: [...nomDiasSel],
-          sueldoDia: sueldo, extraDesc, extraMonto, monto, nota,
-          creadoEn: new Date().toISOString()
-        });
-        guardados++;
-      }
-    }
+    });
 
     await nomSaveDocs();
-    nomEditando = null;
-    $('nom-editando').value = '';
-    $('nom-btn-guardar').textContent = 'Guardar pago';
-    nomLimpiar();
-    // Ya NO se genera PDF al guardar — solo se guarda
-    nomRenderRegLedger();
-    nomRenderSemanaActual();
-    toast(guardados > 1 ? `${guardados} pagos guardados ✓` : (editando ? 'Pago actualizado ✓' : 'Pago guardado ✓'), 'success');
+    nomGridAbrirSemana();
+    if (typeof nomRenderRegLedger === 'function') nomRenderRegLedger();
+    if (typeof nomRenderSemanal === 'function') nomRenderSemanal();
+    const partes = [];
+    if (creados) partes.push(`${creados} agregado(s)`);
+    if (actualizados) partes.push(`${actualizados} actualizado(s)`);
+    if (borrados) partes.push(`${borrados} quitado(s)`);
+    toast(partes.length ? `Semana guardada — ${partes.join(', ')} ✓` : 'Sin cambios', 'success');
   });
 
-  // ---- Pagos de esta semana (debajo del formulario) ----
-  function nomRenderSemanaActual() {
-    const cont = $('nom-semana-lista');
-    if (!cont) return;
-    const hoyD = new Date(nomToday() + 'T00:00:00');
-    const dowLun = (hoyD.getDay() + 6) % 7;
-    const lun = new Date(hoyD); lun.setDate(hoyD.getDate() - dowLun); lun.setHours(0,0,0,0);
-    const finSem = new Date(lun); finSem.setDate(lun.getDate() + 7);
-    const dela = nomDocs.filter((n) => { const c = new Date(n.creadoEn); return c >= lun && c < finSem; })
-      .sort((a, b) => (b.creadoEn || '').localeCompare(a.creadoEn || ''));
-    $('nom-semana-empty').style.display = dela.length === 0 ? 'block' : 'none';
-    cont.innerHTML = dela.map((n) => {
-      const dias = Array.isArray(n.dias) ? n.dias.length : 0;
-      return `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
-        <div><div style="font-weight:600;">${escapeHtml(n.trabajador || '')}</div>
-        <div style="font-size:12px;color:var(--muted);">${dias} día(s)${n.extraMonto?` · extra ${fmt(n.extraMonto)}`:''}${n.nota?` · ${escapeHtml(n.nota)}`:''}</div></div>
-        <div style="font-weight:700;color:var(--teal);font-family:'IBM Plex Mono',monospace;">${fmt(n.monto)}</div>
-      </div>`;
-    }).join('');
-  }
-
-  function nomLimpiar() {
-    nomDiasSel = [];
-    nomTrabSel = [];
-    nomRenderChips();
-    $('nom-sueldo-dia').value = '';
-    delete $('nom-sueldo-dia').dataset.tocado;
-    $('nom-monto').value = '';
-    delete $('nom-monto').dataset.editado;
-    $('nom-nota').value = '';
-    $('nom-extra-desc').value = '';
-    $('nom-extra-monto').value = '';
-    nomActualizarModoTrab();
-  }
-  $('nom-btn-limpiar').addEventListener('click', () => {
-    nomLimpiar();
-    nomEditando = null;
-    $('nom-editando').value = '';
-    $('nom-btn-guardar').textContent = 'Guardar pago';
-  });
-
-  // ---- Editar pago ----
-  function nomEditar(entrada) {
-    nomEditando = entrada.id;
-    $('nom-editando').value = entrada.id;
-    nomTrabSel = [entrada.trabajador];
-    const t = nomBuscarTrab(entrada.trabajador);
-    const sueldoMostrar = entrada.sueldoDia != null ? entrada.sueldoDia : (t ? t.sueldo : 0);
-    $('nom-sueldo-dia').value = sueldoMostrar ? String(sueldoMostrar) : '';
-    $('nom-sueldo-dia').dataset.tocado = '1';
-    nomDiasSel = Array.isArray(entrada.dias) ? [...entrada.dias] : [];
-    if (nomDiasSel.length) {
-      const primerDia = new Date(nomDiasSel[0] + 'T00:00:00');
-      if (!isNaN(primerDia)) {
-        const mondayEntrada = mondayOf(nomDiasSel[0]);
-        const mondayHoy = mondayOf(nomToday());
-        nomRegSemanaOffset = Math.round((mondayEntrada - mondayHoy) / (7 * 24 * 60 * 60 * 1000));
-      }
-    }
-    nomActualizarModoTrab();
-    nomRenderChips();
-    $('nom-extra-desc').value = entrada.extraDesc || '';
-    $('nom-extra-monto').value = entrada.extraMonto ? String(entrada.extraMonto) : '';
-    $('nom-monto').value = entrada.monto != null ? String(entrada.monto) : '';
-    $('nom-monto').dataset.editado = '1';
-    $('nom-nota').value = entrada.nota || '';
-    $('nom-btn-guardar').textContent = 'Actualizar pago';
+  // Lleva al usuario a Registrar pago, en la semana que corresponde, y si
+  // se da un nombre, resalta su tarjeta (usado por "Editar" en Historial,
+  // Pagos guardados y Recibo semanal).
+  function nomIrARegistrarSemana(resaltarNombre) {
     document.querySelector('.nom-subtab[data-nsub="registro"]').click();
+    nomGridAbrirSemana();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    $('nom-monto').focus();
-    toast('Editando pago — cambia los datos y guarda', 'info', 3000);
+    if (resaltarNombre) {
+      toast('Ahí está ' + resaltarNombre + ' en la lista de esta semana', 'info', 3000);
+      setTimeout(() => {
+        const fila = document.querySelector(`#nom-grid-lista [data-grid-nombre="${CSS.escape(resaltarNombre)}"]`);
+        if (fila) {
+          fila.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          fila.style.boxShadow = '0 0 0 2.5px var(--teal)';
+          setTimeout(() => { fila.style.boxShadow = ''; }, 2000);
+        }
+      }, 200);
+    }
+  }
+
+  // Salta a la semana de un pago existente y resalta a su trabajador
+  // (usado por los botones "Editar" de Historial y Pagos guardados).
+  function nomEditar(entrada) {
+    const dias = Array.isArray(entrada.dias) ? entrada.dias.slice().sort() : [];
+    const primerDia = dias[0] || (entrada.creadoEn || '').slice(0, 10);
+    if (primerDia) {
+      const mondayEntrada = mondayOf(primerDia);
+      const mondayHoy = mondayOf(nomToday());
+      nomRegSemanaOffset = Math.round((mondayEntrada - mondayHoy) / (7 * 24 * 60 * 60 * 1000));
+    }
+    nomIrARegistrarSemana(entrada.trabajador);
+  }
+
+  // Salta a una semana específica (clave = lunes) desde una tarjeta de
+  // Recibo semanal, y opcionalmente resalta a un trabajador.
+  function nomIrASemana(wk, resaltarNombre) {
+    const mondayWk = new Date(wk + 'T00:00:00');
+    const mondayHoy = mondayOf(nomToday());
+    nomRegSemanaOffset = Math.round((mondayWk - mondayHoy) / (7 * 24 * 60 * 60 * 1000));
+    nomIrARegistrarSemana(resaltarNombre);
   }
 
   // ---- Recibo tipo invoice ----
@@ -5520,11 +5396,13 @@
         empleados[idx].sueldo = nuevo;
         await saveEmpleados();
         nomRenderTrabajadores();
-        // Si el trabajador está seleccionado en el formulario, actualizar
+        // Si el trabajador está en la grilla de Registrar pago, actualizar su sueldo ahí también
         const nombreCompleto = empNombreCompleto(empleados[idx]);
-        if (nomTrabSel.includes(nombreCompleto)) {
-          if (nomTrabSel.length === 1) { $('nom-sueldo-dia').value = String(nuevo); delete $('nom-monto').dataset.editado; nomRecalcularMonto(); }
-          else nomRenderPreviewMulti();
+        const fila = nomGridFilas.find((f) => f.nombre === nombreCompleto);
+        if (fila) {
+          fila.sueldo = nuevo;
+          if (!fila.montoTocado) fila.monto = (fila.dias.length * fila.sueldo) + (fila.extraMonto || 0);
+          nomGridRender();
         }
         toast('Sueldo actualizado ✓', 'success');
       });
@@ -5589,10 +5467,8 @@
           if (rViejo) { try { await nomMigrarTrabajadoresViejos(JSON.parse(rViejo.value)); } catch (e) {} }
           nomRefreshDl();
           nomRegSemanaOffset = 0;
-          nomRenderChips();
-          nomActualizarModoTrab();
+          nomGridAbrirSemana();
           nomRenderRegLedger();
-          nomRenderSemanaActual();
         }
       });
     }
@@ -5669,7 +5545,6 @@
         totalSemana += t.monto;
         const diasUnicos = [...new Set(t.dias)].sort();
         const diasTxt = diasUnicos.map(nomDiaCorto).join(', ');
-        const idUnico = t.pagos.length === 1 ? t.pagos[0].id : '';
         filas += `
           <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #F0F4FA;gap:12px;">
             <div style="flex:1;min-width:0;">
@@ -5678,7 +5553,7 @@
             </div>
             <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
               <div style="font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--teal);font-size:14px;white-space:nowrap;">${nomFmt(t.monto)}</div>
-              <button type="button" class="gc-action-btn nom-sem-editar-trab" data-nombre="${escapeHtml(nombre)}" data-id-unico="${idUnico}" style="padding:4px 10px;font-size:11px;" title="Editar este pago">Editar</button>
+              <button type="button" class="gc-action-btn nom-sem-editar-trab" data-wk="${wk}" data-nombre="${escapeHtml(nombre)}" style="padding:4px 10px;font-size:11px;" title="Editar este pago">Editar</button>
             </div>
           </div>`;
       });
@@ -5707,7 +5582,7 @@
 
     // Listeners
     cont.querySelectorAll('.nom-sem-editar').forEach((btn) => {
-      btn.addEventListener('click', () => nomAbrirEditarSemana(btn.dataset.wk));
+      btn.addEventListener('click', () => nomIrASemana(btn.dataset.wk));
     });
     cont.querySelectorAll('.nom-sem-ver').forEach((btn) => {
       btn.addEventListener('click', () => nomMostrarReciboSemanal(btn.dataset.wk));
@@ -5721,168 +5596,9 @@
       });
     });
     cont.querySelectorAll('.nom-sem-editar-trab').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const idUnico = btn.dataset.idUnico;
-        if (idUnico) {
-          // Un solo pago detrás de esta fila: editarlo directo
-          const entrada = nomDocs.find((n) => String(n.id) === idUnico);
-          if (entrada) { nomEditar(entrada); return; }
-        }
-        // Varios pagos en la semana para este trabajador: los busca abajo, en Pagos guardados, para elegir cuál
-        $('nom-reg-buscar').value = btn.dataset.nombre;
-        nomRenderRegLedger();
-        $('nom-reg-buscar').scrollIntoView({ behavior: 'smooth', block: 'center' });
-        toast('Elige cuál de sus pagos de esta semana quieres editar', 'info', 3000);
-      });
+      btn.addEventListener('click', () => nomIrASemana(btn.dataset.wk, btn.dataset.nombre));
     });
   }
-
-  // ====================================================================
-  // EDITAR SEMANA (incluye a TODOS los trabajadores, no solo uno)
-  // ====================================================================
-  let nomEsWk = null;       // clave (lunes) de la semana que se está editando
-  let nomEsFilas = [];      // [{ nombre, sueldo, dias:[...], monto, montoTocado, pagos:[ids], nota }]
-
-  // Arma las 7 fechas (lunes a domingo) de una semana a partir de su clave
-  function nomEsFechasSemana(wk) {
-    const lunes = new Date(wk + 'T00:00:00');
-    const out = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(lunes); d.setDate(lunes.getDate() + i);
-      out.push(d.toISOString().slice(0, 10));
-    }
-    return out;
-  }
-
-  function nomAbrirEditarSemana(wk) {
-    nomEsWk = wk;
-    const rango = nomWeekRango(wk);
-    $('nom-es-titulo').textContent = `Editar semana del ${nomFechaCortaTexto(rango.inicio)} al ${nomFechaCortaTexto(rango.fin)}`;
-
-    const semanas = nomAgruparSemanas();
-    const trabMap = semanas.get(wk) || new Map();
-
-    // Todos los trabajadores activos, más cualquiera con pago esta semana
-    // aunque ahora esté inactivo (para no perder de vista su pago).
-    const activos = empleados.filter((e) => e.estado !== 'inactivo').map((e) => empNombreCompleto(e));
-    const nombresConPago = [...trabMap.keys()];
-    const nombres = [...new Set([...activos, ...nombresConPago])];
-
-    nomEsFilas = nombres.map((nombre) => {
-      const t = nomBuscarTrab(nombre);
-      const existente = trabMap.get(nombre);
-      const dias = existente ? [...new Set(existente.dias)].sort() : [];
-      const monto = existente ? existente.monto : 0;
-      const pagos = existente ? existente.pagos.map((p) => p.id) : [];
-      const nota = existente && existente.pagos.length ? (existente.pagos[0].nota || '') : '';
-      return { nombre, sueldo: t ? (t.sueldo || 0) : 0, dias, monto, montoTocado: false, pagos, nota };
-    }).sort((a, b) => {
-      // primero los que ya tienen días esta semana, luego alfabético
-      if ((b.dias.length > 0) !== (a.dias.length > 0)) return (b.dias.length > 0) ? 1 : -1;
-      return a.nombre.localeCompare(b.nombre);
-    });
-
-    $('nom-es-status').textContent = '';
-    nomRenderEditarSemana();
-    $('nom-es-modal').style.display = 'flex';
-  }
-
-  function nomRenderEditarSemana() {
-    const cont = $('nom-es-lista');
-    if (!cont) return;
-    const fechas = nomEsFechasSemana(nomEsWk);
-    const letras = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
-
-    cont.innerHTML = nomEsFilas.map((fila, fi) => {
-      const botones = fechas.map((f, i) => {
-        const d = new Date(f + 'T00:00:00');
-        const sel = fila.dias.includes(f);
-        return `<button type="button" class="nom-es-dia" data-fi="${fi}" data-fecha="${f}"
-          style="height:44px;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer;
-          border:1.5px solid ${sel ? 'var(--navy)' : 'var(--border)'};
-          background:${sel ? 'var(--navy)' : '#fff'};color:${sel ? '#fff' : 'var(--ink)'};
-          display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.25;">
-          <span style="font-size:9.5px;opacity:.8;">${letras[i]}</span>${d.getDate()}</button>`;
-      }).join('');
-      return `
-        <div class="gc-card" style="margin-bottom:10px;padding:12px 14px;">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;">
-            <div>
-              <div style="font-weight:600;font-size:13.5px;color:var(--ink);">${escapeHtml(fila.nombre)}</div>
-              <div style="font-size:11px;color:var(--muted);">sueldo: ${nomFmt(fila.sueldo)}/día${fila.pagos.length > 1 ? ' · varios pagos (se juntan en uno al guardar)' : ''}</div>
-            </div>
-            <div style="text-align:right;">
-              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;">Monto</div>
-              <input type="text" class="nom-es-monto" data-fi="${fi}" value="${fila.monto ? fila.monto.toFixed(2) : ''}" inputmode="decimal" placeholder="0.00"
-                style="width:92px;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:700;padding:6px 8px;border:1.5px solid var(--border);border-radius:8px;">
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;">${botones}</div>
-        </div>`;
-    }).join('');
-
-    cont.querySelectorAll('.nom-es-dia').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const fi = Number(btn.dataset.fi);
-        const fila = nomEsFilas[fi];
-        const f = btn.dataset.fecha;
-        const idx = fila.dias.indexOf(f);
-        if (idx >= 0) fila.dias.splice(idx, 1); else { fila.dias.push(f); fila.dias.sort(); }
-        if (!fila.montoTocado) fila.monto = fila.dias.length * fila.sueldo;
-        nomRenderEditarSemana();
-      });
-    });
-    cont.querySelectorAll('.nom-es-monto').forEach((inp) => {
-      inp.addEventListener('input', () => {
-        const fi = Number(inp.dataset.fi);
-        nomEsFilas[fi].montoTocado = true;
-        nomEsFilas[fi].monto = parseFloat(inp.value.replace(',', '.')) || 0;
-      });
-    });
-  }
-
-  function nomCerrarEditarSemana() { $('nom-es-modal').style.display = 'none'; }
-  $('nom-es-cerrar').addEventListener('click', nomCerrarEditarSemana);
-  $('nom-es-cancelar').addEventListener('click', nomCerrarEditarSemana);
-  $('nom-es-modal').addEventListener('click', (e) => { if (e.target === $('nom-es-modal')) nomCerrarEditarSemana(); });
-
-  $('nom-es-guardar').addEventListener('click', async () => {
-    let creados = 0, actualizados = 0, borrados = 0;
-    nomEsFilas.forEach((fila) => {
-      if (fila.dias.length > 0) {
-        const idPrincipal = fila.pagos[0] || (Date.now().toString() + '-' + Math.random().toString(36).slice(2, 7));
-        const original = fila.pagos[0] ? nomDocs.find((n) => n.id === fila.pagos[0]) : null;
-        const entrada = {
-          id: idPrincipal, trabajador: fila.nombre, dias: [...fila.dias],
-          sueldoDia: fila.sueldo, extraDesc: original ? (original.extraDesc || '') : '',
-          extraMonto: original ? (original.extraMonto || 0) : 0,
-          monto: fila.monto, nota: fila.nota || '',
-          creadoEn: original ? original.creadoEn : new Date().toISOString()
-        };
-        const idx = nomDocs.findIndex((n) => n.id === idPrincipal);
-        if (idx >= 0) { nomDocs[idx] = entrada; actualizados++; } else { nomDocs.push(entrada); creados++; }
-        // Si había más de un pago para este trabajador esta semana, el resto se juntó en el principal — se quitan los sobrantes.
-        if (fila.pagos.length > 1) {
-          const extras = fila.pagos.slice(1);
-          nomDocs = nomDocs.filter((n) => !extras.includes(n.id));
-        }
-      } else if (fila.pagos.length > 0) {
-        nomDocs = nomDocs.filter((n) => !fila.pagos.includes(n.id));
-        borrados += fila.pagos.length;
-      }
-    });
-
-    await nomSaveDocs();
-    nomCerrarEditarSemana();
-    nomRenderSemanal();
-    nomRenderSemanaActual();
-    if (typeof nomRenderRegLedger === 'function') nomRenderRegLedger();
-    const partes = [];
-    if (creados) partes.push(`${creados} agregado(s)`);
-    if (actualizados) partes.push(`${actualizados} actualizado(s)`);
-    if (borrados) partes.push(`${borrados} quitado(s)`);
-    toast(partes.length ? `Semana guardada — ${partes.join(', ')} ✓` : 'Sin cambios', 'success');
-  });
 
   // Construir el recibo semanal (invoice de toda la semana)
   function nomBuildReciboSemanal(wk) {
