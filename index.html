@@ -1003,15 +1003,14 @@
       </div>
 
       <div class="gc-field" style="margin-bottom:14px;">
-        <label>Días que trabajó (toca todos los días que necesites en el calendario)</label>
-        <div id="nom-calendario" style="background:#F5F8FC;border:1.5px solid var(--border);border-radius:14px;padding:18px;max-width:460px;">
+        <label>Días que trabajó (toca los días de la semana)</label>
+        <div id="nom-semana-picker" style="background:#F5F8FC;border:1.5px solid var(--border);border-radius:14px;padding:18px;max-width:460px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-            <button type="button" id="nom-cal-prev" class="gc-action-btn" style="padding:8px 16px;font-size:16px;">‹</button>
-            <div id="nom-cal-titulo" style="font-weight:700;font-size:16px;color:var(--ink);text-transform:capitalize;"></div>
-            <button type="button" id="nom-cal-next" class="gc-action-btn" style="padding:8px 16px;font-size:16px;">›</button>
+            <button type="button" id="nom-sem-prev" class="gc-action-btn" style="padding:8px 16px;font-size:16px;">‹</button>
+            <div id="nom-sem-titulo" style="font-weight:700;font-size:14.5px;color:var(--ink);text-align:center;"></div>
+            <button type="button" id="nom-sem-next" class="gc-action-btn" style="padding:8px 16px;font-size:16px;">›</button>
           </div>
-          <div id="nom-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:7px;"></div>
-          <p style="font-size:11px;color:var(--muted);margin:12px 0 0;display:flex;align-items:center;gap:6px;"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#E4ECF7;border:1px solid #C7D6EC;"></span>Semana actual</p>
+          <div id="nom-sem-dias-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:7px;"></div>
         </div>
         <div id="nom-dias-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;"></div>
         <p id="nom-dias-info" style="font-size:12px;color:var(--muted);margin-top:6px;"></p>
@@ -1529,7 +1528,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v32 · 01 sep';
+  const APP_VERSION = 'v33 · 01 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -4997,68 +4996,54 @@
     nomRecalcularMonto();
   });
 
-  // ---- Selección de días (calendario, multi-selección) ----
-  let nomCalMes = new Date();
-  nomCalMes.setDate(1);
+  // ---- Selección de días (por semana, como en Editar semana — toca los
+  // días de esa semana, y te mueves de semana en semana con ‹ ›) ----
+  let nomRegSemanaOffset = 0; // 0 = semana actual, -1 = semana pasada, +1 = próxima
+
+  function nomRegFechasSemana() {
+    const base = new Date();
+    base.setDate(base.getDate() + nomRegSemanaOffset * 7);
+    const dowLun = (base.getDay() + 6) % 7; // 0 = lunes
+    const lunes = new Date(base); lunes.setDate(base.getDate() - dowLun);
+    const out = [];
+    for (let i = 0; i < 7; i++) { const d = new Date(lunes); d.setDate(lunes.getDate() + i); out.push(d.toISOString().slice(0, 10)); }
+    return out;
+  }
 
   function nomCalRender() {
-    const grid = $('nom-cal-grid');
+    const grid = $('nom-sem-dias-grid');
     if (!grid) return;
-    grid.innerHTML = '';
-    const y = nomCalMes.getFullYear(), m = nomCalMes.getMonth();
-    const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-    $('nom-cal-titulo').textContent = `${meses[m]} ${y}`;
-
-    ['D','L','M','M','J','V','S'].forEach((d) => {
-      const el = document.createElement('div');
-      el.textContent = d;
-      el.style.cssText = 'text-align:center;font-size:11.5px;font-weight:700;color:var(--muted);padding:4px 0;';
-      grid.appendChild(el);
-    });
-
-    const primerDia = new Date(y, m, 1).getDay();
-    const diasEnMes = new Date(y, m + 1, 0).getDate();
+    const fechas = nomRegFechasSemana();
+    const letras = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
     const hoyStr = nomToday();
+    $('nom-sem-titulo').textContent = `Semana del ${nomFechaCortaTexto(fechas[0])} al ${nomFechaCortaTexto(fechas[6])}`;
 
-    // Rango de la semana actual (lunes a domingo) para resaltarla
-    const hoyD = new Date(hoyStr + 'T00:00:00');
-    const dowLun = (hoyD.getDay() + 6) % 7; // 0 = lunes
-    const lunSem = new Date(hoyD); lunSem.setDate(hoyD.getDate() - dowLun);
-    const domSem = new Date(lunSem); domSem.setDate(lunSem.getDate() + 6);
-    const enSemanaActual = (f) => { const d = new Date(f + 'T00:00:00'); return d >= lunSem && d <= domSem; };
-
-    for (let i = 0; i < primerDia; i++) grid.appendChild(document.createElement('div'));
-
-    for (let d = 1; d <= diasEnMes; d++) {
-      const fecha = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    grid.innerHTML = fechas.map((fecha, i) => {
       const seleccionado = nomDiasSel.includes(fecha);
       const esHoy = fecha === hoyStr;
-      const esSemana = enSemanaActual(fecha);
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.textContent = String(d);
-      // Fondo: seleccionado (navy) > semana actual (azul suave) > normal (blanco)
-      const fondo = seleccionado ? 'var(--navy)' : (esSemana ? '#E4ECF7' : '#fff');
-      const borde = seleccionado ? 'var(--navy)' : (esHoy ? 'var(--teal)' : (esSemana ? '#C7D6EC' : 'var(--border)'));
-      btn.style.cssText = `
-        height:48px; border-radius:10px; font-size:15.5px; font-weight:600; cursor:pointer;
-        border:1.5px solid ${borde};
-        background:${fondo};
-        color:${seleccionado ? '#fff' : 'var(--ink)'};
-        transition: background .1s, color .1s;
-      `;
+      const fondo = seleccionado ? 'var(--navy)' : '#fff';
+      const borde = seleccionado ? 'var(--navy)' : (esHoy ? 'var(--teal)' : 'var(--border)');
+      const d = new Date(fecha + 'T00:00:00');
+      return `<button type="button" class="nom-sem-dia-btn" data-fecha="${fecha}"
+        style="height:52px;border-radius:10px;font-size:15.5px;font-weight:600;cursor:pointer;
+        border:1.5px solid ${borde};background:${fondo};color:${seleccionado ? '#fff' : 'var(--ink)'};
+        display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;transition:background .1s,color .1s;">
+        <span style="font-size:9.5px;font-weight:700;opacity:.75;">${letras[i]}</span>${d.getDate()}</button>`;
+    }).join('');
+
+    grid.querySelectorAll('.nom-sem-dia-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
+        const fecha = btn.dataset.fecha;
         const idx = nomDiasSel.indexOf(fecha);
         if (idx >= 0) nomDiasSel.splice(idx, 1);
         else { nomDiasSel.push(fecha); nomDiasSel.sort(); }
         nomRenderChips();
         nomRecalcularMonto();
       });
-      grid.appendChild(btn);
-    }
+    });
   }
-  $('nom-cal-prev').addEventListener('click', () => { nomCalMes.setMonth(nomCalMes.getMonth() - 1); nomCalRender(); });
-  $('nom-cal-next').addEventListener('click', () => { nomCalMes.setMonth(nomCalMes.getMonth() + 1); nomCalRender(); });
+  $('nom-sem-prev').addEventListener('click', () => { nomRegSemanaOffset--; nomCalRender(); });
+  $('nom-sem-next').addEventListener('click', () => { nomRegSemanaOffset++; nomCalRender(); });
   nomCalRender();
 
   function nomRenderChips() {
@@ -5224,7 +5209,11 @@
     nomDiasSel = Array.isArray(entrada.dias) ? [...entrada.dias] : [];
     if (nomDiasSel.length) {
       const primerDia = new Date(nomDiasSel[0] + 'T00:00:00');
-      if (!isNaN(primerDia)) { nomCalMes = new Date(primerDia.getFullYear(), primerDia.getMonth(), 1); }
+      if (!isNaN(primerDia)) {
+        const mondayEntrada = mondayOf(nomDiasSel[0]);
+        const mondayHoy = mondayOf(nomToday());
+        nomRegSemanaOffset = Math.round((mondayEntrada - mondayHoy) / (7 * 24 * 60 * 60 * 1000));
+      }
     }
     nomActualizarModoTrab();
     nomRenderChips();
@@ -5599,7 +5588,7 @@
           // que aún no están en Empleados, se agregan ahí (sin duplicar).
           if (rViejo) { try { await nomMigrarTrabajadoresViejos(JSON.parse(rViejo.value)); } catch (e) {} }
           nomRefreshDl();
-          nomCalMes = new Date(); nomCalMes.setDate(1);
+          nomRegSemanaOffset = 0;
           nomRenderChips();
           nomActualizarModoTrab();
           nomRenderRegLedger();
