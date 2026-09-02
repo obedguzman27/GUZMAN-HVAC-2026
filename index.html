@@ -520,6 +520,7 @@
     <button class="gc-tab" data-tab="movimientos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Registro</button>
     <button class="gc-tab" data-tab="facturas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Facturas</button>
     <button class="gc-tab" data-tab="nomina"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Nómina</button>
+    <button class="gc-tab" data-tab="cheques"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 15h4M14 15h4"/><circle cx="7" cy="9.5" r="1.6"/><path d="M11 10h6"/></svg>Checks</button>
     <button class="gc-tab" data-tab="buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Buscar</button>
     <button class="gc-tab" data-tab="respaldo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Ajustes</button>
   </nav>
@@ -1099,6 +1100,84 @@
   <div class="inv-print-sheet" id="nom-recibo-content"></div>
 </div>
 
+<!-- ===== CHECKS ===== -->
+<div class="gc-panel" id="panel-cheques">
+  <div class="inv-subnav">
+    <button class="chq-subtab active" data-csub="nuevo">Nuevo cheque</button>
+    <button class="chq-subtab" data-csub="historial">Historial</button>
+  </div>
+
+  <!-- Nuevo cheque -->
+  <div class="chq-subpanel active" id="chq-sub-nuevo">
+    <div class="gc-card">
+      <p class="gc-card-title">Escribir cheque</p>
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px;">
+        <div class="gc-field"><label>Pagar a (empleado u otro)</label>
+          <input type="text" id="chq-trabajador" list="dl-chq-trab" placeholder="Escribe o busca un nombre…" autocomplete="off">
+          <datalist id="dl-chq-trab"></datalist>
+        </div>
+        <div class="gc-field"><label>Número de cheque</label>
+          <input type="text" id="chq-numero" inputmode="numeric" placeholder="0000" autocomplete="off">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+        <div class="gc-field"><label>Fecha</label><input type="date" id="chq-fecha"></div>
+        <div class="gc-field"><label>Monto ($)</label><input type="text" id="chq-monto" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
+      </div>
+      <div class="gc-field" style="margin-bottom:14px;">
+        <label>Cantidad en letras (se llena sola, editable)</label>
+        <input type="text" id="chq-letras" autocomplete="off" style="background:#EEF2FF;font-weight:600;">
+      </div>
+      <div class="gc-field" style="margin-bottom:14px;">
+        <label>Concepto / memo (opcional)</label>
+        <input type="text" id="chq-concepto" autocomplete="off">
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="gc-action-btn" id="chq-btn-limpiar">Limpiar</button>
+        <button class="gc-save-btn" id="chq-btn-guardar">Guardar cheque</button>
+      </div>
+      <input type="hidden" id="chq-editando" value="">
+      <p id="chq-status" style="font-size:12px;color:var(--muted);text-align:right;margin-top:8px;height:14px;"></p>
+    </div>
+
+    <!-- Vista previa -->
+    <div class="gc-card">
+      <p class="gc-card-title">Vista previa</p>
+      <div id="chq-preview"></div>
+    </div>
+  </div>
+
+  <!-- Historial -->
+  <div class="chq-subpanel" id="chq-sub-historial">
+    <div class="gc-card">
+      <p class="gc-card-title">Buscar cheques</p>
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:6px;">
+        <div class="gc-field"><label>Nombre</label><input type="text" id="chq-f-nombre" placeholder="Buscar por nombre…" autocomplete="off"></div>
+        <div class="gc-field"><label>Número de cheque</label><input type="text" id="chq-f-numero" placeholder="Ej. 1024" autocomplete="off"></div>
+        <div class="gc-field"><label>Fecha</label><input type="date" id="chq-f-fecha"></div>
+      </div>
+      <button type="button" class="gc-action-btn" id="chq-f-limpiar" style="margin-bottom:14px;">Limpiar filtros</button>
+      <div class="gc-empty" id="chq-hist-empty" style="display:none;">No hay cheques que coincidan.</div>
+      <div style="overflow-x:auto;">
+        <table class="inv-list-t" id="chq-hist-tbl" style="display:none;">
+          <thead><tr><th>No.</th><th>Fecha</th><th>Pagado a</th><th class="num">Monto</th><th>Concepto</th><th></th></tr></thead>
+          <tbody id="chq-hist-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Overlay de impresión de cheque -->
+<div class="gc-print-overlay" id="chq-ov" style="display:none;">
+  <div class="gc-print-toolbar no-print">
+    <button class="gc-save-btn" id="chq-btn-imprimir-ov">Imprimir</button>
+    <button class="gc-action-btn" id="chq-btn-descargar-ov" style="background:#fff;">⬇ Descargar</button>
+    <button class="gc-action-btn" id="chq-btn-cerrar-ov" style="background:#fff;">Cerrar</button>
+  </div>
+  <div class="inv-print-sheet" id="chq-recibo-content" style="max-width:700px;"></div>
+</div>
+
 <!-- ===== FACTURAS ===== -->
 <div class="gc-panel" id="panel-facturas">
   <div class="inv-subnav">
@@ -1473,7 +1552,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v34 · 01 sep';
+  const APP_VERSION = 'v35 · 01 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -3118,8 +3197,8 @@
     // Leer datos de todos los módulos EN PARALELO (antes eran 8 lecturas en
     // fila, una tras otra — esto tarda lo mismo que la más lenta, no la suma).
     let empleadosData = [], facturasData = [], coloniasData = [], clientesData = [], trabajosData = [];
-    let nominaData = [], trabajadoresData = [], recibosData = [];
-    const [rEmp, rFact, rCol, rCli, rTrab, rNom, rTrabj, rRecibos] = await Promise.all([
+    let nominaData = [], trabajadoresData = [], recibosData = [], chequesData = [];
+    const [rEmp, rFact, rCol, rCli, rTrab, rNom, rTrabj, rRecibos, rChq] = await Promise.all([
       window.storage.get('empleados').catch(() => null),
       window.storage.get('gh-invoices').catch(() => null),
       window.storage.get('gh-colonias').catch(() => null),
@@ -3128,6 +3207,7 @@
       window.storage.get('gh-nomina').catch(() => null),
       window.storage.get('gh-trabajadores').catch(() => null),
       window.storage.get('gh-recibos-semanales').catch(() => null),
+      window.storage.get('gh-cheques').catch(() => null),
     ]);
     try { empleadosData = JSON.parse(rEmp.value); } catch (e) {}
     try { facturasData = JSON.parse(rFact.value); } catch (e) {}
@@ -3137,6 +3217,7 @@
     try { nominaData = JSON.parse(rNom.value); } catch (e) {}
     try { trabajadoresData = JSON.parse(rTrabj.value); } catch (e) {}
     try { recibosData = JSON.parse(rRecibos.value); } catch (e) {}
+    try { chequesData = JSON.parse(rChq.value); } catch (e) {}
 
     const respaldo = {
       app: 'Kontaly',
@@ -3157,7 +3238,9 @@
       // Nómina
       nomina: nominaData,
       trabajadores: trabajadoresData,
-      recibosSemanales: recibosData
+      recibosSemanales: recibosData,
+      // Checks
+      cheques: chequesData
     };
     const blob = new Blob([JSON.stringify(respaldo, null, 2)], { type: 'application/json;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -3342,6 +3425,13 @@
           nomRefreshDl();
           nomRenderRegLedger(); nomRenderHist(); nomRenderTrabajadores(); nomRenderSemanal();
           if (typeof nomGridAbrirSemana === 'function') nomGridAbrirSemana();
+        } catch (e) {}
+        // Checks
+        if (data.cheques) await window.storage.set('gh-cheques', JSON.stringify(data.cheques));
+        try {
+          if (data.cheques) cheques = data.cheques;
+          chqCargado = true;
+          if (typeof chqRenderHistorial === 'function') chqRenderHistorial();
         } catch (e) {}
 
         renderCategorias();
@@ -4837,7 +4927,7 @@
   function nomRefreshDl() {
     // Solo trabajadores activos aparecen para buscar/seleccionar
     const activos = empleados.filter((e) => e.estado !== 'inactivo');
-    ['dl-trabajadores', 'dl-trabajadores-2', 'dl-trab-todos'].forEach((id) => {
+    ['dl-trabajadores', 'dl-trabajadores-2', 'dl-trab-todos', 'dl-chq-trab'].forEach((id) => {
       const dl = document.getElementById(id);
       if (dl) dl.innerHTML = activos.map((e) => `<option value="${escapeHtml(empNombreCompleto(e))}">`).join('');
     });
@@ -5731,6 +5821,297 @@
   // FIN MÓDULO NÓMINA
   // ====================================================================
 
+  // ====================================================================
+  // MÓDULO: CHECKS (escribir e imprimir cheques a trabajadores)
+  // ====================================================================
+  const CHEQUES_KEY = 'gh-cheques';
+  let cheques = [], chqEditando = null;
+
+  // ---- Número a letras (inglés, como en un cheque de EE. UU.) ----
+  const CHQ_ONES = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+    'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  const CHQ_TENS = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+  function chqTresDigitos(n) {
+    let s = '';
+    if (n >= 100) { s += CHQ_ONES[Math.floor(n / 100)] + ' Hundred'; n %= 100; if (n > 0) s += ' '; }
+    if (n >= 20) { s += CHQ_TENS[Math.floor(n / 10)]; if (n % 10 > 0) s += '-' + CHQ_ONES[n % 10].toLowerCase(); }
+    else if (n > 0) { s += CHQ_ONES[n]; }
+    return s;
+  }
+  function chqNumeroAPalabras(n) {
+    if (n === 0) return 'Zero';
+    const nombres = ['', ' Thousand', ' Million', ' Billion'];
+    let i = 0;
+    const partes = [];
+    while (n > 0) {
+      const grupo = n % 1000;
+      if (grupo > 0) partes.unshift(chqTresDigitos(grupo) + nombres[i]);
+      n = Math.floor(n / 1000);
+      i++;
+    }
+    return partes.join(' ').trim();
+  }
+  // Convierte un monto ($1234.56) a la línea de letras de un cheque: "One Thousand Two Hundred Thirty-four and 56/100"
+  function chqNumeroALetras(monto) {
+    const m = Math.abs(Number(monto) || 0);
+    const entero = Math.floor(m);
+    const centavos = Math.round((m - entero) * 100);
+    return `${chqNumeroAPalabras(entero)} and ${String(centavos).padStart(2, '0')}/100`;
+  }
+
+  async function chqGuardarLista() { await window.storage.set(CHEQUES_KEY, JSON.stringify(cheques)); }
+
+  // Sugiere el siguiente número de cheque (máximo existente + 1)
+  function chqSugerirNumero() {
+    if ($('chq-numero').value) return;
+    const max = cheques.reduce((m, c) => Math.max(m, parseInt(c.numero, 10) || 0), 0);
+    $('chq-numero').value = max > 0 ? String(max + 1) : '';
+  }
+
+  // ---- Vista previa / diseño imprimible del cheque ----
+  function chqBuildCheque(c) {
+    const montoNum = Number(c.monto) || 0;
+    return `
+      <div style="border:2px solid #16233F;border-radius:8px;padding:26px 30px;font-family:Georgia,serif;color:#16233F;background:#fff;max-width:660px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">
+          <div>
+            <div style="font-size:16px;font-weight:700;">${escapeHtml(cfgFacturaNombre || 'GUZMAN HVAC')}</div>
+            <div style="font-size:11px;color:#555;margin-top:2px;">Nashville, TN</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:13px;font-weight:700;letter-spacing:.5px;">No. ${escapeHtml(c.numero || '')}</div>
+            <div style="font-size:12px;color:#555;margin-top:3px;">Fecha: ${escapeHtml(c.fecha || '')}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px;">
+          <span style="font-size:11px;color:#555;white-space:nowrap;line-height:1.3;">PAY TO THE<br>ORDER OF</span>
+          <span style="flex:1;border-bottom:1px solid #16233F;padding-bottom:4px;font-size:15px;font-weight:600;min-height:20px;">${escapeHtml(c.trabajador || '')}</span>
+          <span style="font-size:16px;font-weight:700;white-space:nowrap;border:1px solid #16233F;border-radius:4px;padding:4px 10px;">$ ${montoNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>
+        <div style="border-bottom:1px solid #16233F;padding-bottom:4px;margin-bottom:24px;font-size:13px;min-height:18px;">
+          ${escapeHtml(c.letras || '')}&nbsp;DOLLARS
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;">
+          <div style="font-size:11px;flex:1;">
+            <div style="border-bottom:1px solid #16233F;padding-bottom:4px;min-height:16px;">${escapeHtml(c.concepto || '')}</div>
+            <div style="margin-top:3px;color:#555;">Memo</div>
+          </div>
+          <div style="font-size:11px;text-align:center;">
+            <div style="border-bottom:1px solid #16233F;min-width:200px;height:30px;"></div>
+            <div style="margin-top:3px;color:#555;">Firma autorizada</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function chqRenderPreview() {
+    const cont = $('chq-preview');
+    if (!cont) return;
+    cont.innerHTML = chqBuildCheque({
+      numero: $('chq-numero').value,
+      fecha: $('chq-fecha').value || today(),
+      trabajador: $('chq-trabajador').value,
+      monto: parseFloat(($('chq-monto').value || '0').replace(',', '.')) || 0,
+      letras: $('chq-letras').value,
+      concepto: $('chq-concepto').value
+    });
+  }
+
+  function chqActualizarLetras() {
+    const monto = parseFloat(($('chq-monto').value || '0').replace(',', '.')) || 0;
+    if (!$('chq-letras').dataset.editado) {
+      $('chq-letras').value = monto > 0 ? chqNumeroALetras(monto) : '';
+    }
+    chqRenderPreview();
+  }
+  $('chq-monto').addEventListener('input', chqActualizarLetras);
+  $('chq-letras').addEventListener('input', () => { $('chq-letras').dataset.editado = '1'; chqRenderPreview(); });
+  ['chq-trabajador', 'chq-numero', 'chq-fecha', 'chq-concepto'].forEach((id) => {
+    $(id).addEventListener('input', chqRenderPreview);
+  });
+
+  function chqLimpiar() {
+    $('chq-trabajador').value = '';
+    $('chq-numero').value = '';
+    $('chq-monto').value = '';
+    $('chq-letras').value = '';
+    delete $('chq-letras').dataset.editado;
+    $('chq-concepto').value = '';
+    $('chq-fecha').value = today();
+    chqSugerirNumero();
+    chqRenderPreview();
+  }
+  $('chq-btn-limpiar').addEventListener('click', () => {
+    chqLimpiar();
+    chqEditando = null;
+    $('chq-editando').value = '';
+    $('chq-btn-guardar').textContent = 'Guardar cheque';
+  });
+
+  $('chq-btn-guardar').addEventListener('click', async () => {
+    const trabajador = $('chq-trabajador').value.trim();
+    const numero = $('chq-numero').value.trim();
+    const fecha = $('chq-fecha').value || today();
+    const monto = parseFloat(($('chq-monto').value || '0').replace(',', '.')) || 0;
+    const letras = $('chq-letras').value.trim();
+    const concepto = $('chq-concepto').value.trim();
+
+    if (!trabajador) { $('chq-status').textContent = 'Escribe a quién se paga'; setTimeout(() => { $('chq-status').textContent = ''; }, 2000); return; }
+    if (!numero) { $('chq-status').textContent = 'Escribe el número de cheque'; setTimeout(() => { $('chq-status').textContent = ''; }, 2000); return; }
+    if (monto <= 0) { $('chq-status').textContent = 'El monto no puede ser cero'; setTimeout(() => { $('chq-status').textContent = ''; }, 2000); return; }
+
+    const entrada = {
+      id: chqEditando || Date.now().toString(),
+      numero, trabajador, fecha, monto, letras, concepto,
+      creadoEn: new Date().toISOString()
+    };
+    const idx = cheques.findIndex((x) => x.id === entrada.id);
+    if (idx >= 0) cheques[idx] = entrada; else cheques.push(entrada);
+    await chqGuardarLista();
+    const editando = !!chqEditando;
+    chqEditando = null;
+    $('chq-editando').value = '';
+    $('chq-btn-guardar').textContent = 'Guardar cheque';
+    chqLimpiar();
+    chqRenderHistorial();
+    toast(editando ? 'Cheque actualizado ✓' : 'Cheque guardado ✓', 'success');
+  });
+
+  function chqEditar(c) {
+    chqEditando = c.id;
+    $('chq-editando').value = c.id;
+    $('chq-trabajador').value = c.trabajador || '';
+    $('chq-numero').value = c.numero || '';
+    $('chq-fecha').value = c.fecha || today();
+    $('chq-monto').value = c.monto != null ? String(c.monto) : '';
+    $('chq-letras').value = c.letras || '';
+    $('chq-letras').dataset.editado = '1';
+    $('chq-concepto').value = c.concepto || '';
+    $('chq-btn-guardar').textContent = 'Actualizar cheque';
+    document.querySelector('.chq-subtab[data-csub="nuevo"]').click();
+    chqRenderPreview();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    toast('Editando cheque — cambia los datos y guarda', 'info', 3000);
+  }
+
+  // ---- Historial con filtros (nombre, número, fecha) ----
+  function chqRenderHistorial() {
+    const fNombre = ($('chq-f-nombre').value || '').trim().toLowerCase();
+    const fNumero = ($('chq-f-numero').value || '').trim().toLowerCase();
+    const fFecha = $('chq-f-fecha').value || '';
+
+    const filtrados = cheques.filter((c) => {
+      if (fNombre && !(c.trabajador || '').toLowerCase().includes(fNombre)) return false;
+      if (fNumero && !String(c.numero || '').toLowerCase().includes(fNumero)) return false;
+      if (fFecha && c.fecha !== fFecha) return false;
+      return true;
+    }).sort((a, b) => (b.fecha || '').localeCompare(a.fecha || '') || String(b.numero || '').localeCompare(String(a.numero || '')));
+
+    const tbody = $('chq-hist-tbody');
+    $('chq-hist-empty').style.display = filtrados.length === 0 ? 'block' : 'none';
+    $('chq-hist-tbl').style.display = filtrados.length === 0 ? 'none' : 'table';
+    tbody.innerHTML = filtrados.map((c) => `
+      <tr>
+        <td>${escapeHtml(c.numero || '')}</td>
+        <td>${escapeHtml(c.fecha || '')}</td>
+        <td>${escapeHtml(c.trabajador || '')}</td>
+        <td class="num">${fmt(c.monto)}</td>
+        <td>${escapeHtml(c.concepto || '')}</td>
+        <td style="white-space:nowrap;">
+          <button class="gc-action-btn chq-hist-ver" data-id="${c.id}" style="padding:4px 8px;font-size:11px;">Ver/Imprimir</button>
+          <button class="gc-action-btn chq-hist-edit" data-id="${c.id}" style="padding:4px 8px;font-size:11px;margin-left:2px;">Editar</button>
+          <button class="gc-del" data-id="${c.id}" style="margin-left:2px;">✕</button>
+        </td>
+      </tr>`).join('');
+
+    tbody.querySelectorAll('.chq-hist-ver').forEach((btn) => {
+      btn.addEventListener('click', () => chqMostrarImpresion(btn.dataset.id));
+    });
+    tbody.querySelectorAll('.chq-hist-edit').forEach((btn) => {
+      btn.addEventListener('click', () => { const c = cheques.find((x) => x.id === btn.dataset.id); if (c) chqEditar(c); });
+    });
+    tbody.querySelectorAll('.gc-del').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!await gcConfirm('¿Eliminar este cheque?', { okText: 'Eliminar', danger: true })) return;
+        cheques = cheques.filter((x) => x.id !== btn.dataset.id);
+        await chqGuardarLista();
+        toast('Cheque eliminado', 'info');
+        chqRenderHistorial();
+      });
+    });
+  }
+  $('chq-f-nombre').addEventListener('input', debounce(chqRenderHistorial, 160));
+  $('chq-f-numero').addEventListener('input', debounce(chqRenderHistorial, 160));
+  $('chq-f-fecha').addEventListener('change', chqRenderHistorial);
+  $('chq-f-limpiar').addEventListener('click', () => {
+    $('chq-f-nombre').value = ''; $('chq-f-numero').value = ''; $('chq-f-fecha').value = '';
+    chqRenderHistorial();
+  });
+
+  // ---- Ver / Imprimir / Descargar un cheque guardado ----
+  let chqEnVista = null;
+  function chqMostrarImpresion(id) {
+    const c = cheques.find((x) => x.id === id);
+    if (!c) return;
+    chqEnVista = c;
+    $('chq-recibo-content').innerHTML = chqBuildCheque(c);
+    $('chq-ov').style.display = 'flex';
+  }
+  $('chq-btn-imprimir-ov').addEventListener('click', () => {
+    if (!chqEnVista) return;
+    document.getElementById('print-area').innerHTML = `<div class="gc-print-sheet">${chqBuildCheque(chqEnVista)}</div>`;
+    window.print();
+    setTimeout(() => { document.getElementById('print-area').innerHTML = ''; }, 600);
+  });
+  $('chq-btn-descargar-ov').addEventListener('click', () => {
+    if (!chqEnVista) return;
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Cheque No. ${escapeHtml(chqEnVista.numero || '')}</title><style>body{font-family:Arial,sans-serif;padding:32px;max-width:800px;margin:0 auto;}</style></head><body>${chqBuildCheque(chqEnVista)}</body></html>`;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8;' }));
+    a.download = `cheque-${(chqEnVista.numero || 'sin-numero')}.html`;
+    a.click(); URL.revokeObjectURL(a.href);
+  });
+  $('chq-btn-cerrar-ov').addEventListener('click', () => { $('chq-ov').style.display = 'none'; chqEnVista = null; });
+  $('chq-ov').addEventListener('click', (e) => { if (e.target.id === 'chq-ov') { $('chq-ov').style.display = 'none'; chqEnVista = null; } });
+
+  // ---- Sub-pestañas ----
+  document.querySelectorAll('.chq-subtab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.chq-subtab').forEach((t) => t.classList.remove('active'));
+      document.querySelectorAll('.chq-subpanel').forEach((p) => p.classList.remove('active'));
+      tab.classList.add('active');
+      $('chq-sub-' + tab.dataset.csub).classList.add('active');
+      if (tab.dataset.csub === 'historial') chqRenderHistorial();
+    });
+  });
+
+  // ---- Carga inicial de Checks (al abrir la pestaña por primera vez) ----
+  let chqCargado = false;
+  document.querySelectorAll('.gc-tab').forEach((tab) => {
+    if (tab.dataset.tab === 'cheques') {
+      tab.addEventListener('click', async () => {
+        if (!chqCargado) {
+          chqCargado = true;
+          const [rChq, rEmp] = await Promise.all([
+            window.storage.get(CHEQUES_KEY).catch(() => null),
+            window.storage.get(STORAGE_EMPLEADOS).catch(() => null),
+          ]);
+          try { cheques = JSON.parse(rChq.value); } catch (e) { cheques = []; }
+          try { empleados = JSON.parse(rEmp.value); } catch (e) { /* puede que ya se hayan cargado antes en esta sesión */ }
+          nomRefreshDl();
+          $('chq-fecha').value = today();
+          chqSugerirNumero();
+          chqRenderPreview();
+          chqRenderHistorial();
+        }
+      });
+    }
+  });
+
+  // ====================================================================
+  // FIN MÓDULO CHECKS
+  // ====================================================================
 
   // ---- Carga inicial ----
   // Empleados y papeles se cargan solo al abrir su sección en Ajustes (más rápido el arranque)
