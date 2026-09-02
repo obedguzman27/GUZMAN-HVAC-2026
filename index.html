@@ -1127,6 +1127,25 @@
   <div class="inv-print-sheet" id="nom-recibo-content"></div>
 </div>
 
+<!-- Modal: Editar semana de nómina (incluye a todos los trabajadores) -->
+<div class="emp-modal-overlay" id="nom-es-modal" style="display:none;">
+  <div class="emp-modal" style="max-width:640px;">
+    <div class="emp-modal-header">
+      <p class="emp-modal-title" id="nom-es-titulo">Editar semana</p>
+      <button class="emp-modal-close" id="nom-es-cerrar">✕</button>
+    </div>
+    <div class="emp-modal-body">
+      <p style="font-size:12.5px;color:var(--muted);margin-bottom:16px;">Toca los días de cada trabajador para esta semana. El monto se calcula solo (días × sueldo) pero lo puedes cambiar a mano. Deja a alguien en 0 días para quitarlo de esta semana.</p>
+      <div id="nom-es-lista"></div>
+      <div class="emp-modal-actions">
+        <button class="gc-save-btn" id="nom-es-guardar">Guardar cambios de la semana</button>
+        <button class="gc-action-btn" id="nom-es-cancelar">Cancelar</button>
+      </div>
+      <p id="nom-es-status" style="font-size:12px;margin-top:10px;color:var(--muted);"></p>
+    </div>
+  </div>
+</div>
+
 <!-- ===== FACTURAS ===== -->
 <div class="gc-panel" id="panel-facturas">
   <div class="inv-subnav">
@@ -1509,7 +1528,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v29 · 01 sep';
+  const APP_VERSION = 'v30 · 01 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -1956,31 +1975,63 @@
     const cont = $('inicio-cont');
     if (!cont) return;
 
-    // Facturas y Nómina se cargan aquí de forma independiente (en paralelo),
-    // sin depender de que esas pestañas ya se hayan visitado antes.
-    const [rInv, rNom] = await Promise.all([
+    // Facturas, Nómina, Empleados y Clientes se cargan aquí de forma
+    // independiente (en paralelo), sin depender de que esas pestañas ya se
+    // hayan visitado antes.
+    const [rInv, rNom, rEmp, rCli] = await Promise.all([
       window.storage.get(INV_KEY).catch(() => null),
       window.storage.get(NOM_KEY).catch(() => null),
+      window.storage.get(STORAGE_EMPLEADOS).catch(() => null),
+      window.storage.get(CLI_KEY).catch(() => null),
     ]);
-    let facturas = [], nomina = [];
+    let facturas = [], nomina = [], empleadosInicio = [], clientesInicio = [];
     try { facturas = JSON.parse(rInv.value); } catch (e) {}
     try { nomina = JSON.parse(rNom.value); } catch (e) {}
+    try { empleadosInicio = JSON.parse(rEmp.value); } catch (e) {}
+    try { clientesInicio = JSON.parse(rCli.value); } catch (e) {}
 
-    // ---- Este mes ----
+    // ---- Este mes vs. mes pasado ----
     const hoy = today();
     const mesActual = hoy.slice(0, 7); // "2026-09"
+    const fechaMesPasado = new Date(hoy + 'T00:00:00'); fechaMesPasado.setMonth(fechaMesPasado.getMonth() - 1);
+    const mesPasadoKey = fechaMesPasado.toISOString().slice(0, 7);
+
     const movMes = movimientos.filter((m) => (m.fecha || '').startsWith(mesActual));
+    const movMesPasado = movimientos.filter((m) => (m.fecha || '').startsWith(mesPasadoKey));
     const ingMes = movMes.filter((m) => m.tipo === 'ingreso').reduce((s, m) => s + (Number(m.monto) || 0), 0);
     const gasMes = movMes.filter((m) => m.tipo === 'gasto').reduce((s, m) => s + (Number(m.monto) || 0), 0);
+    const ingMesPasado = movMesPasado.filter((m) => m.tipo === 'ingreso').reduce((s, m) => s + (Number(m.monto) || 0), 0);
+    const gasMesPasado = movMesPasado.filter((m) => m.tipo === 'gasto').reduce((s, m) => s + (Number(m.monto) || 0), 0);
     const netMes = ingMes - gasMes;
     const nombreMes = MESES_ES[Number(mesActual.slice(5, 7)) - 1];
+
+    // ---- Top categorías de gasto del mes ----
+    const gastosPorCat = new Map();
+    movMes.filter((m) => m.tipo === 'gasto').forEach((m) => {
+      const cat = m.cat || 'Sin categoría';
+      gastosPorCat.set(cat, (gastosPorCat.get(cat) || 0) + (Number(m.monto) || 0));
+    });
+    const topGastos = [...gastosPorCat.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+    // ---- Reparto de la última semana cerrada (último invoice guardado) ----
+    const invsOrdenados = [...invoicesGuardados].sort((a, b) => (b.guardadoEn || '').localeCompare(a.guardadoEn || ''));
+    const ultimaInvoice = invsOrdenados[0] || null;
+    const pagosUltima = ultimaInvoice
+      ? (Array.isArray(ultimaInvoice.pagos) && ultimaInvoice.pagos.length
+          ? ultimaInvoice.pagos
+          : [{ nombre: cfgSocioBonus, total: ultimaInvoice.pagoCra || 0 }, { nombre: cfgSocioMitad, total: ultimaInvoice.pagoGuzman || 0 }])
+      : [];
+
+    // ---- Semanas de Registro sin guardar como invoice todavía ----
+    const semActKey = weekInfo(hoy).key;
+    const keysGuardadas = new Set(invoicesGuardados.map((inv) => inv.key));
+    const semanasPendientes = calcularSemanas().filter((s) => s.key < semActKey && !keysGuardadas.has(s.key));
 
     // ---- Facturas pendientes de cobro ----
     const pendientes = facturas.filter((f) => !f.pagada).sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
     const totalPendiente = pendientes.reduce((s, f) => s + (Number(f.total) || 0), 0);
 
     // ---- Nómina de esta semana ----
-    const semActKey = weekInfo(hoy).key;
     const nomSemana = nomina.filter((n) => {
       const dias = Array.isArray(n.dias) ? n.dias : [];
       const ref = dias[0] || (n.creadoEn || '').slice(0, 10);
@@ -1991,14 +2042,61 @@
     nomSemana.forEach((n) => { porTrabajador.set(n.trabajador, (porTrabajador.get(n.trabajador) || 0) + (Number(n.monto) || 0)); });
     const listaTrabajadores = [...porTrabajador.entries()].sort((a, b) => b[1] - a[1]);
 
+    // ---- Mini-stats operativos ----
+    const trabajadoresActivos = empleadosInicio.filter((e) => e.estado !== 'inactivo').length;
+    const totalClientes = clientesInicio.length;
+
     cont.innerHTML = `
       <div class="gc-note"><strong>Resumen de ${escapeHtml(nombreMes)}</strong> — así va tu negocio de un vistazo. Para ver el detalle, entra a Registro, Facturas o Nómina.</div>
 
       <div class="gc-stats">
-        <div class="gc-stat ing"><div class="gc-stat-icon">↑</div><div><div class="gc-stat-label">Ingresos del mes</div><div class="gc-stat-val">${fmt(ingMes)}</div></div></div>
-        <div class="gc-stat gas"><div class="gc-stat-icon">↓</div><div><div class="gc-stat-label">Gastos del mes</div><div class="gc-stat-val">${fmt(gasMes)}</div></div></div>
+        <div class="gc-stat ing"><div class="gc-stat-icon">↑</div><div><div class="gc-stat-label">Ingresos del mes</div><div class="gc-stat-val">${fmt(ingMes)}</div><div class="gc-stat-delta" id="inicio-ing-delta"></div></div></div>
+        <div class="gc-stat gas"><div class="gc-stat-icon">↓</div><div><div class="gc-stat-label">Gastos del mes</div><div class="gc-stat-val">${fmt(gasMes)}</div><div class="gc-stat-delta" id="inicio-gas-delta"></div></div></div>
         <div class="gc-stat net" style="grid-column:1 / -1;"><div class="gc-stat-icon">≈</div><div><div class="gc-stat-label">Neto del mes</div><div class="gc-stat-val" style="color:${netMes >= 0 ? 'var(--teal)' : 'var(--ember)'};">${fmt(netMes)}</div></div></div>
       </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
+        <div style="flex:1;min-width:120px;background:#F5F7FC;border-radius:12px;padding:12px 14px;text-align:center;">
+          <div style="font-size:20px;font-weight:700;color:var(--ink);">${trabajadoresActivos}</div>
+          <div style="font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;">Trabajadores activos</div>
+        </div>
+        <div style="flex:1;min-width:120px;background:#F5F7FC;border-radius:12px;padding:12px 14px;text-align:center;">
+          <div style="font-size:20px;font-weight:700;color:var(--ink);">${totalClientes}</div>
+          <div style="font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;">Clientes</div>
+        </div>
+        <div style="flex:1;min-width:120px;background:#F5F7FC;border-radius:12px;padding:12px 14px;text-align:center;">
+          <div style="font-size:20px;font-weight:700;color:var(--ink);">${invoicesGuardados.length}</div>
+          <div style="font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;">Invoices guardados</div>
+        </div>
+      </div>
+
+      ${topGastos.length ? `
+      <div class="gc-card" style="margin-top:16px;">
+        <p class="gc-card-title">Top gastos de ${escapeHtml(nombreMes)}</p>
+        ${topGastos.map(([cat, monto]) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F0F4FA;">
+            <div style="font-size:13px;color:var(--ink);">${escapeHtml(cat)}</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--ember);">${fmt(monto)}</div>
+          </div>`).join('')}
+      </div>` : ''}
+
+      ${ultimaInvoice ? `
+      <div class="gc-card" style="margin-top:16px;">
+        <p class="gc-card-title">Reparto — última semana cerrada</p>
+        <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px;">${escapeHtml(ultimaInvoice.label || '')}</p>
+        ${pagosUltima.map((p) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F0F4FA;">
+            <div style="font-size:13px;color:var(--ink);">${escapeHtml(p.nombre || '')}</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--teal);">${fmt(p.total)}</div>
+          </div>`).join('')}
+      </div>` : ''}
+
+      ${semanasPendientes.length ? `
+      <div class="gc-card" style="margin-top:16px;border-left:3px solid var(--ember);">
+        <p class="gc-card-title">Semanas por cerrar en Registro</p>
+        <p style="font-size:12.5px;color:var(--muted);margin-bottom:10px;">${semanasPendientes.length} semana${semanasPendientes.length === 1 ? '' : 's'} con movimientos que aún no ${semanasPendientes.length === 1 ? 'se guardó' : 'se han guardado'} como invoice.</p>
+        ${semanasPendientes.slice(0, 5).map((s) => `<div style="font-size:12.5px;color:var(--ink);padding:4px 0;">• ${escapeHtml(s.label)}</div>`).join('')}
+      </div>` : ''}
 
       <div class="gc-card" style="margin-top:16px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
@@ -2039,6 +2137,9 @@
         </div>
       </div>
     `;
+
+    renderStatDelta('inicio-ing-delta', ingMes, ingMesPasado, true);
+    renderStatDelta('inicio-gas-delta', gasMes, gasMesPasado, false);
 
     if ($('inicio-ir-movimiento')) $('inicio-ir-movimiento').addEventListener('click', () => { document.querySelector('.gc-tab[data-tab="movimientos"]').click(); });
     if ($('inicio-ir-factura')) $('inicio-ir-factura').addEventListener('click', () => { document.querySelector('.gc-tab[data-tab="facturas"]').click(); });
@@ -4790,62 +4891,6 @@
   });
 
   async function nomSaveDocs() { await window.storage.set(NOM_KEY, JSON.stringify(nomDocs)); }
-
-  // ---- Pase automático a Registro (con 1 semana de resago) ----
-  // Cuando se registra un pago de nómina, el gasto correspondiente se cobra
-  // en Registro una semana DESPUÉS de los días trabajados (así se refleja
-  // cuando de verdad se paga, no cuando se trabajó). Ej.: si trabajó del
-  // lunes 24 al viernes 28, el gasto en Registro cae en la semana del 31 al 4.
-  function nomFechaResagoParaCobro(diasArr) {
-    const dias = Array.isArray(diasArr) ? diasArr.slice().sort() : [];
-    const refDay = dias[0] || nomToday();
-    const d = new Date(refDay + 'T00:00:00');
-    if (isNaN(d)) return nomToday();
-    d.setDate(d.getDate() + 7); // una semana de resago
-    return d.toISOString().slice(0, 10);
-  }
-
-  // Crea (o actualiza, si ya existía) el gasto en Registro ligado a este
-  // pago de nómina. Se identifica con el id "nom-<id del pago>" para poder
-  // encontrarlo de nuevo si el pago se edita o se borra.
-  function nomCrearOActualizarMovimiento(entrada) {
-    if (!entrada || !entrada.trabajador || !(Number(entrada.monto) > 0)) return;
-    const dias = Array.isArray(entrada.dias) ? entrada.dias.slice().sort() : [];
-    const fecha = nomFechaResagoParaCobro(dias);
-    const cat = entrada.trabajador;
-    if (!catGastos.includes(cat)) { catGastos.push(cat); saveCatGastos(); if (typeof renderCategorias === 'function') renderCategorias(); }
-    const wk = dias.length ? nomWeekKey(dias[0]) : '';
-    const rango = wk ? nomWeekRango(wk) : null;
-    const semTxt = rango ? ` (semana del ${nomFechaCortaTexto(rango.inicio)} al ${nomFechaCortaTexto(rango.fin)})` : '';
-    const desc = `Nómina — ${dias.length} día(s)${semTxt}`;
-    // nomId (texto) liga este gasto con el pago de nómina. El id del
-    // movimiento en sí se mantiene NUMÉRICO, igual que todos los demás
-    // gastos/ingresos, porque el resto de Registro (editar, duplicar,
-    // borrar, ordenar) espera id numérico.
-    const nomId = String(entrada.id);
-    const idx = movimientos.findIndex((m) => m.nomId === nomId);
-    if (idx >= 0) {
-      movimientos[idx] = { ...movimientos[idx], fecha, tipo: 'gasto', cat, monto: Number(entrada.monto) || 0, desc, nomId, nomAuto: true };
-    } else {
-      movimientos.push({ id: Date.now() + Math.floor(Math.random() * 100000), fecha, tipo: 'gasto', cat, monto: Number(entrada.monto) || 0, desc, nomId, nomAuto: true });
-    }
-    saveMov();
-    if (typeof renderMovimientos === 'function') renderMovimientos();
-    if (typeof renderReparto === 'function') renderReparto();
-  }
-
-  // Quita el gasto en Registro ligado a un pago de nómina que se eliminó.
-  function nomEliminarMovimientoLigado(entradaId) {
-    const nomId = String(entradaId);
-    const antes = movimientos.length;
-    movimientos = movimientos.filter((m) => m.nomId !== nomId);
-    if (movimientos.length !== antes) {
-      saveMov();
-      if (typeof renderMovimientos === 'function') renderMovimientos();
-      if (typeof renderReparto === 'function') renderReparto();
-    }
-  }
-
   function nomRefreshDl() {
     // Solo trabajadores activos aparecen para buscar/seleccionar
     const activos = empleados.filter((e) => e.estado !== 'inactivo');
@@ -5097,7 +5142,6 @@
       };
       const idx = nomDocs.findIndex((n) => n.id === entrada.id);
       if (idx >= 0) nomDocs[idx] = entrada; else nomDocs.push(entrada);
-      nomCrearOActualizarMovimiento(entrada);
       guardados = 1;
     } else {
       // Varios trabajadores: un pago por cada uno (días × su sueldo + extra)
@@ -5105,14 +5149,12 @@
         const t = nomBuscarTrab(nombre) || { nombre, sueldo: 0 };
         const sueldo = t.sueldo || 0;
         const monto = (nomDiasSel.length * sueldo) + extraMonto;
-        const nuevoDoc = {
+        nomDocs.push({
           id: Date.now().toString() + '-' + Math.random().toString(36).slice(2, 7),
           trabajador: nombre, dias: [...nomDiasSel],
           sueldoDia: sueldo, extraDesc, extraMonto, monto, nota,
           creadoEn: new Date().toISOString()
-        };
-        nomDocs.push(nuevoDoc);
-        nomCrearOActualizarMovimiento(nuevoDoc);
+        });
         guardados++;
       }
     }
@@ -5347,7 +5389,6 @@
         if (!await gcConfirm('¿Eliminar este pago?', { okText: 'Eliminar', danger: true })) return;
         nomDocs = nomDocs.filter((x) => x.id !== btn.dataset.id);
         await nomSaveDocs();
-        nomEliminarMovimientoLigado(btn.dataset.id);
         toast('Pago eliminado', 'info');
         nomRenderHist();
       });
@@ -5659,6 +5700,7 @@
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
           <p style="font-family:'Zilla Slab',serif;font-size:15px;font-weight:600;color:var(--ink);margin:0;">Semana del ${nomFechaCortaTexto(rango.inicio)} al ${nomFechaCortaTexto(rango.fin)}</p>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="gc-action-btn nom-sem-editar" data-wk="${wk}" style="padding:5px 12px;font-size:11.5px;">Editar semana</button>
             <button class="gc-action-btn nom-sem-ver" data-wk="${wk}" style="padding:5px 12px;font-size:11.5px;">Ver recibo</button>
             <button class="gc-action-btn nom-sem-imp" data-wk="${wk}" style="padding:5px 12px;font-size:11.5px;">Imprimir</button>
           </div>
@@ -5674,6 +5716,9 @@
     });
 
     // Listeners
+    cont.querySelectorAll('.nom-sem-editar').forEach((btn) => {
+      btn.addEventListener('click', () => nomAbrirEditarSemana(btn.dataset.wk));
+    });
     cont.querySelectorAll('.nom-sem-ver').forEach((btn) => {
       btn.addEventListener('click', () => nomMostrarReciboSemanal(btn.dataset.wk));
     });
@@ -5701,6 +5746,153 @@
       });
     });
   }
+
+  // ====================================================================
+  // EDITAR SEMANA (incluye a TODOS los trabajadores, no solo uno)
+  // ====================================================================
+  let nomEsWk = null;       // clave (lunes) de la semana que se está editando
+  let nomEsFilas = [];      // [{ nombre, sueldo, dias:[...], monto, montoTocado, pagos:[ids], nota }]
+
+  // Arma las 7 fechas (lunes a domingo) de una semana a partir de su clave
+  function nomEsFechasSemana(wk) {
+    const lunes = new Date(wk + 'T00:00:00');
+    const out = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(lunes); d.setDate(lunes.getDate() + i);
+      out.push(d.toISOString().slice(0, 10));
+    }
+    return out;
+  }
+
+  function nomAbrirEditarSemana(wk) {
+    nomEsWk = wk;
+    const rango = nomWeekRango(wk);
+    $('nom-es-titulo').textContent = `Editar semana del ${nomFechaCortaTexto(rango.inicio)} al ${nomFechaCortaTexto(rango.fin)}`;
+
+    const semanas = nomAgruparSemanas();
+    const trabMap = semanas.get(wk) || new Map();
+
+    // Todos los trabajadores activos, más cualquiera con pago esta semana
+    // aunque ahora esté inactivo (para no perder de vista su pago).
+    const activos = empleados.filter((e) => e.estado !== 'inactivo').map((e) => empNombreCompleto(e));
+    const nombresConPago = [...trabMap.keys()];
+    const nombres = [...new Set([...activos, ...nombresConPago])];
+
+    nomEsFilas = nombres.map((nombre) => {
+      const t = nomBuscarTrab(nombre);
+      const existente = trabMap.get(nombre);
+      const dias = existente ? [...new Set(existente.dias)].sort() : [];
+      const monto = existente ? existente.monto : 0;
+      const pagos = existente ? existente.pagos.map((p) => p.id) : [];
+      const nota = existente && existente.pagos.length ? (existente.pagos[0].nota || '') : '';
+      return { nombre, sueldo: t ? (t.sueldo || 0) : 0, dias, monto, montoTocado: false, pagos, nota };
+    }).sort((a, b) => {
+      // primero los que ya tienen días esta semana, luego alfabético
+      if ((b.dias.length > 0) !== (a.dias.length > 0)) return (b.dias.length > 0) ? 1 : -1;
+      return a.nombre.localeCompare(b.nombre);
+    });
+
+    $('nom-es-status').textContent = '';
+    nomRenderEditarSemana();
+    $('nom-es-modal').style.display = 'flex';
+  }
+
+  function nomRenderEditarSemana() {
+    const cont = $('nom-es-lista');
+    if (!cont) return;
+    const fechas = nomEsFechasSemana(nomEsWk);
+    const letras = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+
+    cont.innerHTML = nomEsFilas.map((fila, fi) => {
+      const botones = fechas.map((f, i) => {
+        const d = new Date(f + 'T00:00:00');
+        const sel = fila.dias.includes(f);
+        return `<button type="button" class="nom-es-dia" data-fi="${fi}" data-fecha="${f}"
+          style="height:44px;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer;
+          border:1.5px solid ${sel ? 'var(--navy)' : 'var(--border)'};
+          background:${sel ? 'var(--navy)' : '#fff'};color:${sel ? '#fff' : 'var(--ink)'};
+          display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.25;">
+          <span style="font-size:9.5px;opacity:.8;">${letras[i]}</span>${d.getDate()}</button>`;
+      }).join('');
+      return `
+        <div class="gc-card" style="margin-bottom:10px;padding:12px 14px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;">
+            <div>
+              <div style="font-weight:600;font-size:13.5px;color:var(--ink);">${escapeHtml(fila.nombre)}</div>
+              <div style="font-size:11px;color:var(--muted);">sueldo: ${nomFmt(fila.sueldo)}/día${fila.pagos.length > 1 ? ' · varios pagos (se juntan en uno al guardar)' : ''}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;">Monto</div>
+              <input type="text" class="nom-es-monto" data-fi="${fi}" value="${fila.monto ? fila.monto.toFixed(2) : ''}" inputmode="decimal" placeholder="0.00"
+                style="width:92px;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:700;padding:6px 8px;border:1.5px solid var(--border);border-radius:8px;">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;">${botones}</div>
+        </div>`;
+    }).join('');
+
+    cont.querySelectorAll('.nom-es-dia').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const fi = Number(btn.dataset.fi);
+        const fila = nomEsFilas[fi];
+        const f = btn.dataset.fecha;
+        const idx = fila.dias.indexOf(f);
+        if (idx >= 0) fila.dias.splice(idx, 1); else { fila.dias.push(f); fila.dias.sort(); }
+        if (!fila.montoTocado) fila.monto = fila.dias.length * fila.sueldo;
+        nomRenderEditarSemana();
+      });
+    });
+    cont.querySelectorAll('.nom-es-monto').forEach((inp) => {
+      inp.addEventListener('input', () => {
+        const fi = Number(inp.dataset.fi);
+        nomEsFilas[fi].montoTocado = true;
+        nomEsFilas[fi].monto = parseFloat(inp.value.replace(',', '.')) || 0;
+      });
+    });
+  }
+
+  function nomCerrarEditarSemana() { $('nom-es-modal').style.display = 'none'; }
+  $('nom-es-cerrar').addEventListener('click', nomCerrarEditarSemana);
+  $('nom-es-cancelar').addEventListener('click', nomCerrarEditarSemana);
+  $('nom-es-modal').addEventListener('click', (e) => { if (e.target === $('nom-es-modal')) nomCerrarEditarSemana(); });
+
+  $('nom-es-guardar').addEventListener('click', async () => {
+    let creados = 0, actualizados = 0, borrados = 0;
+    nomEsFilas.forEach((fila) => {
+      if (fila.dias.length > 0) {
+        const idPrincipal = fila.pagos[0] || (Date.now().toString() + '-' + Math.random().toString(36).slice(2, 7));
+        const original = fila.pagos[0] ? nomDocs.find((n) => n.id === fila.pagos[0]) : null;
+        const entrada = {
+          id: idPrincipal, trabajador: fila.nombre, dias: [...fila.dias],
+          sueldoDia: fila.sueldo, extraDesc: original ? (original.extraDesc || '') : '',
+          extraMonto: original ? (original.extraMonto || 0) : 0,
+          monto: fila.monto, nota: fila.nota || '',
+          creadoEn: original ? original.creadoEn : new Date().toISOString()
+        };
+        const idx = nomDocs.findIndex((n) => n.id === idPrincipal);
+        if (idx >= 0) { nomDocs[idx] = entrada; actualizados++; } else { nomDocs.push(entrada); creados++; }
+        // Si había más de un pago para este trabajador esta semana, el resto se juntó en el principal — se quitan los sobrantes.
+        if (fila.pagos.length > 1) {
+          const extras = fila.pagos.slice(1);
+          nomDocs = nomDocs.filter((n) => !extras.includes(n.id));
+        }
+      } else if (fila.pagos.length > 0) {
+        nomDocs = nomDocs.filter((n) => !fila.pagos.includes(n.id));
+        borrados += fila.pagos.length;
+      }
+    });
+
+    await nomSaveDocs();
+    nomCerrarEditarSemana();
+    nomRenderSemanal();
+    nomRenderSemanaActual();
+    if (typeof nomRenderRegLedger === 'function') nomRenderRegLedger();
+    const partes = [];
+    if (creados) partes.push(`${creados} agregado(s)`);
+    if (actualizados) partes.push(`${actualizados} actualizado(s)`);
+    if (borrados) partes.push(`${borrados} quitado(s)`);
+    toast(partes.length ? `Semana guardada — ${partes.join(', ')} ✓` : 'Sin cambios', 'success');
+  });
 
   // Construir el recibo semanal (invoice de toda la semana)
   function nomBuildReciboSemanal(wk) {
@@ -5823,7 +6015,6 @@
       if (!await gcConfirm('¿Eliminar este pago?', { okText: 'Eliminar', danger: true })) return;
       nomDocs = nomDocs.filter((x) => x.id !== b.dataset.id);
       await nomSaveDocs();
-      nomEliminarMovimientoLigado(b.dataset.id);
       toast('Pago eliminado', 'info');
       nomRenderRegLedger();
     }));
