@@ -19,6 +19,15 @@
 </head>
 <body>
 
+<!-- Oculto desde el primer pintado — evita cualquier destello de la app
+     (Inicio con datos reales) mientras se confirma sesión/rol. Se revela
+     por JS al final del archivo (revelarAppNormal quita este bloque),
+     una vez que se sabe qué debe ver cada quien: normal, o la interfaz
+     restringida de visor ya armada (no antes). -->
+<style id="gh-oculto-inicial">
+  nav.gc-nav, .gc-body { display: none !important; }
+</style>
+
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
@@ -1370,14 +1379,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="supabase-storage.js"></script>
-<script>
-  if (typeof window.GH_ESPERAR_SESION === 'function') {
-    var ghOcultarInicial = document.createElement('style');
-    ghOcultarInicial.id = 'gh-oculto-inicial';
-    ghOcultarInicial.textContent = 'nav, .gc-body { display: none !important; }';
-    document.head.appendChild(ghOcultarInicial);
-  }
-</script>
 <script src="browser-storage.js"></script>
 <script>
   // Registrar el service worker (instalación PWA + funcionamiento sin internet)
@@ -1528,7 +1529,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v31 · 01 sep';
+  const APP_VERSION = 'v32 · 01 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -6033,21 +6034,29 @@
 </script>
 
 <!-- ============================================================
-     Control de acceso por rol (solo activo en la versión con login
-     de GUZMAN HVAC — en Windows y en CRA esto no hace nada, porque
-     window.GH_ESPERAR_SESION no existe ahí).
+     Control de acceso por rol. El bloque de arriba (gh-oculto-inicial)
+     esconde nav/body desde el primer pintado siempre; aquí se decide
+     cuándo y qué revelar. En Windows/CRA (sin login, sin
+     window.GH_ESPERAR_SESION) se revela de inmediato.
      ============================================================ -->
 <script>
 (function () {
-  if (typeof window.GH_ESPERAR_SESION !== 'function') return; // no aplica (Windows / CRA)
+  if (typeof window.GH_ESPERAR_SESION !== 'function') { revelarAppNormal(); return; } // no aplica (Windows / CRA) — no hay nada que esperar
 
-  window.GH_ESPERAR_SESION().then(() => {
+  window.GH_ESPERAR_SESION().then(async () => {
     const rol = window.GH_ROL;
-    revelarAppNormal();
-    if (rol === 'visor') aplicarModoVisorMultiCuenta();
     // admin = acceso total (con panel de administración)
     // empleado = acceso normal para editar su base de datos, sin administración
     // visor = una pestaña por cada base de datos que el admin le dio, solo lectura
+    if (rol === 'visor') {
+      // Arma la interfaz restringida (ya oculta los paneles normales por su
+      // cuenta) ANTES de revelar — así el visor nunca ve, ni un instante,
+      // la app normal con datos completos.
+      await aplicarModoVisorMultiCuenta();
+      revelarAppNormal();
+    } else {
+      revelarAppNormal();
+    }
   });
 
   function revelarAppNormal() {
