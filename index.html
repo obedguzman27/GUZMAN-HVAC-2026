@@ -1528,7 +1528,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v30 · 01 sep';
+  const APP_VERSION = 'v31 · 01 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -2197,7 +2197,7 @@
   function renderMovimientos() {
     const tbody = $('tbody-mov');
     tbody.innerHTML = '';
-    const sorted = [...movimientos].sort((a, b) => (a.fecha || '').localeCompare(b.fecha || '') || a.id - b.id);
+    const sorted = [...movimientos].sort((a, b) => (a.fecha || '').localeCompare(b.fecha || '') || String(a.id).localeCompare(String(b.id)));
     $('empty-mov').style.display = sorted.length === 0 ? 'block' : 'none';
 
     const grupos = new Map();
@@ -2257,7 +2257,7 @@
 
     tbody.querySelectorAll('.gc-dup-mov').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const m = movimientos.find((x) => x.id === Number(btn.dataset.id));
+        const m = movimientos.find((x) => String(x.id) === btn.dataset.id);
         if (!m) return;
         duplicarMovimiento(m);
       });
@@ -2265,7 +2265,7 @@
 
     tbody.querySelectorAll('.gc-edit-mov').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const m = movimientos.find((x) => x.id === Number(btn.dataset.id));
+        const m = movimientos.find((x) => String(x.id) === btn.dataset.id);
         if (!m) return;
         editarMovimiento(m);
       });
@@ -2274,7 +2274,7 @@
     tbody.querySelectorAll('.gc-del').forEach((btn) => {
       btn.addEventListener('click', async () => {
         if (!await gcConfirm('¿Eliminar este movimiento? Esta acción no se puede deshacer.', { okText: 'Eliminar', danger: true })) return;
-        movimientos = movimientos.filter((m) => m.id !== Number(btn.dataset.id));
+        movimientos = movimientos.filter((m) => String(m.id) !== btn.dataset.id);
         saveMov();
         renderMovimientos();
         renderReparto();
@@ -3092,7 +3092,7 @@
 
   // ---- Imprimir (descarga archivo, no abre ventana) ----
   $('btn-imprimir').addEventListener('click', () => {
-    const sorted = [...movimientos].sort((a, b) => (a.fecha || '').localeCompare(b.fecha || '') || a.id - b.id);
+    const sorted = [...movimientos].sort((a, b) => (a.fecha || '').localeCompare(b.fecha || '') || String(a.id).localeCompare(String(b.id)));
     const grupos = new Map();
     sorted.forEach((m) => {
       const { key, label } = weekInfo(m.fecha || today());
