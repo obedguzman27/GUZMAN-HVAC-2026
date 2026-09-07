@@ -246,6 +246,12 @@
   /* Nota / info */
   .gc-note { font-size: 12.5px; color: var(--muted); background: var(--card); border: 1px solid var(--border-soft); border-left: 3px solid var(--gold); padding: 13px 17px; margin-bottom: 18px; border-radius: var(--r-sm); line-height: 1.6; box-shadow: var(--shadow-sm); }
   .gc-empty { text-align: center; padding: 44px 20px; color: var(--muted); font-size: 13.5px; }
+  /* Celdas estilo hoja de cálculo (Cobros Pendientes) */
+  .cob-cell-input { width: 100%; border: none; background: transparent; padding: 8px 6px; font-size: 13px; font-family: inherit; color: var(--ink); box-sizing: border-box; }
+  .cob-cell-input:focus { background: #EEF2FF; outline: 2px solid var(--navy); outline-offset: -2px; }
+  #cob-tabla td { border: 1px solid #E2E8F3; padding: 0; }
+  #cob-tabla tr:nth-child(even) td { background: #FAFBFD; }
+  #cob-tabla select.cob-cell-input { cursor: pointer; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 4px center; background-size: 14px; padding-right: 20px; }
   .gc-empty::before { content: '—'; display: block; font-size: 22px; color: var(--muted-soft); margin-bottom: 8px; letter-spacing: 6px; }
 
   /* ── BUSCAR ─────────────────────────────── */
@@ -518,6 +524,7 @@
   <nav class="gc-nav">
     <button class="gc-tab active" data-tab="movimientos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Registro</button>
     <button class="gc-tab" data-tab="facturas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Facturas</button>
+    <button class="gc-tab" data-tab="cobros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>Cobros</button>
     <button class="gc-tab" data-tab="nomina"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Nómina</button>
     <button class="gc-tab" data-tab="buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Buscar</button>
     <button class="gc-tab" data-tab="respaldo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Ajustes</button>
@@ -1296,6 +1303,46 @@
       </div>
     </div>
   </div>
+
+  <!-- ===== COBROS PENDIENTES ===== -->
+  <div class="gc-panel" id="panel-cobros">
+    <div class="gc-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <p class="gc-card-title" style="margin:0;">Cobros Pendientes</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <input type="text" id="cob-buscar" placeholder="Buscar cliente…" autocomplete="off"
+            style="font-family:'Inter',sans-serif;font-size:13px;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
+          <button type="button" class="gc-save-btn" id="cob-btn-agregar" style="padding:8px 16px;font-size:13px;">+ Fila</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="cob-tabla" style="border-collapse:collapse;width:100%;min-width:760px;">
+          <thead>
+            <tr>
+              <th style="border:1px solid #E2E8F3;background:#F5F7FC;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:8px 6px;text-align:left;">Cliente</th>
+              <th style="border:1px solid #E2E8F3;background:#F5F7FC;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:8px 6px;text-align:left;">Concepto</th>
+              <th style="border:1px solid #E2E8F3;background:#F5F7FC;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:8px 6px;text-align:right;">Monto</th>
+              <th style="border:1px solid #E2E8F3;background:#F5F7FC;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:8px 6px;text-align:left;">Fecha</th>
+              <th style="border:1px solid #E2E8F3;background:#F5F7FC;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:8px 6px;text-align:left;">Estado</th>
+              <th style="border:1px solid #E2E8F3;background:#F5F7FC;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:8px 6px;text-align:left;">Notas</th>
+              <th style="border:1px solid #E2E8F3;background:#F5F7FC;width:32px;"></th>
+            </tr>
+          </thead>
+          <tbody id="cob-tbody"></tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2" style="border:1px solid #E2E8F3;padding:8px 6px;text-align:right;font-weight:700;font-size:12.5px;">Total pendiente:</td>
+              <td id="cob-total-pendiente" class="num" style="border:1px solid #E2E8F3;padding:8px 6px;text-align:right;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--ember);"></td>
+              <td colspan="2" style="border:1px solid #E2E8F3;padding:8px 6px;text-align:right;font-weight:700;font-size:12.5px;">Total cobrado:</td>
+              <td id="cob-total-cobrado" class="num" style="border:1px solid #E2E8F3;padding:8px 6px;text-align:right;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--teal);"></td>
+              <td style="border:1px solid #E2E8F3;"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div class="gc-empty" id="cob-empty" style="display:none;">No hay cobros pendientes registrados. Toca "+ Fila" para agregar uno.</div>
+    </div>
+  </div>
 </div>
 
 <!-- Print modal -->
@@ -1465,7 +1512,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v37 · 01 sep';
+  const APP_VERSION = 'v38 · 01 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -5542,6 +5589,126 @@
 
   // ====================================================================
   // FIN MÓDULO NÓMINA
+  // ====================================================================
+
+  // ====================================================================
+  // MÓDULO: COBROS PENDIENTES (tabla estilo hoja de cálculo)
+  // ====================================================================
+  const COB_KEY = 'gh-cobros-pendientes';
+  let cobros = [];
+
+  function cobNuevaFila() {
+    return {
+      id: Date.now().toString() + '-' + Math.random().toString(36).slice(2, 7),
+      cliente: '', concepto: '', monto: '', fecha: today(), estado: 'Pendiente', notas: ''
+    };
+  }
+  async function cobGuardarLista() { await window.storage.set(COB_KEY, JSON.stringify(cobros)); }
+  const cobGuardarDebounced = debounce(cobGuardarLista, 500);
+
+  function cobRenderTotales() {
+    let pendiente = 0, cobrado = 0;
+    cobros.forEach((f) => {
+      const monto = parseFloat(String(f.monto).replace(',', '.')) || 0;
+      if ((f.estado || 'Pendiente') === 'Cobrado') cobrado += monto; else pendiente += monto;
+    });
+    $('cob-total-pendiente').textContent = fmt(pendiente);
+    $('cob-total-cobrado').textContent = fmt(cobrado);
+  }
+
+  function cobMoverFoco(inputActual, delta) {
+    const campo = inputActual.dataset.campo;
+    const filas = [...$('cob-tbody').querySelectorAll('tr')];
+    const idx = filas.indexOf(inputActual.closest('tr'));
+    const siguienteFila = filas[idx + delta];
+    if (!siguienteFila && delta > 0) {
+      cobAgregarFila().then(() => {
+        setTimeout(() => {
+          const nuevasFilas = [...$('cob-tbody').querySelectorAll('tr')];
+          const ultima = nuevasFilas[nuevasFilas.length - 1];
+          const nuevoInput = ultima ? ultima.querySelector(`[data-campo="${campo}"]`) : null;
+          if (nuevoInput) nuevoInput.focus();
+        }, 30);
+      });
+      return;
+    }
+    if (siguienteFila) {
+      const siguienteInput = siguienteFila.querySelector(`[data-campo="${campo}"]`);
+      if (siguienteInput) siguienteInput.focus();
+    }
+  }
+
+  function cobRender() {
+    const filtro = ($('cob-buscar').value || '').trim().toLowerCase();
+    const tbody = $('cob-tbody');
+    const filtrados = cobros.filter((f) => !filtro || (f.cliente || '').toLowerCase().includes(filtro));
+    $('cob-empty').style.display = cobros.length === 0 ? 'block' : 'none';
+    $('cob-tabla').style.display = cobros.length === 0 ? 'none' : 'table';
+
+    tbody.innerHTML = filtrados.map((f) => `
+      <tr>
+        <td><input class="cob-cell-input" data-id="${f.id}" data-campo="cliente" value="${escapeHtml(f.cliente)}" placeholder="Nombre…"></td>
+        <td><input class="cob-cell-input" data-id="${f.id}" data-campo="concepto" value="${escapeHtml(f.concepto)}" placeholder="Trabajo / factura…"></td>
+        <td><input class="cob-cell-input" data-id="${f.id}" data-campo="monto" inputmode="decimal" style="text-align:right;font-family:'IBM Plex Mono',monospace;" value="${escapeHtml(f.monto)}" placeholder="0.00"></td>
+        <td><input type="date" class="cob-cell-input" data-id="${f.id}" data-campo="fecha" value="${escapeHtml(f.fecha)}"></td>
+        <td>
+          <select class="cob-cell-input" data-id="${f.id}" data-campo="estado">
+            <option value="Pendiente" ${f.estado !== 'Cobrado' ? 'selected' : ''}>Pendiente</option>
+            <option value="Cobrado" ${f.estado === 'Cobrado' ? 'selected' : ''}>Cobrado</option>
+          </select>
+        </td>
+        <td><input class="cob-cell-input" data-id="${f.id}" data-campo="notas" value="${escapeHtml(f.notas)}" placeholder="…"></td>
+        <td style="text-align:center;border:1px solid #E2E8F3;"><button type="button" class="cob-del" data-id="${f.id}" tabindex="-1" style="border:none;background:none;color:var(--ember);cursor:pointer;font-size:15px;line-height:1;padding:6px;">✕</button></td>
+      </tr>`).join('');
+
+    tbody.querySelectorAll('.cob-cell-input').forEach((inp) => {
+      inp.addEventListener('input', () => {
+        const f = cobros.find((x) => x.id === inp.dataset.id);
+        if (!f) return;
+        f[inp.dataset.campo] = inp.value;
+        cobGuardarDebounced();
+        if (inp.dataset.campo === 'monto' || inp.dataset.campo === 'estado') cobRenderTotales();
+      });
+      inp.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); cobMoverFoco(inp, 1); }
+      });
+    });
+    tbody.querySelectorAll('.cob-del').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!await gcConfirm('¿Borrar esta fila?', { okText: 'Borrar', danger: true })) return;
+        cobros = cobros.filter((x) => x.id !== btn.dataset.id);
+        await cobGuardarLista();
+        cobRender();
+      });
+    });
+    cobRenderTotales();
+  }
+
+  async function cobAgregarFila() {
+    cobros.push(cobNuevaFila());
+    await cobGuardarLista();
+    cobRender();
+  }
+  $('cob-btn-agregar').addEventListener('click', cobAgregarFila);
+  $('cob-buscar').addEventListener('input', debounce(cobRender, 160));
+
+  // ---- Carga inicial de Cobros Pendientes (al abrir la pestaña por primera vez) ----
+  let cobCargado = false;
+  document.querySelectorAll('.gc-tab').forEach((tab) => {
+    if (tab.dataset.tab === 'cobros') {
+      tab.addEventListener('click', async () => {
+        if (!cobCargado) {
+          cobCargado = true;
+          const r = await window.storage.get(COB_KEY).catch(() => null);
+          try { cobros = JSON.parse(r.value); } catch (e) { cobros = []; }
+          cobRender();
+        }
+      });
+    }
+  });
+
+  // ====================================================================
+  // FIN MÓDULO COBROS PENDIENTES
   // ====================================================================
 
   // ---- Carga inicial ----
