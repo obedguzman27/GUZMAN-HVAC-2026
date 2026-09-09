@@ -1316,7 +1316,7 @@
         </div>
       </div>
       <div style="overflow-x:auto;">
-        <table id="cob-tabla" style="border-collapse:collapse;width:100%;min-width:760px;">
+        <table id="cob-tabla" style="display:none;border-collapse:collapse;width:100%;min-width:760px;">
           <thead>
             <tr>
               <th style="border:1px solid #E2E8F3;background:#F5F7FC;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:8px 6px;text-align:left;">Cliente</th>
@@ -1340,7 +1340,7 @@
           </tfoot>
         </table>
       </div>
-      <div class="gc-empty" id="cob-empty" style="display:none;">No hay cobros pendientes registrados. Toca "+ Fila" para agregar uno.</div>
+      <div class="gc-empty" id="cob-empty">No hay cobros pendientes registrados. Toca "+ Fila" para agregar uno.</div>
     </div>
   </div>
 </div>
@@ -1512,7 +1512,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v38 · 01 sep';
+  const APP_VERSION = 'v39 · 01 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -5692,20 +5692,30 @@
   $('cob-btn-agregar').addEventListener('click', cobAgregarFila);
   $('cob-buscar').addEventListener('input', debounce(cobRender, 160));
 
+  // Pinta el estado inicial (vacío) de una vez, sin esperar a nada — así la
+  // pestaña nunca se ve en blanco, pase lo que pase con la carga de abajo.
+  cobRender();
+
   // ---- Carga inicial de Cobros Pendientes (al abrir la pestaña por primera vez) ----
+  // Trae los datos guardados y los pinta encima del estado vacío de arriba.
   let cobCargado = false;
+  async function cobCargarDatos() {
+    if (cobCargado) return;
+    cobCargado = true;
+    const r = await window.storage.get(COB_KEY).catch(() => null);
+    try { cobros = JSON.parse(r.value); } catch (e) { cobros = []; }
+    cobRender();
+  }
   document.querySelectorAll('.gc-tab').forEach((tab) => {
     if (tab.dataset.tab === 'cobros') {
-      tab.addEventListener('click', async () => {
-        if (!cobCargado) {
-          cobCargado = true;
-          const r = await window.storage.get(COB_KEY).catch(() => null);
-          try { cobros = JSON.parse(r.value); } catch (e) { cobros = []; }
-          cobRender();
-        }
-      });
+      tab.addEventListener('click', () => { cobCargarDatos(); });
     }
   });
+  // Si la pestaña ya está activa al cargar la página (poco común, pero por si
+  // acaso), carga los datos de una vez sin esperar un clic.
+  if (document.getElementById('panel-cobros') && document.getElementById('panel-cobros').classList.contains('active')) {
+    cobCargarDatos();
+  }
 
   // ====================================================================
   // FIN MÓDULO COBROS PENDIENTES
