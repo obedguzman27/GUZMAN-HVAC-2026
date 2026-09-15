@@ -1420,8 +1420,11 @@
       </div>
       <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="h_cliente">Cliente</label><input type="text" id="cal-f-cliente" list="dl-clientes" autocomplete="off"></div>
       <div class="gc-form-row">
-        <div class="gc-field" style="margin-bottom:12px;"><label>Job #</label><input type="text" id="cal-f-job" placeholder="Job #" autocomplete="off"></div>
-        <div class="gc-field" style="margin-bottom:12px;"><label>Colonia / Lote</label><input type="text" id="cal-f-loc" list="dl-colonias" placeholder="Colonia + lote" autocomplete="off"></div>
+        <div class="gc-field" style="margin-bottom:6px;"><label>Job #</label><input type="text" id="cal-f-job" placeholder="Job #" autocomplete="off"></div>
+        <div class="gc-field" style="margin-bottom:6px;"><label>Colonia / Lote</label><input type="text" id="cal-f-loc" list="dl-colonias" placeholder="Colonia + lote" autocomplete="off"></div>
+      </div>
+      <div style="text-align:right;margin-bottom:12px;">
+        <a href="#" id="cal-f-nuevo-sitio" data-i18n="cal_nuevo_sitio" style="display:none;font-size:11px;color:var(--accent-dk);text-decoration:underline;">Es un sitio nuevo — limpiar estos datos</a>
       </div>
       <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="cal_direccion_desc">Descripción del trabajo</label><input type="text" id="cal-f-desc" list="dl-trabajos" autocomplete="off"></div>
       <div class="gc-field" style="margin-bottom:14px;"><label data-i18n="notas">Notas</label><input type="text" id="cal-f-notas" autocomplete="off"></div>
@@ -1734,7 +1737,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v46 · 15 sep';
+  const APP_VERSION = 'v47 · 15 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -4296,6 +4299,7 @@
     cal_calendario: {es:'📅 Calendario',en:'📅 Calendar'},
     cal_calendario_de_trabajos: {es:'Calendario de trabajos',en:'Work calendar'},
     cal_calendario_tab: {es:'Calendario',en:'Calendar'},
+    cal_nuevo_sitio: {es:'Es un sitio nuevo — limpiar estos datos',en:'This is a new site — clear these fields'},
     planos_tab: {es:'Planos',en:'Plans'},
     pln_planos_titulo: {es:'Planos',en:'Plans'},
     pln_agregar_plano: {es:'+ Agregar plano',en:'+ Add plan'},
@@ -5164,17 +5168,30 @@
     $('cal-f-fotos-input').value = '';
   });
 
+  const CAL_ULTIMO_KEY = 'gh-cal-ultimo-trabajo';
+  function calObtenerUltimo() {
+    try { return JSON.parse(localStorage.getItem(CAL_ULTIMO_KEY)) || {}; } catch (e) { return {}; }
+  }
+  function calGuardarUltimo(datos) {
+    try { localStorage.setItem(CAL_ULTIMO_KEY, JSON.stringify({ cliente: datos.cliente, jobNum: datos.jobNum, loc: datos.loc })); } catch (e) {}
+  }
+
   function calAbrirModal(cita, fechaPredeterminada) {
     calEditandoId = cita ? cita.id : null;
     calFotosActuales = [];
     $('cal-modal-titulo').textContent = idiomaActual() === 'en' ? (cita ? I18N.cal_editar_trabajo.en : I18N.cal_nuevo_trabajo.en) : (cita ? 'Editar trabajo' : 'Nuevo trabajo');
     $('cal-f-fecha').value = cita ? cita.fecha : (fechaPredeterminada || today());
     $('cal-f-hora').value = cita ? (cita.hora || '') : '';
-    $('cal-f-cliente').value = cita ? (cita.cliente || '') : '';
-    $('cal-f-job').value = cita ? (cita.jobNum || '') : '';
-    $('cal-f-loc').value = cita ? (cita.loc || '') : '';
+    // Trabajo nuevo: precarga Cliente/Job #/Colonia-Lote con lo último que
+    // usaste (lo más común es seguir en el mismo sitio) — si cambiaste de
+    // lugar, solo corrige estos tres campos o toca "Es un sitio nuevo".
+    const ultimo = !cita ? calObtenerUltimo() : {};
+    $('cal-f-cliente').value = cita ? (cita.cliente || '') : (ultimo.cliente || '');
+    $('cal-f-job').value = cita ? (cita.jobNum || '') : (ultimo.jobNum || '');
+    $('cal-f-loc').value = cita ? (cita.loc || '') : (ultimo.loc || '');
     $('cal-f-desc').value = cita ? (cita.descripcion || '') : '';
     $('cal-f-notas').value = cita ? (cita.notas || '') : '';
+    $('cal-f-nuevo-sitio').style.display = (!cita && (ultimo.jobNum || ultimo.loc || ultimo.cliente)) ? 'inline' : 'none';
     calRenderFotosGrid();
     $('cal-modal').style.display = 'flex';
     $('cal-f-fecha').focus();
@@ -5189,6 +5206,12 @@
       });
     }
   }
+  $('cal-f-nuevo-sitio').addEventListener('click', (e) => {
+    e.preventDefault();
+    $('cal-f-cliente').value = ''; $('cal-f-job').value = ''; $('cal-f-loc').value = '';
+    $('cal-f-nuevo-sitio').style.display = 'none';
+    $('cal-f-cliente').focus();
+  });
   $('cal-modal-cancelar').addEventListener('click', () => { $('cal-modal').style.display = 'none'; });
   $('cal-modal').addEventListener('click', (e) => { if (e.target === $('cal-modal')) $('cal-modal').style.display = 'none'; });
   $('cal-modal-guardar').addEventListener('click', async () => {
@@ -5216,6 +5239,7 @@
       id = 'cita_' + Date.now();
       citas.push({ id, ...datos });
     }
+    calGuardarUltimo(datos);
     await calGuardar();
     if (fotos.length) await calGuardarFotosDe(id, fotos);
     btnGuardar.disabled = false;
