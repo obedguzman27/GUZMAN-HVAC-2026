@@ -1,5 +1,5 @@
 // ============================================================
-// Kontaly — Conexión con Supabase (usuario y contraseña + roles)
+// Guzman HVAC — Conexión con Supabase (usuario y contraseña + roles)
 // ============================================================
 // Define window.storage ANTES de que el resto de la app cargue,
 // así que la app usa esto como su almacenamiento principal.
@@ -11,7 +11,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       const overlay = document.createElement('div');
       overlay.style.cssText = `
-        position: fixed; inset: 0; z-index: 99999; background: #16233F; color: #fff;
+        position: fixed; inset: 0; z-index: 99999; background: #0E1830; color: #fff;
         display: flex; align-items: center; justify-content: center; text-align: center;
         font-family: sans-serif; padding: 30px;
       `;
@@ -89,13 +89,25 @@
     overlay.id = 'gh-login-overlay';
     overlay.style.cssText = `
       position: fixed; inset: 0; z-index: 99999;
-      background: linear-gradient(135deg,#16233F 0%,#1E3054 100%);
+      background: linear-gradient(135deg,#0E1830 0%,#213661 100%);
       display: flex; align-items: center; justify-content: center;
       font-family: 'Inter', sans-serif;
     `;
     overlay.innerHTML = `
       <div style="background:#fff; border-radius:16px; padding:36px 32px; width:90%; max-width:360px; box-shadow:0 12px 40px rgba(0,0,0,.35); text-align:center;">
-        <div style="font-family:'Zilla Slab',serif; font-weight:700; font-size:20px; color:#16233F; margin-bottom:4px;">Kontaly</div>
+        <svg width="52" height="52" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:12px;">
+          <defs>
+            <linearGradient id="gh-login-grad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#C2611B"/>
+              <stop offset="1" stop-color="#0E1830"/>
+            </linearGradient>
+          </defs>
+          <rect x="8" y="8" width="144" height="144" rx="40" fill="url(#gh-login-grad)"/>
+          <path d="M 109.73 108.77 A 40 40 0 1 1 118.04 69.64" fill="none" stroke="#fff" stroke-width="15.5" stroke-linecap="round"/>
+          <path d="M 109.73 108.77 L 80 100" fill="none" stroke="#fff" stroke-width="15.5" stroke-linecap="round"/>
+          <path d="M 80 100 L 100 92 L 92 112 Z" fill="#1CB8A8"/>
+        </svg>
+        <div style="font-family:'Zilla Slab',serif; font-weight:700; font-size:20px; color:#0E1830; margin-bottom:4px;">Guzman HVAC</div>
         <div id="gh-login-subtitulo" style="font-size:12.5px; color:#5A6A88; margin-bottom:6px;">Inicia sesión</div>
         <div style="font-size:11px; color:#9AA6BE; margin-bottom:16px;">El usuario NO es tu correo — solo un nombre corto (ej. "juan")</div>
         <input id="gh-usuario-input" type="text" placeholder="Usuario (no es tu correo)" autocomplete="username"
@@ -103,7 +115,7 @@
         <input id="gh-clave-input" type="password" placeholder="Contraseña" autocomplete="current-password"
           style="width:100%; padding:12px 14px; border:1.5px solid #D0D8E8; border-radius:9px; font-size:15px; margin-bottom:14px; box-sizing:border-box;">
         <div id="gh-login-error" style="color:#C8511A; font-size:12.5px; min-height:16px; margin-bottom:10px;">${mensajeError || ''}</div>
-        <button id="gh-login-btn" style="width:100%; padding:12px; background:#16233F; color:#fff; border:none; border-radius:9px; font-weight:600; font-size:14px; cursor:pointer; margin-bottom:10px;">Entrar</button>
+        <button id="gh-login-btn" style="width:100%; padding:12px; background:#0E1830; color:#fff; border:none; border-radius:9px; font-weight:600; font-size:14px; cursor:pointer; margin-bottom:10px;">Entrar</button>
         <button id="gh-modo-btn" style="width:100%; padding:10px; background:none; color:#5A6A88; border:none; font-size:12.5px; cursor:pointer; text-decoration:underline;">¿No tienes cuenta? Crear cuenta</button>
       </div>
     `;

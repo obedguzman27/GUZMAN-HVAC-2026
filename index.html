@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Kontaly</title>
+  <title>Guzman HVAC</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 
   <!-- PWA: instalación en iPhone (Compartir → Agregar a pantalla de inicio) -->
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#16233F">
+  <meta name="theme-color" content="#0E1830">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Kontaly">
+  <meta name="apple-mobile-web-app-title" content="Guzman HVAC">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="icon" href="icon-192.png">
 </head>
@@ -260,12 +260,19 @@
   /* Nota / info */
   .gc-note { font-size: 12.5px; color: var(--muted); background: var(--card); border: 1px solid var(--border-soft); border-left: 3px solid var(--gold); padding: 13px 17px; margin-bottom: 18px; border-radius: var(--r-sm); line-height: 1.6; box-shadow: var(--shadow-sm); }
   .gc-empty { text-align: center; padding: 48px 20px; color: var(--muted); font-size: 13.5px; max-width: 320px; margin: 0 auto; line-height: 1.6; }
-  /* Celdas estilo hoja de cálculo (Cobros Pendientes) */
+  /* Celdas estilo hoja de cálculo (Pendientes) */
   .cob-cell-input { width: 100%; border: none; background: transparent; padding: 8px 6px; font-size: 13px; font-family: inherit; color: var(--ink); box-sizing: border-box; }
-  .cob-cell-input:focus { background: #EEF2FF; outline: 2px solid var(--navy); outline-offset: -2px; }
-  #cob-tabla td { border: 1px solid #E2E8F3; padding: 0; }
+  .cob-cell-input:focus { background: #EAF6F4; outline: 2px solid var(--teal); outline-offset: -2px; position: relative; z-index: 1; }
+  #cob-tabla { border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; }
+  #cob-tabla th, #cob-tabla td { border: 1px solid var(--border-soft); }
+  #cob-tabla td { padding: 0; }
+  #cob-tabla thead th { position: sticky; top: 0; z-index: 2; background: #F5F7FC; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); padding: 9px 8px; text-align: left; border-bottom: 1.5px solid var(--border); }
+  #cob-tabla thead th.num { text-align: right; }
   #cob-tabla tr:nth-child(even) td { background: #FAFBFD; }
+  #cob-tabla tbody tr:hover td { background: var(--teal-bg); }
   #cob-tabla select.cob-cell-input { cursor: pointer; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 4px center; background-size: 14px; padding-right: 20px; }
+  .cob-rownum { width: 34px; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted-soft); background: #F5F7FC !important; user-select: none; }
+  .cob-rownum-th { width: 34px; }
   .gc-empty::before {
     content: '';
     display: block;
@@ -552,29 +559,23 @@
     <div class="gc-brand">
       <svg class="gc-logo-badge" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="kontaly-grad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#0E8F82"/>
-            <stop offset="1" stop-color="#1E2D48"/>
+          <linearGradient id="gh-logo-grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#C2611B"/>
+            <stop offset="1" stop-color="#0E1830"/>
           </linearGradient>
         </defs>
         <!-- Cuadro redondeado (squircle) con gradiente -->
-        <rect x="8" y="8" width="144" height="144" rx="40" fill="url(#kontaly-grad)"/>
-        <rect x="8" y="8" width="144" height="144" rx="40" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
-        <!-- Letra K con flecha de crecimiento -->
-        <g fill="#fff">
-          <rect x="52" y="44" width="13" height="72" rx="6.5"/>
-        </g>
-        <g stroke="#fff" stroke-width="13" stroke-linecap="round">
-          <line x1="61" y1="80" x2="108" y2="46"/>
-          <line x1="61" y1="80" x2="110" y2="116"/>
-        </g>
-        <!-- Punta de flecha (crecimiento) -->
-        <path d="M108 46 L93 49 L105 61 Z" fill="#fff"/>
-        <path d="M108 46 L97 49 L105 57 Z" fill="#1CB8A8"/>
+        <rect x="8" y="8" width="144" height="144" rx="40" fill="url(#gh-logo-grad)"/>
+        <rect x="8" y="8" width="144" height="144" rx="40" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="2"/>
+        <!-- Letra G: anillo grueso con apertura + barra transversal (motivo: aspa de ventilador) -->
+        <path d="M 109.73 108.77 A 40 40 0 1 1 118.04 69.64" fill="none" stroke="#fff" stroke-width="15.5" stroke-linecap="round"/>
+        <path d="M 109.73 108.77 L 80 100" fill="none" stroke="#fff" stroke-width="15.5" stroke-linecap="round"/>
+        <!-- Acento: pequeña aspa/chispa -->
+        <path d="M 80 100 L 100 92 L 92 112 Z" fill="#1CB8A8"/>
       </svg>
       <img id="gc-logo-custom" alt="Logo" style="display:none;width:46px;height:46px;border-radius:12px;object-fit:cover;flex-shrink:0;">
       <div class="gc-brand-text">
-        <span class="gc-company">Kontaly</span>
+        <span class="gc-company">Guzman HVAC</span>
         <span id="app-version-badge" style="font-size:10px;color:rgba(255,255,255,0.55);font-weight:600;letter-spacing:.3px;"></span>
       </div>
     </div>
@@ -585,7 +586,7 @@
   <nav class="gc-nav">
     <button class="gc-tab active" data-tab="movimientos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Registro</button>
     <button class="gc-tab" data-tab="facturas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Facturas</button>
-    <button class="gc-tab" data-tab="cobros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>Cobros</button>
+    <button class="gc-tab" data-tab="cobros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>Pendientes</button>
     <button class="gc-tab" data-tab="nomina"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Nómina</button>
     <button class="gc-tab" data-tab="buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Buscar</button>
     <button class="gc-tab" data-tab="respaldo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Ajustes</button>
@@ -884,7 +885,7 @@
         </div>
         <div style="margin-top:20px;padding-top:18px;border-top:1px solid var(--border-soft);">
           <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);display:block;margin-bottom:8px;">Logo de la empresa (opcional)</label>
-          <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px;">Reemplaza el logo de Kontaly en el encabezado por el tuyo. Válido para toda la app (todas las bases de datos).</p>
+          <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px;">Reemplaza el logo de Guzman HVAC en el encabezado por el tuyo. Válido para toda la app (todas las bases de datos).</p>
           <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
             <img id="aj-logo-preview" alt="" style="display:none;width:46px;height:46px;border-radius:12px;object-fit:cover;border:1px solid var(--border);">
             <input type="file" id="aj-logo-input" accept="image/*" style="max-width:220px;">
@@ -924,7 +925,7 @@
       <div class="gc-card" style="margin-top:16px;">
         <p class="gc-card-title">Acerca de</p>
         <p style="font-size:13px;color:var(--muted);line-height:1.7;">
-          <strong>Kontaly</strong> — Sistema de cuentas, facturas y nómina.<br>
+          <strong>Guzman HVAC</strong> — Sistema de cuentas, facturas y nómina.<br>
           Tus datos se sincronizan en la nube y están disponibles en todos tus dispositivos con tu usuario. Aun así, puedes descargar un respaldo cuando quieras.
           <br><span style="font-size:11px;color:var(--muted);">Versión <span id="app-version-acerca"></span></span>
         </p>
@@ -1365,43 +1366,45 @@
     </div>
   </div>
 
-  <!-- ===== COBROS PENDIENTES ===== -->
+  <!-- ===== PENDIENTES (hoja de cálculo de cobros) ===== -->
   <div class="gc-panel" id="panel-cobros">
     <div class="gc-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
-        <p class="gc-card-title" style="margin:0;">Cobros Pendientes</p>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:4px;">
+        <p class="gc-card-title" style="margin:0;">Pendientes</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <input type="text" id="cob-buscar" placeholder="Buscar cliente…" autocomplete="off"
             style="font-family:'Inter',sans-serif;font-size:13px;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
           <button type="button" class="gc-save-btn" id="cob-btn-agregar" style="padding:8px 16px;font-size:13px;">+ Fila</button>
         </div>
       </div>
+      <p style="font-size:11.5px;color:var(--muted);margin-bottom:14px;">Escribe directo en las celdas, como en una hoja de cálculo — Enter o ↓ baja a la siguiente fila, ↑ sube.</p>
       <div style="overflow-x:auto;">
-        <table id="cob-tabla" style="display:none;border-collapse:collapse;width:100%;min-width:760px;">
+        <table id="cob-tabla" style="border-collapse:collapse;width:100%;min-width:800px;">
           <thead>
             <tr>
-              <th style="border:1px solid #E2E8F3;background:#F5F7FC;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:8px 6px;text-align:left;">Cliente</th>
-              <th style="border:1px solid #E2E8F3;background:#F5F7FC;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:8px 6px;text-align:left;">Concepto</th>
-              <th style="border:1px solid #E2E8F3;background:#F5F7FC;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:8px 6px;text-align:right;">Monto</th>
-              <th style="border:1px solid #E2E8F3;background:#F5F7FC;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:8px 6px;text-align:left;">Fecha</th>
-              <th style="border:1px solid #E2E8F3;background:#F5F7FC;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:8px 6px;text-align:left;">Estado</th>
-              <th style="border:1px solid #E2E8F3;background:#F5F7FC;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:8px 6px;text-align:left;">Notas</th>
-              <th style="border:1px solid #E2E8F3;background:#F5F7FC;width:32px;"></th>
+              <th class="cob-rownum-th"></th>
+              <th>Cliente</th>
+              <th>Concepto</th>
+              <th class="num">Monto</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th>Notas</th>
+              <th style="width:32px;"></th>
             </tr>
           </thead>
           <tbody id="cob-tbody"></tbody>
           <tfoot>
             <tr>
-              <td colspan="2" style="border:1px solid #E2E8F3;padding:8px 6px;text-align:right;font-weight:700;font-size:12.5px;">Total pendiente:</td>
-              <td id="cob-total-pendiente" class="num" style="border:1px solid #E2E8F3;padding:8px 6px;text-align:right;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--ember);"></td>
-              <td colspan="2" style="border:1px solid #E2E8F3;padding:8px 6px;text-align:right;font-weight:700;font-size:12.5px;">Total cobrado:</td>
-              <td id="cob-total-cobrado" class="num" style="border:1px solid #E2E8F3;padding:8px 6px;text-align:right;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--teal);"></td>
-              <td style="border:1px solid #E2E8F3;"></td>
+              <td colspan="3" style="border:1px solid var(--border-soft);padding:8px 6px;text-align:right;font-weight:700;font-size:12.5px;">Total pendiente:</td>
+              <td id="cob-total-pendiente" class="num" style="border:1px solid var(--border-soft);padding:8px 6px;text-align:right;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--ember);"></td>
+              <td colspan="2" style="border:1px solid var(--border-soft);padding:8px 6px;text-align:right;font-weight:700;font-size:12.5px;">Total cobrado:</td>
+              <td id="cob-total-cobrado" class="num" style="border:1px solid var(--border-soft);padding:8px 6px;text-align:right;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--teal);"></td>
+              <td style="border:1px solid var(--border-soft);"></td>
             </tr>
           </tfoot>
         </table>
       </div>
-      <div class="gc-empty" id="cob-empty">No hay cobros pendientes registrados. Toca "+ Fila" para agregar uno.</div>
+      <div class="gc-empty" id="cob-empty">No hay filas todavía. Toca "+ Fila" para agregar una.</div>
     </div>
   </div>
 </div>
@@ -1451,15 +1454,33 @@
       });
     });
   }
-  function mostrarAvisoActualizacion() {
+  async function mostrarAvisoActualizacion() {
     if (document.getElementById('aviso-update')) return;
+    // Intenta leer el número de versión nuevo directamente de la copia que el
+    // service worker ya guardó en caché, comparándola con la versión actual
+    // (APP_VERSION, definida más abajo) — así el aviso puede decir a qué
+    // versión se va a actualizar, no solo que "hay algo nuevo".
+    let versionNueva = '';
+    try {
+      const nombres = await caches.keys();
+      for (const n of nombres) {
+        const c = await caches.open(n);
+        const resp = await c.match('./index.html');
+        if (!resp) continue;
+        const texto = await resp.clone().text();
+        const m = texto.match(/const APP_VERSION\s*=\s*'([^']+)'/);
+        if (m && m[1] && m[1] !== APP_VERSION) { versionNueva = m[1]; break; }
+      }
+    } catch (e) {}
     const barra = document.createElement('div');
     barra.id = 'aviso-update';
-    barra.style.cssText = 'position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:99999;background:#131C2E;color:#fff;padding:12px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.35);display:flex;align-items:center;gap:14px;font-family:Inter,sans-serif;font-size:13.5px;max-width:92%;';
-    barra.innerHTML = '<span>Hay una versión nueva de Kontaly</span>';
+    barra.style.cssText = 'position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:99999;background:#0E1830;color:#fff;padding:12px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.35);display:flex;align-items:center;gap:14px;font-family:Inter,sans-serif;font-size:13.5px;max-width:92%;';
+    const span = document.createElement('span');
+    span.textContent = 'Hay una versión nueva de Guzman HVAC' + (versionNueva ? ` (${versionNueva})` : '');
+    barra.appendChild(span);
     const btn = document.createElement('button');
     btn.textContent = 'Actualizar';
-    btn.style.cssText = 'background:#0E8F82;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;';
+    btn.style.cssText = 'background:#0C9184;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;';
     btn.addEventListener('click', () => {
       navigator.serviceWorker.getRegistration().then((reg) => {
         if (reg && reg.waiting) reg.waiting.postMessage('skip-waiting');
@@ -1573,7 +1594,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v39 · 01 sep';
+  const APP_VERSION = 'v40 · 14 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -1609,7 +1630,7 @@
   let cfgFacturaNombre = 'GUZMAN HVAC';
   let cfgFacturaDireccion = '';
   let cfgFacturaSigueSocio = true; // el nombre de factura/nómina sigue al Socio 2 (mitad)
-  let cfgLogoDataUrl = ''; // logo personalizado (opcional); vacío = logo de Kontaly por defecto
+  let cfgLogoDataUrl = ''; // logo personalizado (opcional); vacío = logo de Guzman HVAC por defecto
   let cfgUltimoCliente = ''; // último "Bill To" usado en Facturas — se mantiene hasta que lo cambien
 
   async function cargarConfig() {
@@ -1662,7 +1683,7 @@
     };
     try { await window.storage.set(CFG_KEY, JSON.stringify(c)); } catch (e) {}
   }
-  // Muestra el logo personalizado en el encabezado si hay uno; si no, el de Kontaly.
+  // Muestra el logo personalizado en el encabezado si hay uno; si no, el de Guzman HVAC.
   function aplicarLogo() {
     const badge = document.querySelector('.gc-logo-badge');
     const img = document.getElementById('gc-logo-custom');
@@ -3038,7 +3059,7 @@
     area.innerHTML = `<div class="gc-print-sheet">${cuerpoHTML}</div>`;
     document.title = 'Registro';
     window.print();
-    setTimeout(() => { area.innerHTML = ''; document.title = 'Kontaly'; }, 600);
+    setTimeout(() => { area.innerHTML = ''; document.title = 'Guzman HVAC'; }, 600);
   });
 
   // ---- Respaldo completo (para guardar en OneDrive) ----
@@ -3067,7 +3088,7 @@
     try { recibosData = JSON.parse(rRecibos.value); } catch (e) {}
 
     const respaldo = {
-      app: 'Kontaly',
+      app: 'Guzman HVAC',
       version: 3,
       generadoEn: new Date().toISOString(),
       // Cuentas y reparto
@@ -3151,7 +3172,7 @@
     }));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hojaEmp), 'Empleados');
 
-    XLSX.writeFile(wb, `reporte-kontaly-${today()}.xlsx`);
+    XLSX.writeFile(wb, `reporte-guzman-hvac-${today()}.xlsx`);
     toast('Excel descargado ✓', 'success');
   });
 
@@ -3839,7 +3860,7 @@
     });
   });
 
-  // ---- Logo personalizado (opcional, reemplaza el de Kontaly en el encabezado) ----
+  // ---- Logo personalizado (opcional, reemplaza el de Guzman HVAC en el encabezado) ----
   function ajRefrescarPreviewLogo() {
     const prev = $('aj-logo-preview');
     const btnQuitar = $('aj-logo-quitar');
@@ -3886,12 +3907,12 @@
   }
   if ($('aj-logo-quitar')) {
     $('aj-logo-quitar').addEventListener('click', async () => {
-      if (!await gcConfirm('¿Quitar el logo personalizado y volver al de Kontaly?', { okText: 'Quitar' })) return;
+      if (!await gcConfirm('¿Quitar el logo personalizado y volver al de Guzman HVAC?', { okText: 'Quitar' })) return;
       cfgLogoDataUrl = '';
       await guardarConfig();
       aplicarLogo();
       ajRefrescarPreviewLogo();
-      toast('Logo de Kontaly restaurado', 'info');
+      toast('Logo de Guzman HVAC restaurado', 'info');
     });
   }
 
@@ -5660,7 +5681,7 @@
   // ====================================================================
 
   // ====================================================================
-  // MÓDULO: COBROS PENDIENTES (tabla estilo hoja de cálculo)
+  // MÓDULO: PENDIENTES (tabla estilo hoja de cálculo)
   // ====================================================================
   const COB_KEY = 'gh-cobros-pendientes';
   let cobros = [];
@@ -5713,8 +5734,9 @@
     $('cob-empty').style.display = cobros.length === 0 ? 'block' : 'none';
     $('cob-tabla').style.display = cobros.length === 0 ? 'none' : 'table';
 
-    tbody.innerHTML = filtrados.map((f) => `
+    tbody.innerHTML = filtrados.map((f, i) => `
       <tr>
+        <td class="cob-rownum">${i + 1}</td>
         <td><input class="cob-cell-input" data-id="${f.id}" data-campo="cliente" value="${escapeHtml(f.cliente)}" placeholder="Nombre…"></td>
         <td><input class="cob-cell-input" data-id="${f.id}" data-campo="concepto" value="${escapeHtml(f.concepto)}" placeholder="Trabajo / factura…"></td>
         <td><input class="cob-cell-input" data-id="${f.id}" data-campo="monto" inputmode="decimal" style="text-align:right;font-family:'IBM Plex Mono',monospace;" value="${escapeHtml(f.monto)}" placeholder="0.00"></td>
@@ -5726,7 +5748,7 @@
           </select>
         </td>
         <td><input class="cob-cell-input" data-id="${f.id}" data-campo="notas" value="${escapeHtml(f.notas)}" placeholder="…"></td>
-        <td style="text-align:center;border:1px solid #E2E8F3;"><button type="button" class="cob-del" data-id="${f.id}" tabindex="-1" style="border:none;background:none;color:var(--ember);cursor:pointer;font-size:15px;line-height:1;padding:6px;">✕</button></td>
+        <td style="text-align:center;"><button type="button" class="cob-del" data-id="${f.id}" tabindex="-1" style="border:none;background:none;color:var(--ember);cursor:pointer;font-size:15px;line-height:1;padding:6px;">✕</button></td>
       </tr>`).join('');
 
     tbody.querySelectorAll('.cob-cell-input').forEach((inp) => {
@@ -5738,7 +5760,15 @@
         if (inp.dataset.campo === 'monto' || inp.dataset.campo === 'estado') cobRenderTotales();
       });
       inp.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); cobMoverFoco(inp, 1); }
+        if (e.key === 'Enter') { e.preventDefault(); cobMoverFoco(inp, 1); return; }
+        // Flechas arriba/abajo para moverse entre filas, como en una hoja de
+        // cálculo — solo en campos de texto simples, para no pisar el
+        // comportamiento nativo de las flechas en <select> (cambia opción)
+        // ni en el campo de fecha (sube/baja día-mes-año).
+        if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && inp.tagName === 'INPUT' && inp.type === 'text') {
+          e.preventDefault();
+          cobMoverFoco(inp, e.key === 'ArrowDown' ? 1 : -1);
+        }
       });
     });
     tbody.querySelectorAll('.cob-del').forEach((btn) => {
@@ -5764,14 +5794,23 @@
   // pestaña nunca se ve en blanco, pase lo que pase con la carga de abajo.
   cobRender();
 
-  // ---- Carga inicial de Cobros Pendientes (al abrir la pestaña por primera vez) ----
+  // ---- Carga inicial de Pendientes (al abrir la pestaña por primera vez) ----
   // Trae los datos guardados y los pinta encima del estado vacío de arriba.
   let cobCargado = false;
   async function cobCargarDatos() {
     if (cobCargado) return;
     cobCargado = true;
     const r = await window.storage.get(COB_KEY).catch(() => null);
-    try { cobros = JSON.parse(r.value); } catch (e) { cobros = []; }
+    if (!r) {
+      // Primera vez que se abre esta pestaña — no hay nada guardado todavía.
+      // Siembra unas filas en blanco para que la hoja aparezca lista para
+      // escribir de una vez, como una hoja de cálculo recién abierta, en
+      // vez de una pantalla vacía con solo un botón "+ Fila".
+      cobros = [cobNuevaFila(), cobNuevaFila(), cobNuevaFila(), cobNuevaFila(), cobNuevaFila()];
+      await cobGuardarLista();
+    } else {
+      try { cobros = JSON.parse(r.value); } catch (e) { cobros = []; }
+    }
     cobRender();
   }
   document.querySelectorAll('.gc-tab').forEach((tab) => {
@@ -5786,7 +5825,7 @@
   }
 
   // ====================================================================
-  // FIN MÓDULO COBROS PENDIENTES
+  // FIN MÓDULO PENDIENTES
   // ====================================================================
 
   // ---- Carga inicial ----

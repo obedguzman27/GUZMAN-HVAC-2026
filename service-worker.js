@@ -1,9 +1,9 @@
-// Service worker de Kontaly — guarda una copia local de la app
+// Service worker de Guzman HVAC — guarda una copia local de la app
 // para que abra rápido y funcione aunque no haya internet.
 // Los datos NO se guardan aquí (eso vive en localStorage / futuro backend),
 // solo el "cascarón" de la app (HTML, íconos).
 
-const CACHE_NAME = 'kontaly-v39';
+const CACHE_NAME = 'guzman-hvac-v40';
 const ARCHIVOS_CACHE = [
   './',
   './index.html',
@@ -41,8 +41,9 @@ self.addEventListener('activate', (evento) => {
 
 // Estrategia: copia guardada primero (la app abre AL INSTANTE, incluso con
 // señal débil), y en segundo plano busca una versión nueva para la próxima
-// vez — el aviso "Hay una versión nueva de Kontaly" ya le dice al usuario cuándo
-// actualizar, así que no hace falta esperar la red en cada apertura.
+// vez — el aviso "Hay una versión nueva de Guzman HVAC" ya le dice al usuario
+// cuándo actualizar (y a qué versión), así que no hace falta esperar la red
+// en cada apertura.
 // Solo aplica al "cascarón" de la app (mismo origen: HTML, JS, íconos).
 // Las llamadas a Supabase y a Google Fonts son de OTRO dominio y van
 // siempre directo a la red, sin pasar por aquí ni guardarse en caché.

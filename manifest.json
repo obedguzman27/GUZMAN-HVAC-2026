@@ -1,13 +1,13 @@
 {
-  "name": "Kontaly",
-  "short_name": "Kontaly",
-  "description": "Cuentas, facturas y nómina - Kontaly",
+  "name": "Guzman HVAC",
+  "short_name": "Guzman HVAC",
+  "description": "Cuentas, facturas y nómina - Guzman HVAC",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#0F1930",
-  "theme_color": "#131C2E",
+  "background_color": "#0E1830",
+  "theme_color": "#0E1830",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
