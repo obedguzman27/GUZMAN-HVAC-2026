@@ -372,7 +372,7 @@
   .gc-print-sheet h1 { font-size: 21px; margin: 0; }
   .gc-print-sheet .ps-addr { font-size: 12px; color: #555; margin: 4px 0; }
   .gc-print-sheet .ps-badge { font-size: 11px; color: #555; letter-spacing: .5px; margin-bottom: 20px; }
-  .gc-print-sheet h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: #16233F; border-bottom: 1px solid #16233F; padding-bottom: 4px; margin: 24px 0 8px; }
+  .gc-print-sheet h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: #0E1830; border-bottom: 1px solid #0E1830; padding-bottom: 4px; margin: 24px 0 8px; }
   .gc-print-sheet table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
   .gc-print-sheet th { text-align: left; border-bottom: 1.5px solid #1a1a1a; padding: 6px 4px; font-size: 10.5px; text-transform: uppercase; }
   .gc-print-sheet th.num, .gc-print-sheet td.num { text-align: right; }
@@ -4044,10 +4044,10 @@
   function construirFichaEmpleado(emp) {
     const row = (label, val) => val ? `<tr><td style="font-weight:600;width:180px;padding:7px 10px;border-bottom:1px solid #eee;color:#555;font-size:12px;">${label}</td><td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:13px;">${escapeHtml(val)}</td></tr>` : '';
     return `
-      <div style="display:flex;align-items:center;gap:18px;margin-bottom:22px;padding-bottom:18px;border-bottom:2px solid #16233F;">
-        <div style="width:56px;height:56px;border-radius:50%;background:#16233F;color:#fff;font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${empIniciales(emp)}</div>
+      <div style="display:flex;align-items:center;gap:18px;margin-bottom:22px;padding-bottom:18px;border-bottom:2px solid #0E1830;">
+        <div style="width:56px;height:56px;border-radius:50%;background:#0E1830;color:#fff;font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${empIniciales(emp)}</div>
         <div>
-          <div style="font-size:20px;font-weight:700;color:#16233F;">${escapeHtml(empNombreCompleto(emp))}</div>
+          <div style="font-size:20px;font-weight:700;color:#0E1830;">${escapeHtml(empNombreCompleto(emp))}</div>
           <div style="font-size:13px;color:#555;">${escapeHtml(emp.rol||'')} · <span style="color:${emp.estado==='activo'?'#2E8B84':'#C2622E'};font-weight:600;">${emp.estado==='activo'?'Activo':'Inactivo'}</span></div>
         </div>
         <div style="margin-left:auto;text-align:right;">
@@ -4425,45 +4425,57 @@
   }
 
   function invBuildPrint(inv) {
-    const rows = (inv.items||[]).map((it,i) => `<tr>
-      <td style="padding:8px 6px;border-bottom:1px solid #e5e5e5;">${i+1}</td>
-      <td style="padding:8px 6px;border-bottom:1px solid #e5e5e5;">${escapeHtml(it.job||'')}</td>
-      <td style="padding:8px 6px;border-bottom:1px solid #e5e5e5;">${escapeHtml(it.location||'')}</td>
-      <td style="padding:8px 6px;border-bottom:1px solid #e5e5e5;">${escapeHtml(it.work||'')}</td>
-      <td style="padding:8px 6px;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600;">${invFmt(it.amount)}</td>
+    const rows = (inv.items||[]).map((it,i) => `<tr style="background:${i%2?'#F7F9FC':'#fff'};">
+      <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;color:#8A93A6;font-size:11.5px;">${i+1}</td>
+      <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;">${escapeHtml(it.job||'')}</td>
+      <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;">${escapeHtml(it.location||'')}</td>
+      <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;">${escapeHtml(it.work||'')}</td>
+      <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;text-align:right;font-weight:700;">${invFmt(it.amount)}</td>
     </tr>`).join('');
+    const logoSvg = `<svg width="42" height="42" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+      <defs><linearGradient id="pdf-logo-grad-inv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C2611B"/><stop offset="1" stop-color="#0E1830"/></linearGradient></defs>
+      <rect x="8" y="8" width="144" height="144" rx="40" fill="url(#pdf-logo-grad-inv)"/>
+      <path d="M 109.73 108.77 A 40 40 0 1 1 118.04 69.64" fill="none" stroke="#fff" stroke-width="15.5" stroke-linecap="round"/>
+      <path d="M 109.73 108.77 L 80 100" fill="none" stroke="#fff" stroke-width="15.5" stroke-linecap="round"/>
+      <path d="M 80 100 L 100 92 L 92 112 Z" fill="#1CB8A8"/>
+    </svg>`;
     return `
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;border-bottom:3px solid #16233F;padding-bottom:20px;">
-        <div>
-          <div style="font-size:24px;font-weight:700;color:#16233F;font-family:Georgia,serif;">${escapeHtml(cfgFacturaNombre)}</div>
-          ${inv.direccionEmisor ? `<div style="font-size:12px;color:#666;margin-top:3px;">${escapeHtml(inv.direccionEmisor)}</div>` : ''}
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:13px;">
+          ${logoSvg}
+          <div>
+            <div style="font-size:22px;font-weight:700;color:#0E1830;font-family:Georgia,'Times New Roman',serif;letter-spacing:.2px;">${escapeHtml(cfgFacturaNombre)}</div>
+            ${inv.direccionEmisor ? `<div style="font-size:11.5px;color:#707A8C;margin-top:2px;">${escapeHtml(inv.direccionEmisor)}</div>` : ''}
+          </div>
         </div>
         <div style="text-align:right;">
-          <div style="font-size:26px;font-weight:700;color:#16233F;letter-spacing:1px;">INVOICE</div>
-          <div style="font-size:14px;font-weight:600;color:#555;margin-top:3px;">${escapeHtml(inv.numero||'')}</div>
-          <div style="font-size:12px;color:#888;margin-top:3px;">${inv.fecha||''}</div>
+          <div style="font-size:25px;font-weight:700;color:#0E1830;letter-spacing:2px;">INVOICE</div>
+          <div style="font-size:13.5px;font-weight:600;color:#555;margin-top:4px;">${escapeHtml(inv.numero||'')}</div>
+          <div style="font-size:11.5px;color:#93A0B8;margin-top:2px;">${inv.fecha||''}</div>
         </div>
       </div>
-      ${inv.cliente?`<div style="margin-bottom:22px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#999;margin-bottom:5px;">Bill To</div><div style="font-size:15px;font-weight:700;color:#16233F;">${escapeHtml(inv.cliente)}</div></div>`:''}
+      <div style="height:3px;background:linear-gradient(90deg,#C2611B,#0E1830 65%);border-radius:2px;margin-bottom:24px;"></div>
+      ${inv.cliente?`<div style="margin-bottom:22px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#A3ACBD;margin-bottom:5px;">Bill To</div><div style="font-size:15px;font-weight:700;color:#0E1830;">${escapeHtml(inv.cliente)}</div></div>`:''}
       <table style="width:100%;border-collapse:collapse;margin-bottom:18px;font-size:12.5px;">
-        <thead><tr style="background:#16233F;">
-          <th style="padding:10px 6px;text-align:left;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;width:30px;">#</th>
-          <th style="padding:10px 6px;text-align:left;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;width:100px;">Job #</th>
-          <th style="padding:10px 6px;text-align:left;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;width:190px;">Job Location</th>
-          <th style="padding:10px 6px;text-align:left;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;">Work Performed</th>
-          <th style="padding:10px 6px;text-align:right;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;width:120px;">Amount Due</th>
+        <thead><tr style="background:#0E1830;">
+          <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.62);text-transform:uppercase;letter-spacing:.5px;width:30px;">#</th>
+          <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.92);text-transform:uppercase;letter-spacing:.5px;width:100px;">Job #</th>
+          <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.92);text-transform:uppercase;letter-spacing:.5px;width:190px;">Job Location</th>
+          <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.92);text-transform:uppercase;letter-spacing:.5px;">Work Performed</th>
+          <th style="padding:11px 8px;text-align:right;font-size:10px;color:rgba(255,255,255,.92);text-transform:uppercase;letter-spacing:.5px;width:120px;">Amount Due</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
       <div style="display:flex;justify-content:flex-end;">
-        <table style="font-size:13px;width:230px;">
-          <tr><td style="padding:5px 0;color:#666;">Subtotal</td><td style="padding:5px 0;text-align:right;font-weight:600;">${invFmt(inv.subtotal)}</td></tr>
-          ${inv.taxPct?`<tr><td style="padding:5px 0;color:#9A7020;">Tax (${inv.taxPct}%)</td><td style="padding:5px 0;text-align:right;font-weight:600;color:#9A7020;">${invFmt(inv.tax)}</td></tr>`:''}
-          <tr style="border-top:2px solid #16233F;"><td style="padding:10px 0;font-size:15px;font-weight:700;color:#16233F;">TOTAL</td><td style="padding:10px 0;text-align:right;font-size:15px;font-weight:700;color:#16233F;">${invFmt(inv.total)}</td></tr>
+        <table style="font-size:13px;width:240px;border-collapse:collapse;">
+          <tr><td style="padding:5px 4px;color:#707A8C;">Subtotal</td><td style="padding:5px 4px;text-align:right;font-weight:600;color:#333;">${invFmt(inv.subtotal)}</td></tr>
+          ${inv.taxPct?`<tr><td style="padding:5px 4px;color:#96721F;">Tax (${inv.taxPct}%)</td><td style="padding:5px 4px;text-align:right;font-weight:600;color:#96721F;">${invFmt(inv.tax)}</td></tr>`:''}
+          <tr><td colspan="2" style="padding:6px 4px 0;"><div style="height:2px;background:#0E1830;border-radius:2px;"></div></td></tr>
+          <tr><td style="padding:11px 12px;font-size:15px;font-weight:700;color:#fff;background:#0E1830;border-radius:8px 0 0 8px;">TOTAL</td><td style="padding:11px 12px;text-align:right;font-size:15px;font-weight:700;color:#fff;background:#0E1830;border-radius:0 8px 8px 0;">${invFmt(inv.total)}</td></tr>
         </table>
       </div>
-      ${inv.notas?`<div style="margin-top:24px;padding:12px 16px;background:#F5F8FC;border-left:3px solid #16233F;border-radius:6px;font-size:12.5px;color:#444;line-height:1.6;"><strong>Notes:</strong> ${escapeHtml(inv.notas)}</div>`:''}
-      <div style="margin-top:28px;padding-top:14px;border-top:1px solid #eee;text-align:center;font-size:11px;color:#aaa;">Thank you for your business · ${escapeHtml(cfgFacturaNombre)}</div>`;
+      ${inv.notas?`<div style="margin-top:24px;padding:13px 17px;background:#FBEAD8;border-left:3px solid #C2611B;border-radius:8px;font-size:12.5px;color:#5C3B1B;line-height:1.6;"><strong style="color:#0E1830;">Notes:</strong> ${escapeHtml(inv.notas)}</div>`:''}
+      <div style="margin-top:30px;padding-top:14px;border-top:1px solid #E6EAF2;text-align:center;font-size:11px;color:#A3ACBD;">Thank you for your business · ${escapeHtml(cfgFacturaNombre)}</div>`;
   }
 
   function invMostrarVista(inv) {
@@ -5070,25 +5082,25 @@
       </tr>`).join('');
 
     return `
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;border-bottom:3px solid #16233F;padding-bottom:18px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;border-bottom:3px solid #0E1830;padding-bottom:18px;">
         <div>
-          <div style="font-size:22px;font-weight:700;color:#16233F;font-family:Georgia,serif;">${escapeHtml(cfgFacturaNombre)}</div>
+          <div style="font-size:22px;font-weight:700;color:#0E1830;font-family:Georgia,serif;">${escapeHtml(cfgFacturaNombre)}</div>
           <div style="font-size:12px;color:#666;margin-top:3px;">Recibo de pago a trabajador</div>
         </div>
         <div style="text-align:right;">
-          <div style="font-size:20px;font-weight:700;color:#16233F;letter-spacing:1px;">RECIBO</div>
+          <div style="font-size:20px;font-weight:700;color:#0E1830;letter-spacing:1px;">RECIBO</div>
           <div style="font-size:12px;color:#888;margin-top:3px;">${(n.creadoEn || '').slice(0, 10)}</div>
         </div>
       </div>
 
       <div style="margin-bottom:20px;">
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#999;margin-bottom:5px;">Trabajador</div>
-        <div style="font-size:17px;font-weight:700;color:#16233F;">${escapeHtml(n.trabajador || '')}</div>
+        <div style="font-size:17px;font-weight:700;color:#0E1830;">${escapeHtml(n.trabajador || '')}</div>
       </div>
 
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#16233F;margin-bottom:8px;">Días trabajados</div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#0E1830;margin-bottom:8px;">Días trabajados</div>
       <table style="width:100%;border-collapse:collapse;margin-bottom:18px;">
-        <thead><tr style="background:#16233F;">
+        <thead><tr style="background:#0E1830;">
           <th style="padding:9px 6px;text-align:left;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;width:34px;">#</th>
           <th style="padding:9px 6px;text-align:left;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;">Día</th>
           <th style="padding:9px 6px;text-align:right;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;width:110px;">Sueldo/día</th>
@@ -5100,11 +5112,11 @@
         <table style="font-size:13px;width:280px;">
           <tr><td style="padding:5px 0;color:#666;">${totalDias} día(s)${sueldoDia > 0 ? ` × ${nomFmt(sueldoDia)}` : ''}</td><td style="padding:5px 0;text-align:right;font-weight:600;">${nomFmt(subtotalDias)}</td></tr>
           ${extraMonto ? `<tr><td style="padding:5px 0;color:#C2622E;">Extra${n.extraDesc ? ` — ${escapeHtml(n.extraDesc)}` : ''}</td><td style="padding:5px 0;text-align:right;font-weight:600;color:#C2622E;">${nomFmt(extraMonto)}</td></tr>` : ''}
-          <tr style="border-top:2px solid #16233F;"><td style="padding:10px 0;font-size:15px;font-weight:700;color:#16233F;">TOTAL A PAGAR</td><td style="padding:10px 0;text-align:right;font-size:15px;font-weight:700;color:#16233F;">${nomFmt(n.monto)}</td></tr>
+          <tr style="border-top:2px solid #0E1830;"><td style="padding:10px 0;font-size:15px;font-weight:700;color:#0E1830;">TOTAL A PAGAR</td><td style="padding:10px 0;text-align:right;font-size:15px;font-weight:700;color:#0E1830;">${nomFmt(n.monto)}</td></tr>
         </table>
       </div>
 
-      ${n.nota ? `<div style="margin-top:22px;padding:12px 16px;background:#F5F8FC;border-left:3px solid #16233F;border-radius:6px;font-size:12.5px;color:#444;"><strong>Nota:</strong> ${escapeHtml(n.nota)}</div>` : ''}
+      ${n.nota ? `<div style="margin-top:22px;padding:12px 16px;background:#F5F8FC;border-left:3px solid #0E1830;border-radius:6px;font-size:12.5px;color:#444;"><strong>Nota:</strong> ${escapeHtml(n.nota)}</div>` : ''}
 
       <div style="margin-top:40px;display:flex;justify-content:space-between;gap:40px;">
         <div style="flex:1;border-top:1px solid #999;padding-top:6px;text-align:center;font-size:11px;color:#888;">Firma del trabajador</div>
@@ -5571,21 +5583,21 @@
     }).join('');
 
     return `
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;border-bottom:3px solid #16233F;padding-bottom:18px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;border-bottom:3px solid #0E1830;padding-bottom:18px;">
         <div>
-          <div style="font-size:22px;font-weight:700;color:#16233F;font-family:Georgia,serif;">${escapeHtml(cfgFacturaNombre)}</div>
+          <div style="font-size:22px;font-weight:700;color:#0E1830;font-family:Georgia,serif;">${escapeHtml(cfgFacturaNombre)}</div>
           <div style="font-size:12px;color:#666;margin-top:3px;">Recibo de nómina semanal</div>
         </div>
         <div style="text-align:right;">
-          <div style="font-size:20px;font-weight:700;color:#16233F;letter-spacing:1px;">NÓMINA</div>
-          <div style="font-size:13px;font-weight:600;color:#16233F;margin-top:6px;">Semana</div>
+          <div style="font-size:20px;font-weight:700;color:#0E1830;letter-spacing:1px;">NÓMINA</div>
+          <div style="font-size:13px;font-weight:600;color:#0E1830;margin-top:6px;">Semana</div>
           <div style="font-size:12px;color:#666;">${nomFechaCortaTexto(rango.inicio)}</div>
           <div style="font-size:12px;color:#666;">al ${nomFechaCortaTexto(rango.fin)}</div>
         </div>
       </div>
 
       <table style="width:100%;border-collapse:collapse;margin-bottom:18px;">
-        <thead><tr style="background:#16233F;">
+        <thead><tr style="background:#0E1830;">
           <th style="padding:10px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;">Trabajador</th>
           <th style="padding:10px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;">Días trabajados</th>
           <th style="padding:10px 8px;text-align:center;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;width:60px;">Días</th>
@@ -5596,7 +5608,7 @@
 
       <div style="display:flex;justify-content:flex-end;">
         <table style="font-size:14px;width:260px;">
-          <tr style="border-top:2px solid #16233F;"><td style="padding:10px 0;font-size:15px;font-weight:700;color:#16233F;">TOTAL SEMANA</td><td style="padding:10px 0;text-align:right;font-size:15px;font-weight:700;color:#16233F;">${nomFmt(totalSemana)}</td></tr>
+          <tr style="border-top:2px solid #0E1830;"><td style="padding:10px 0;font-size:15px;font-weight:700;color:#0E1830;">TOTAL SEMANA</td><td style="padding:10px 0;text-align:right;font-size:15px;font-weight:700;color:#0E1830;">${nomFmt(totalSemana)}</td></tr>
         </table>
       </div>
 
@@ -5801,15 +5813,18 @@
     if (cobCargado) return;
     cobCargado = true;
     const r = await window.storage.get(COB_KEY).catch(() => null);
-    if (!r) {
-      // Primera vez que se abre esta pestaña — no hay nada guardado todavía.
-      // Siembra unas filas en blanco para que la hoja aparezca lista para
-      // escribir de una vez, como una hoja de cálculo recién abierta, en
-      // vez de una pantalla vacía con solo un botón "+ Fila".
-      cobros = [cobNuevaFila(), cobNuevaFila(), cobNuevaFila(), cobNuevaFila(), cobNuevaFila()];
-      await cobGuardarLista();
-    } else {
+    if (r) {
       try { cobros = JSON.parse(r.value); } catch (e) { cobros = []; }
+    } else {
+      cobros = [];
+    }
+    // Si no queda ninguna fila (primera vez que se abre, o porque antes se
+    // habían borrado todas), siembra unas filas en blanco para que la hoja
+    // aparezca lista para escribir de una vez, como una hoja de cálculo
+    // recién abierta — nunca una pantalla vacía con solo un botón.
+    if (cobros.length === 0) {
+      cobros = [cobNuevaFila(), cobNuevaFila(), cobNuevaFila(), cobNuevaFila(), cobNuevaFila()];
+      try { await cobGuardarLista(); } catch (e) {}
     }
     cobRender();
   }
