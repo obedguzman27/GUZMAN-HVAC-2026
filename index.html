@@ -427,6 +427,7 @@
   .aj-accent-sw:hover { transform: scale(1.08); }
   .aj-accent-sw.active { border-color: var(--ink) !important; box-shadow: 0 0 0 3px rgba(19,28,46,.12); }
   .aj-accent-sw.active::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 15px; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,.4); }
+  .gh-lang-btn.active { background: linear-gradient(120deg,var(--accent),var(--accent-dk)); color: #fff; border-color: transparent; box-shadow: 0 3px 10px rgba(0,0,0,.18); }
 
   /* ── MINI CHARTS ────────────────────────── */
   .gc-chart-card { background: var(--card); border-radius: var(--r); box-shadow: var(--shadow-sm); border: 1px solid var(--border-soft); padding: 22px 24px 18px; margin-bottom: 20px; }
@@ -469,6 +470,29 @@
   .mov-subpanel{display:none;}
   .mov-subpanel.active{display:block;}
   .inv-subtab:active, .nom-subtab:active, .aj-subtab:active, .mov-subtab:active { transform: scale(.97); }
+
+  /* ── Calendario de trabajos ─────────────── */
+  .cal-dia { margin-bottom: 16px; border: 1px solid var(--border-soft); border-radius: var(--r-sm); overflow: hidden; }
+  .cal-dia-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #F5F7FC; border-bottom: 1px solid var(--border-soft); font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 700; color: var(--ink); }
+  .cal-dia-header.hoy { background: var(--accent-bg); }
+  .cal-dia-header.hoy span::after { content: ' · hoy'; font-weight: 600; color: var(--accent-dk); text-transform: none; }
+  .cal-add-btn { background: none; border: 1.5px solid var(--border); border-radius: 999px; padding: 4px 12px; font-size: 11.5px; font-weight: 700; color: var(--muted); cursor: pointer; transition: all .15s var(--ease); }
+  .cal-add-btn:hover { border-color: var(--accent); color: var(--accent-dk); background: #fff; }
+  .cal-add-btn:active { transform: scale(.94); }
+  .cal-dia-lista { padding: 4px 0; }
+  .cal-vacio { padding: 14px; font-size: 12px; color: var(--muted-soft); text-align: center; }
+  .cal-job { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--border-soft); }
+  .cal-job:last-child { border-bottom: none; }
+  .cal-job-time { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; font-weight: 700; color: var(--accent-dk); width: 62px; flex-shrink: 0; }
+  .cal-job-body { flex: 1; min-width: 0; }
+  .cal-job-cliente { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .cal-job-desc { font-size: 12px; color: var(--muted); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cal-job-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .cal-job-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 6px; border-radius: 8px; transition: background .15s var(--ease), transform .12s var(--ease); }
+  .cal-job-btn:hover { background: #F0F3FA; }
+  .cal-job-btn:active { transform: scale(.88); }
+  .cal-modal-overlay { position: fixed; inset: 0; z-index: 9000; background: rgba(14,24,48,.6); display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .cal-modal-box { background: #fff; border-radius: var(--r); padding: 26px; width: 100%; max-width: 420px; max-height: 88vh; overflow-y: auto; box-shadow: var(--shadow-lg); }
   .inv-tbl{width:100%;border-collapse:collapse;}
   .inv-tbl thead tr{background:var(--navy);}
   .inv-tbl th{padding:11px 10px;text-align:left;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.85);}
@@ -584,12 +608,12 @@
 
   <!-- NAV TABS -->
   <nav class="gc-nav">
-    <button class="gc-tab active" data-tab="movimientos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Registro</button>
-    <button class="gc-tab" data-tab="facturas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Facturas</button>
-    <button class="gc-tab" data-tab="cobros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>Pendientes</button>
-    <button class="gc-tab" data-tab="nomina"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Nómina</button>
-    <button class="gc-tab" data-tab="buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Buscar</button>
-    <button class="gc-tab" data-tab="respaldo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Ajustes</button>
+    <button class="gc-tab active" data-tab="movimientos" data-i18n="registro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Registro</button>
+    <button class="gc-tab" data-tab="facturas" data-i18n="facturas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Facturas</button>
+    <button class="gc-tab" data-tab="cobros" data-i18n="pendientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>Pendientes</button>
+    <button class="gc-tab" data-tab="nomina" data-i18n="nomina"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Nómina</button>
+    <button class="gc-tab" data-tab="buscar" data-i18n="buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Buscar</button>
+    <button class="gc-tab" data-tab="respaldo" data-i18n="ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Ajustes</button>
   </nav>
 
   <div class="gc-body">
@@ -597,9 +621,9 @@
   <!-- ===== MOVIMIENTOS (hub con carpetas) ===== -->
   <div class="gc-panel active" id="panel-movimientos">
     <div class="inv-subnav">
-      <button class="mov-subtab active" data-msub="movs">Movimientos</button>
-      <button class="mov-subtab" data-msub="invoices">Invoices guardados</button>
-      <button class="mov-subtab" data-msub="categorias">Categorías</button>
+      <button class="mov-subtab active" data-i18n="movimientos" data-msub="movs">Movimientos</button>
+      <button class="mov-subtab" data-i18n="invoices_guardados" data-msub="invoices">Invoices guardados</button>
+      <button class="mov-subtab" data-i18n="categorias" data-msub="categorias">Categorías</button>
     </div>
 
     <!-- Carpeta: Movimientos -->
@@ -615,7 +639,7 @@
       <!-- Gráfica de tendencia semanal (ingresos vs gastos) -->
       <div class="gc-chart-card" id="gc-chart-semanal-cont" style="display:none;">
         <div class="gc-chart-head">
-          <p class="gc-card-title" style="margin-bottom:0;">Tendencia — últimas semanas</p>
+          <p class="gc-card-title" data-i18n="tendencia_ultimas_semanas" style="margin-bottom:0;">Tendencia — últimas semanas</p>
           <div class="gc-chart-legend">
             <span><i style="background:var(--teal);"></i>Ingresos</span>
             <span><i style="background:var(--ember);"></i>Gastos</span>
@@ -627,23 +651,23 @@
 
       <!-- Form -->
       <div class="gc-card">
-        <p class="gc-card-title">Agregar movimiento</p>
+        <p class="gc-card-title" data-i18n="agregar_movimiento">Agregar movimiento</p>
         <div class="gc-type-toggle">
-          <button class="gc-type-btn active" data-type="ingreso">↑ Ingreso</button>
-          <button class="gc-type-btn" data-type="gasto">↓ Gasto</button>
-          <button class="gc-type-btn" data-type="ajuste">± Ajuste</button>
+          <button class="gc-type-btn active" data-i18n="ingreso" data-type="ingreso">↑ Ingreso</button>
+          <button class="gc-type-btn" data-i18n="gasto" data-type="gasto">↓ Gasto</button>
+          <button class="gc-type-btn" data-i18n="ajuste" data-type="ajuste">± Ajuste</button>
         </div>
         <div id="ajuste-direccion-row" style="display:none;margin-bottom:14px;">
           <div class="gc-field"><label>Tipo de ajuste a <span class="socio-bonus">CRA HVAC</span></label>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-              <button type="button" class="gc-type-btn ajuste-dir-btn active" data-dir="sumar" style="grid-template-columns:none;">+ Sumar</button>
-              <button type="button" class="gc-type-btn ajuste-dir-btn" data-dir="restar">− Restar</button>
+              <button type="button" class="gc-type-btn ajuste-dir-btn active" data-i18n="sumar" data-dir="sumar" style="grid-template-columns:none;">+ Sumar</button>
+              <button type="button" class="gc-type-btn ajuste-dir-btn" data-i18n="restar" data-dir="restar">− Restar</button>
             </div>
             <p style="font-size:11.5px;color:var(--muted);margin-top:8px;">Al sumar/restar dinero a <span class="socio-bonus">CRA HVAC</span>, también genera tax si ese socio tiene tax activado (igual que con su mitad normal, sale de las taxas). Ej: el socio pagó a un trabajador, compró algo, o le debe algo al otro.</p>
           </div>
         </div>
         <div id="ingreso-semana-row" style="display:none;margin-bottom:14px;">
-          <div class="gc-field"><label>¿Qué semana es este ingreso?</label>
+          <div class="gc-field"><label data-i18n="que_semana_es_este_ingreso">¿Qué semana es este ingreso?</label>
             <div style="display:flex;align-items:center;gap:10px;">
               <button type="button" id="ingreso-semana-prev" class="gc-action-btn" style="padding:8px 14px;">‹</button>
               <span id="ingreso-semana-label" style="flex:1;text-align:center;font-weight:600;font-size:13.5px;color:var(--ink);"></span>
@@ -651,28 +675,34 @@
             </div>
           </div>
         </div>
+        <div id="gasto-deducible-row" style="display:none;margin-bottom:14px;">
+          <label style="display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink);cursor:pointer;background:#F5F7FC;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:11px 14px;">
+            <input type="checkbox" id="m-deducible" style="width:17px;height:17px;accent-color:var(--accent);cursor:pointer;">
+            Deducible de impuestos
+          </label>
+        </div>
         <div class="gc-form-row">
-          <div class="gc-field"><label>Fecha</label><input type="date" id="m-fecha"></div>
-          <div class="gc-field" id="cat-field-wrap"><label>Categoría</label><select id="m-cat"></select></div>
-          <div class="gc-field"><label>Monto ($)</label><input type="text" id="m-monto" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
+          <div class="gc-field"><label data-i18n="fecha">Fecha</label><input type="date" id="m-fecha"></div>
+          <div class="gc-field" id="cat-field-wrap"><label data-i18n="categoria">Categoría</label><select id="m-cat"></select></div>
+          <div class="gc-field"><label data-i18n="monto">Monto ($)</label><input type="text" id="m-monto" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
         </div>
         <div id="mov-cat-nueva-row" style="display:none;margin-bottom:14px;">
-          <div class="gc-field"><label>Nombre de la nueva categoría</label>
+          <div class="gc-field"><label data-i18n="nombre_de_la_nueva_categoria">Nombre de la nueva categoría</label>
             <div style="display:flex;gap:8px;">
               <input type="text" id="mov-cat-nueva-input" autocomplete="off" style="flex:1;">
-              <button type="button" class="gc-action-btn" id="mov-cat-nueva-cancelar">Cancelar</button>
-              <button type="button" class="gc-save-btn" id="mov-cat-nueva-guardar" style="padding:9px 16px;">Agregar</button>
+              <button type="button" class="gc-action-btn" data-i18n="cancelar" id="mov-cat-nueva-cancelar">Cancelar</button>
+              <button type="button" class="gc-save-btn" data-i18n="agregar_2" id="mov-cat-nueva-guardar" style="padding:9px 16px;">Agregar</button>
             </div>
           </div>
         </div>
         <div class="gc-form-row wide">
-          <div class="gc-field"><label>Descripción</label><input type="text" id="m-desc" list="dl-desc-sugeridas" autocomplete="off"><datalist id="dl-desc-sugeridas"></datalist></div>
+          <div class="gc-field"><label data-i18n="descripcion">Descripción</label><input type="text" id="m-desc" list="dl-desc-sugeridas" autocomplete="off"><datalist id="dl-desc-sugeridas"></datalist></div>
         </div>
         <div class="gc-btn-row" style="justify-content:flex-end;">
           <span class="gc-status" id="status-mov"></span>
           <span class="gc-kbd-hint" title="Presiona Enter para guardar">↵ Enter</span>
-          <button class="gc-action-btn" id="btn-limpiar-mov" type="button">Limpiar</button>
-          <button class="gc-save-btn" id="btn-guardar-mov">Guardar movimiento</button>
+          <button class="gc-action-btn" data-i18n="limpiar" id="btn-limpiar-mov" type="button">Limpiar</button>
+          <button class="gc-save-btn" data-i18n="guardar_movimiento" id="btn-guardar-mov">Guardar movimiento</button>
         </div>
       </div>
 
@@ -680,15 +710,15 @@
       <div class="gc-sheet-head">
         <p class="gc-sheet-title">Hoja de movimientos — por semana</p>
         <div class="gc-sheet-actions">
-          <button class="gc-save-btn" id="btn-guardar-invoice-top" style="padding:8px 16px;">Guardar invoice</button>
-          <button class="gc-action-btn" id="btn-imprimir">Imprimir</button>
-          <button class="gc-action-btn" id="btn-export">⬇ CSV</button>
+          <button class="gc-save-btn" data-i18n="guardar_invoice" id="btn-guardar-invoice-top" style="padding:8px 16px;">Guardar invoice</button>
+          <button class="gc-action-btn" data-i18n="imprimir" id="btn-imprimir">Imprimir</button>
+          <button class="gc-action-btn" data-i18n="csv" id="btn-export">⬇ CSV</button>
         </div>
       </div>
       <div id="ledger-cont">
         <table class="gc-ledger" id="gc-ledger">
           <thead><tr>
-            <th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Descripción</th><th class="num">Monto</th><th></th>
+            <th data-i18n="fecha">Fecha</th><th data-i18n="tipo">Tipo</th><th data-i18n="categoria">Categoría</th><th data-i18n="descripcion">Descripción</th><th class="num" data-i18n="h_monto">Monto</th><th></th>
           </tr></thead>
           <tbody id="tbody-mov"></tbody>
         </table>
@@ -703,12 +733,12 @@
     <div class="mov-subpanel" id="mov-sub-invoices">
       <div class="gc-note"><strong>Registro de invoices guardados.</strong> Aquí solo aparecen las semanas que ya guardaste como invoice desde Movimientos. Cada uno muestra el reparto <span class="socio-bonus">CRA HVAC</span> / <span class="socio-mitad">GUZMAN HVAC</span>. Usa "Ver" para el detalle o "Editar" para reabrirlo.</div>
       <div class="gc-card" style="margin-top:8px;">
-        <p class="gc-card-title">Invoices guardados</p>
+        <p class="gc-card-title" data-i18n="invoices_guardados">Invoices guardados</p>
         <div class="gc-empty" id="empty-invoices-guardados" style="display:none;">No hay invoices guardados. Ve a Movimientos y guarda una semana.</div>
         <div style="overflow-x:auto;">
           <table class="gc-inv-table" id="tabla-invoices-guardados" style="display:none;">
             <thead><tr id="tabla-invoices-thead-row">
-              <th>Semana</th><th>Guardado</th><th class="num">Gastos</th><th></th>
+              <th data-i18n="h_semana">Semana</th><th data-i18n="h_guardado">Guardado</th><th class="num" data-i18n="h_gastos">Gastos</th><th></th>
             </tr></thead>
             <tbody id="tbody-invoices-guardados"></tbody>
           </table>
@@ -740,7 +770,7 @@
 
     <!-- Total pagado por socio -->
     <div class="gc-card" style="margin-bottom:24px;" id="card-total-socios">
-      <p class="gc-card-title">Total pagado por socio</p>
+      <p class="gc-card-title" data-i18n="total_pagado_por_socio">Total pagado por socio</p>
       <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Suma de todos los invoices guardados del año seleccionado arriba ↓ (usa el mismo filtro de año que la tabla de abajo).</p>
       <div id="total-socios-lista" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;"></div>
       <div class="gc-empty" id="empty-total-socios" style="display:none;">No hay invoices guardados aún.</div>
@@ -749,21 +779,21 @@
     <!-- Resumen anual de Taxas y reparto -->
     <div class="gc-card" style="margin-bottom:24px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
-        <p class="gc-card-title" style="margin:0;">Resumen anual — Taxas y pago por socio</p>
+        <p class="gc-card-title" data-i18n="resumen_anual_taxas_y_pago_por_socio" style="margin:0;">Resumen anual — Taxas y pago por socio</p>
         <select id="taxas-anio-filtro" style="font-family:'Inter',sans-serif;font-size:13px;padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;background:#fff;color:var(--ink);">
-          <option value="todos">Todos los años</option>
+          <option value="todos" data-i18n="todos_los_anos">Todos los años</option>
         </select>
       </div>
       <div style="overflow-x:auto;">
         <table class="gc-ledger" id="tabla-taxas-resumen">
           <thead><tr>
-            <th>Semana / Invoice</th>
-            <th class="num">Ingresos</th>
-            <th class="num">Gastos</th>
-            <th class="num">Neto</th>
-            <th class="num">Taxas (10%)</th>
-            <th class="num">Tax total</th>
-            <th class="num" style="background:#FBF0D4;color:var(--gold);">Taxas Restantes</th>
+            <th data-i18n="h_semana_invoice">Semana / Invoice</th>
+            <th class="num" data-i18n="h_ingresos">Ingresos</th>
+            <th class="num" data-i18n="h_gastos">Gastos</th>
+            <th class="num" data-i18n="h_neto">Neto</th>
+            <th class="num" data-i18n="h_taxas_10">Taxas (10%)</th>
+            <th class="num" data-i18n="h_tax_total">Tax total</th>
+            <th class="num" style="background:#FBF0D4;color:var(--gold);" data-i18n="h_taxas_restantes">Taxas Restantes</th>
           </tr></thead>
           <tbody id="tbody-taxas-resumen"></tbody>
           <tfoot id="tfoot-taxas-resumen"></tfoot>
@@ -773,22 +803,22 @@
     </div>
 
     <div class="gc-search-bar">
-      <div class="gc-field" style="min-width:140px;"><label>Año</label><select id="b-anio"><option value="todos">Todos los años</option></select></div>
-      <div class="gc-field" style="flex:1;"><label>Buscar en tiempo real</label><input type="text" id="b-texto" placeholder="Categoría, descripción o monto…"></div>
+      <div class="gc-field" style="min-width:140px;"><label data-i18n="ano">Año</label><select id="b-anio"><option value="todos" data-i18n="todos_los_anos">Todos los años</option></select></div>
+      <div class="gc-field" style="flex:1;"><label data-i18n="buscar_en_tiempo_real">Buscar en tiempo real</label><input type="text" id="b-texto" placeholder="Categoría, descripción o monto…"></div>
     </div>
     <div class="gc-search-bar" style="margin-top:10px;">
-      <div class="gc-field" style="min-width:130px;"><label>Desde (opcional)</label><input type="date" id="b-desde"></div>
-      <div class="gc-field" style="min-width:130px;"><label>Hasta (opcional)</label><input type="date" id="b-hasta"></div>
-      <div class="gc-field" style="min-width:130px;"><label>Tipo</label>
+      <div class="gc-field" style="min-width:130px;"><label data-i18n="desde_opcional">Desde (opcional)</label><input type="date" id="b-desde"></div>
+      <div class="gc-field" style="min-width:130px;"><label data-i18n="hasta_opcional">Hasta (opcional)</label><input type="date" id="b-hasta"></div>
+      <div class="gc-field" style="min-width:130px;"><label data-i18n="tipo">Tipo</label>
         <select id="b-tipo">
-          <option value="todos">Todos</option>
-          <option value="ingreso">Solo ingresos</option>
-          <option value="gasto">Solo gastos</option>
-          <option value="ajuste">Solo ajustes</option>
+          <option value="todos" data-i18n="todos">Todos</option>
+          <option value="ingreso" data-i18n="solo_ingresos">Solo ingresos</option>
+          <option value="gasto" data-i18n="solo_gastos">Solo gastos</option>
+          <option value="ajuste" data-i18n="solo_ajustes">Solo ajustes</option>
         </select>
       </div>
       <div style="display:flex;align-items:flex-end;">
-        <button type="button" class="gc-action-btn" id="b-limpiar-fechas">Limpiar fechas</button>
+        <button type="button" class="gc-action-btn" data-i18n="limpiar_fechas" id="b-limpiar-fechas">Limpiar fechas</button>
       </div>
     </div>
     <p style="font-size:11px;color:var(--muted);margin:6px 2px 0;">Si eliges fechas, mandan sobre el filtro de "Año".</p>
@@ -796,7 +826,7 @@
     <!-- Gráfica: en qué se va el dinero (gastos por categoría) -->
     <div class="gc-chart-card" id="gc-chart-cat-cont" style="display:none;">
       <div class="gc-chart-head">
-        <p class="gc-card-title" style="margin-bottom:0;">En qué se va el dinero — gastos por categoría</p>
+        <p class="gc-card-title" data-i18n="en_que_se_va_el_dinero_gastos_por_catego" style="margin-bottom:0;">En qué se va el dinero — gastos por categoría</p>
       </div>
       <div class="gc-donut-row">
         <div class="gc-chart-svg-wrap" id="gc-donut-svg" style="max-width:180px;flex-shrink:0;"></div>
@@ -808,7 +838,7 @@
       <div>
         <div class="gc-sheet-head"><p class="gc-sheet-title">Resumen por categoría</p></div>
         <table class="gc-ledger">
-          <thead><tr><th>Categoría</th><th>Tipo</th><th>Movs.</th><th class="num">Total</th></tr></thead>
+          <thead><tr><th data-i18n="categoria">Categoría</th><th data-i18n="tipo">Tipo</th><th data-i18n="h_movs">Movs.</th><th class="num" data-i18n="h_total">Total</th></tr></thead>
           <tbody id="tbody-resumen-cat"></tbody>
         </table>
         <div class="gc-empty" id="empty-resumen-cat" style="display:none;">Sin resultados.</div>
@@ -816,7 +846,7 @@
       <div>
         <div class="gc-sheet-head"><p class="gc-sheet-title">Detalle</p></div>
         <table class="gc-ledger">
-          <thead><tr><th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Descripción</th><th class="num">Monto</th></tr></thead>
+          <thead><tr><th data-i18n="fecha">Fecha</th><th data-i18n="tipo">Tipo</th><th data-i18n="categoria">Categoría</th><th data-i18n="descripcion">Descripción</th><th class="num" data-i18n="h_monto">Monto</th></tr></thead>
           <tbody id="tbody-buscar"></tbody>
           <tfoot><tr><td colspan="4" style="text-align:right;font-weight:600;padding:10px;">Total</td><td class="num gc-num" id="total-buscar" style="font-weight:700;padding:10px;font-family:'IBM Plex Mono',monospace;">$0.00</td></tr></tfoot>
         </table>
@@ -830,10 +860,10 @@
   <!-- ===== AJUSTES ===== -->
   <div class="gc-panel" id="panel-respaldo">
     <div class="inv-subnav">
-      <button class="aj-subtab active" data-asub="general">General</button>
-      <button class="aj-subtab" data-asub="empleados" id="aj-subtab-empleados">Empleados</button>
-      <button class="aj-subtab" data-asub="papeles" id="aj-subtab-papeles">Papeles</button>
-      <button class="aj-subtab" data-asub="avanzado" id="aj-subtab-avanzado">Avanzado</button>
+      <button class="aj-subtab active" data-i18n="general" data-asub="general">General</button>
+      <button class="aj-subtab" data-i18n="empleados" data-asub="empleados" id="aj-subtab-empleados">Empleados</button>
+      <button class="aj-subtab" data-i18n="papeles" data-asub="papeles" id="aj-subtab-papeles">Papeles</button>
+      <button class="aj-subtab" data-i18n="avanzado" data-asub="avanzado" id="aj-subtab-avanzado">Avanzado</button>
     </div>
 
     <!-- General: respaldo + opciones -->
@@ -841,13 +871,13 @@
       <div class="gc-note">Tus datos se guardan y sincronizan <strong>en la nube</strong> automáticamente con tu usuario. Aquí puedes descargar un respaldo extra (.json) en cualquier momento.</div>
       <div class="gc-resp-grid">
         <div class="gc-card">
-          <p class="gc-card-title">Descargar respaldo</p>
+          <p class="gc-card-title" data-i18n="descargar_respaldo">Descargar respaldo</p>
           <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Descarga un archivo .json con TODA tu información: movimientos, categorías, invoices, empleados, papeles, facturas y nómina (pagos, trabajadores y recibos semanales).</p>
-          <button class="gc-save-btn" id="btn-descargar-respaldo">Descargar respaldo completo</button>
+          <button class="gc-save-btn" data-i18n="descargar_respaldo_completo" id="btn-descargar-respaldo">Descargar respaldo completo</button>
           <p id="ultimo-respaldo-info" style="font-size:11.5px;color:var(--muted);margin-top:10px;"></p>
         </div>
         <div class="gc-card">
-          <p class="gc-card-title">Restaurar respaldo</p>
+          <p class="gc-card-title" data-i18n="restaurar_respaldo">Restaurar respaldo</p>
           <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Selecciona un archivo .json descargado antes. Esto reemplaza los datos actuales.</p>
           <input type="file" id="input-restaurar-respaldo" accept="application/json">
           <p id="status-restaurar" style="font-size:11.5px;color:var(--muted);margin-top:10px;"></p>
@@ -856,26 +886,37 @@
 
       <!-- Datos de la factura -->
       <div class="gc-card" style="margin-top:16px;">
-        <p class="gc-card-title">Datos de la factura y recibos</p>
+        <p class="gc-card-title" data-i18n="datos_de_la_factura_y_recibos">Datos de la factura y recibos</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">El nombre y la dirección aparecen en las facturas y recibos. Se guardan en la nube — ya <strong>no se borran</strong> al cerrar sesión, sin importar qué usuario entre.</p>
         <p id="aj-factura-solo-admin-nota" style="display:none;font-size:12px;color:var(--muted);background:#F5F7FC;border-radius:8px;padding:8px 12px;margin-bottom:12px;">Solo el admin puede cambiar estos datos.</p>
         <label id="aj-factura-sigue-socio-label" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px;color:var(--ink);cursor:pointer;">
           <input type="checkbox" id="aj-factura-sigue-socio" style="width:16px;height:16px;">Usar el nombre del <strong>Socio 2</strong> en las facturas y nómina (se actualiza solo al cambiar o intercambiar los socios)
         </label>
-        <div class="gc-field" style="margin-bottom:12px;" id="aj-factura-nombre-wrap"><label>Nombre en la factura / recibos</label>
+        <div class="gc-field" style="margin-bottom:12px;" id="aj-factura-nombre-wrap"><label data-i18n="nombre_en_la_factura_recibos">Nombre en la factura / recibos</label>
           <input type="text" id="aj-factura-nombre" autocomplete="off">
         </div>
-        <div class="gc-field"><label>Dirección (aparece en la factura)</label>
+        <div class="gc-field"><label data-i18n="direccion_aparece_en_la_factura">Dirección (aparece en la factura)</label>
           <input type="text" id="aj-direccion-empresa" autocomplete="off">
         </div>
         <div style="display:flex;justify-content:flex-end;margin-top:12px;">
-          <button class="gc-save-btn" id="aj-btn-guardar-factura">Guardar datos de factura</button>
+          <button class="gc-save-btn" data-i18n="guardar_datos_de_factura" id="aj-btn-guardar-factura">Guardar datos de factura</button>
         </div>
+      </div>
+
+      <!-- Idioma -->
+      <div class="gc-card" style="margin-top:16px;">
+        <p class="gc-card-title">Idioma / Language</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Cambia el idioma de los menús, títulos y botones de la app en este teléfono. / Changes the app's menus, titles and buttons on this phone.</p>
+        <div style="display:flex;gap:10px;">
+          <button type="button" class="gc-action-btn gh-lang-btn" data-lang="es" style="flex:1;">Español</button>
+          <button type="button" class="gc-action-btn gh-lang-btn" data-lang="en" style="flex:1;">English</button>
+        </div>
+        <p style="font-size:11.5px;color:var(--muted);margin-top:12px;">Por ahora esto traduce menús, títulos y botones — los mensajes de confirmación y textos de ayuda más específicos siguen en español. / For now this translates menus, titles and buttons — confirmation messages and finer help text are still in Spanish.</p>
       </div>
 
       <!-- Apariencia -->
       <div class="gc-card" style="margin-top:16px;">
-        <p class="gc-card-title">Apariencia</p>
+        <p class="gc-card-title" data-i18n="apariencia">Apariencia</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Elige el color de acento de la app (botones y pestañas activas). Se guarda para la base de datos que estás viendo — cada base de datos puede tener su propio color, para distinguirlas de un vistazo.</p>
         <div id="aj-accent-picker" style="display:flex;gap:12px;flex-wrap:wrap;">
           <button type="button" class="aj-accent-sw" data-accent="cobre" title="Cobre" style="width:38px;height:38px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;background:linear-gradient(135deg,#C46E20,#A2560F);"></button>
@@ -889,7 +930,7 @@
           <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
             <img id="aj-logo-preview" alt="" style="display:none;width:46px;height:46px;border-radius:12px;object-fit:cover;border:1px solid var(--border);">
             <input type="file" id="aj-logo-input" accept="image/*" style="max-width:220px;">
-            <button type="button" class="gc-action-btn" id="aj-logo-quitar" style="display:none;">Quitar logo</button>
+            <button type="button" class="gc-action-btn" data-i18n="quitar_logo" id="aj-logo-quitar" style="display:none;">Quitar logo</button>
           </div>
           <p id="aj-logo-status" style="font-size:11.5px;color:var(--muted);margin-top:8px;"></p>
         </div>
@@ -897,24 +938,44 @@
 
       <!-- Mi cuenta -->
       <div class="gc-card" style="margin-top:16px;" id="aj-card-cuenta">
-        <p class="gc-card-title">Mi cuenta</p>
+        <p class="gc-card-title" data-i18n="mi_cuenta">Mi cuenta</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Conectado como <strong id="aj-cuenta-nombre">—</strong> <span id="aj-cuenta-rol" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);"></span></p>
-        <button class="gc-action-btn" id="btn-cerrar-sesion" style="display:none;">Cerrar sesión</button>
+        <button class="gc-action-btn" data-i18n="cerrar_sesion" id="btn-cerrar-sesion" style="display:none;">Cerrar sesión</button>
+      </div>
+
+      <!-- Seguridad: bloqueo con Face ID / PIN (solo en este teléfono) -->
+      <div class="gc-card" style="margin-top:16px;" id="aj-card-seguridad">
+        <p class="gc-card-title" data-i18n="seguridad">Seguridad</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Pide Face ID (o un PIN) para abrir la app en este teléfono. No cambia tu usuario ni contraseña — es una capa extra que solo vive en este dispositivo.</p>
+        <label style="display:flex;align-items:center;gap:10px;margin-bottom:14px;cursor:pointer;">
+          <input type="checkbox" id="aj-applock-toggle" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;">
+          <span style="font-size:13.5px;color:var(--ink);">Pedir Face ID / PIN al abrir la app</span>
+        </label>
+        <div id="aj-applock-config" style="display:none;padding-top:14px;border-top:1px solid var(--border-soft);">
+          <button type="button" class="gc-action-btn" data-i18n="activar_face_id_en_este_telefono" id="aj-applock-btn-faceid">Activar Face ID en este teléfono</button>
+          <p id="aj-applock-faceid-estado" style="font-size:12px;color:var(--muted);margin-top:8px;margin-bottom:16px;"></p>
+          <div class="gc-field" style="max-width:220px;margin-bottom:10px;">
+            <label data-i18n="pin_de_respaldo_4_a_8_numeros">PIN de respaldo (4 a 8 números)</label>
+            <input type="password" id="aj-applock-pin-nuevo" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="••••" autocomplete="off">
+          </div>
+          <button type="button" class="gc-save-btn" data-i18n="guardar_pin" id="aj-applock-btn-guardar-pin" style="padding:9px 18px;font-size:13px;">Guardar PIN</button>
+          <p style="font-size:11.5px;color:var(--muted);margin-top:12px;">Face ID y el PIN solo quedan guardados en este teléfono — actívalos por separado en cada dispositivo donde uses la app. Si algún día quedas fuera, borra los datos del sitio en Safari (Ajustes → Safari → Avanzado → Datos de sitios web) para quitar el bloqueo.</p>
+        </div>
       </div>
 
       <!-- Cuentas (información separada) -->
       <div class="gc-card" style="margin-top:16px;" id="aj-card-cuentas">
-        <p class="gc-card-title">Base de datos que estás viendo</p>
+        <p class="gc-card-title" data-i18n="base_de_datos_que_estas_viendo">Base de datos que estás viendo</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Cada base de datos guarda su <strong>propia</strong> información (movimientos, invoices, nómina, trabajadores, categorías). Estás viendo la marcada abajo.</p>
-        <div class="gc-field" style="margin-bottom:12px;"><label>Base de datos actual</label>
+        <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="base_de_datos_actual">Base de datos actual</label>
           <input type="text" id="aj-cuenta-actual" readonly style="font-weight:600;background:#EEF2FF;">
         </div>
         <div id="aj-switch-wrap" style="display:none;">
-          <div class="gc-field"><label>Cambiar a otra base de datos</label>
+          <div class="gc-field"><label data-i18n="cambiar_a_otra_base_de_datos">Cambiar a otra base de datos</label>
             <select id="aj-cuenta-select"></select>
           </div>
           <div style="display:flex;justify-content:flex-end;margin-top:12px;">
-            <button class="gc-save-btn" id="aj-btn-cambiar-cuenta">Ver esta base de datos</button>
+            <button class="gc-save-btn" data-i18n="ver_esta_base_de_datos" id="aj-btn-cambiar-cuenta">Ver esta base de datos</button>
           </div>
           <p style="font-size:11px;color:var(--muted);margin-top:10px;">Al cambiar, la app se recargará para mostrar esa base de datos.</p>
         </div>
@@ -923,14 +984,14 @@
       <!-- Bases de datos con nombre (solo admin) -->
       <!-- Info de la app -->
       <div class="gc-card" style="margin-top:16px;">
-        <p class="gc-card-title">Acerca de</p>
+        <p class="gc-card-title" data-i18n="acerca_de">Acerca de</p>
         <p style="font-size:13px;color:var(--muted);line-height:1.7;">
           <strong>Guzman HVAC</strong> — Sistema de cuentas, facturas y nómina.<br>
           Tus datos se sincronizan en la nube y están disponibles en todos tus dispositivos con tu usuario. Aun así, puedes descargar un respaldo cuando quieras.
           <br><span style="font-size:11px;color:var(--muted);">Versión <span id="app-version-acerca"></span></span>
         </p>
         <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border-soft);">
-          <button type="button" class="gc-action-btn" id="btn-forzar-actualizacion">Buscar actualización ahora</button>
+          <button type="button" class="gc-action-btn" data-i18n="buscar_actualizacion_ahora" id="btn-forzar-actualizacion">Buscar actualización ahora</button>
           <p id="forzar-act-status" style="font-size:12px;color:var(--muted);margin-top:8px;"></p>
         </div>
       </div>
@@ -942,51 +1003,60 @@
 
       <!-- Socios (reparto) -->
       <div class="gc-card" style="margin-top:8px;" id="aj-card-socios">
-        <p class="gc-card-title">Socios (reparto)</p>
+        <p class="gc-card-title" data-i18n="socios_reparto">Socios (reparto)</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Cada semana se reparte en partes iguales entre los socios de la lista — con uno solo, se lleva todo. Para cada uno, define si recibe tax y qué porcentaje. El <strong>primer socio</strong> de la lista es quien recibe los ajustes manuales (Movimientos → Ajuste).</p>
         <div id="aj-socios-lista"></div>
-        <button type="button" class="gc-action-btn" id="aj-btn-add-socio" style="margin-top:4px;">+ Agregar socio</button>
+        <button type="button" class="gc-action-btn" data-i18n="agregar_socio" id="aj-btn-add-socio" style="margin-top:4px;">+ Agregar socio</button>
         <div style="display:flex;justify-content:flex-end;margin-top:16px;">
-          <button class="gc-save-btn" id="aj-btn-guardar-socios">Guardar socios</button>
+          <button class="gc-save-btn" data-i18n="guardar_socios" id="aj-btn-guardar-socios">Guardar socios</button>
         </div>
       </div>
 
       <!-- Reportes y exportación -->
       <div class="gc-card" style="margin-top:16px;">
-        <p class="gc-card-title">Reportes y exportación</p>
+        <p class="gc-card-title" data-i18n="reportes_y_exportacion">Reportes y exportación</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">A diferencia del respaldo (que es un archivo técnico para restaurar), esto genera reportes para leer, imprimir o abrir en Excel.</p>
-        <div class="gc-field" style="margin-bottom:14px;"><label>Rango de fechas (opcional — vacío = todo)</label>
+        <div class="gc-field" style="margin-bottom:14px;"><label data-i18n="rango_de_fechas_opcional_vacio_todo">Rango de fechas (opcional — vacío = todo)</label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <input type="date" id="rep-desde" aria-label="Desde">
             <input type="date" id="rep-hasta" aria-label="Hasta">
           </div>
         </div>
+        <div class="gc-field" style="margin-bottom:14px;"><label data-i18n="trimestre_rapido_para_el_contador">Trimestre rápido (para el contador)</label>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <input type="number" id="rep-trim-anio" style="width:88px;font-family:'Inter',sans-serif;font-size:13px;padding:9px 10px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);" placeholder="Año">
+            <button type="button" class="gc-action-btn" data-trim="1" style="padding:8px 15px;font-size:12.5px;">Q1</button>
+            <button type="button" class="gc-action-btn" data-trim="2" style="padding:8px 15px;font-size:12.5px;">Q2</button>
+            <button type="button" class="gc-action-btn" data-trim="3" style="padding:8px 15px;font-size:12.5px;">Q3</button>
+            <button type="button" class="gc-action-btn" data-trim="4" style="padding:8px 15px;font-size:12.5px;">Q4</button>
+          </div>
+        </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="gc-save-btn" id="btn-reporte-excel">Descargar Excel completo</button>
-          <button class="gc-action-btn" id="btn-reporte-pdf">Descargar reporte en PDF</button>
+          <button class="gc-save-btn" data-i18n="descargar_excel_completo" id="btn-reporte-excel">Descargar Excel completo</button>
+          <button class="gc-action-btn" data-i18n="descargar_reporte_en_pdf" id="btn-reporte-pdf">Descargar reporte en PDF</button>
         </div>
         <p style="font-size:11.5px;color:var(--muted);margin-top:10px;">El Excel trae una hoja por cada área (Movimientos, Invoices, Nómina, Empleados). El PDF es un resumen para imprimir o guardar.</p>
       </div>
 
       <!-- Bases de datos -->
       <div class="gc-card" style="margin-top:16px;" id="aj-card-bd">
-        <p class="gc-card-title">Bases de datos</p>
+        <p class="gc-card-title" data-i18n="bases_de_datos">Bases de datos</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Crea las bases de datos con el nombre que quieras (ej. <em>Guzman HVAC Airton</em>, <em>Guzman HVAC Estrada</em>). Luego, abajo, asignas cada usuario a una de ellas.</p>
         <div id="aj-bd-lista" style="margin-bottom:14px;"></div>
-        <div class="gc-field"><label>Nombre de la nueva base de datos</label>
+        <div class="gc-field"><label data-i18n="nombre_de_la_nueva_base_de_datos">Nombre de la nueva base de datos</label>
           <div style="display:flex;gap:8px;">
             <input type="text" id="aj-bd-nueva" autocomplete="off" style="flex:1;">
-            <button type="button" class="gc-action-btn" id="aj-btn-add-bd">+ Crear</button>
+            <button type="button" class="gc-action-btn" data-i18n="crear" id="aj-btn-add-bd">+ Crear</button>
           </div>
         </div>
       </div>
 
       <!-- Administrar usuarios -->
       <div class="gc-card" style="margin-top:16px;" id="aj-card-admin">
-        <p class="gc-card-title">Usuarios y a qué base de datos entran</p>
+        <p class="gc-card-title" data-i18n="usuarios_y_a_que_base_de_datos_entran">Usuarios y a qué base de datos entran</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Elige a qué base de datos entra cada usuario, apruébalos y define su rol. <strong>Los usuarios en la misma base de datos ven la misma información.</strong></p>
         <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
-          <button class="gc-action-btn" id="aj-btn-refrescar-usuarios">Actualizar lista</button>
+          <button class="gc-action-btn" data-i18n="actualizar_lista" id="aj-btn-refrescar-usuarios">Actualizar lista</button>
         </div>
         <div id="aj-usuarios-lista"></div>
         <p id="aj-usuarios-msg" style="font-size:12px;color:var(--muted);margin-top:10px;"></p>
@@ -997,7 +1067,7 @@
     <div class="aj-subpanel" id="aj-sub-empleados">
       <div class="emp-toolbar">
         <span class="emp-toolbar-title">Directorio de trabajadores</span>
-        <button class="gc-save-btn" id="btn-nuevo-empleado">+ Agregar empleado</button>
+        <button class="gc-save-btn" data-i18n="agregar_empleado" id="btn-nuevo-empleado">+ Agregar empleado</button>
       </div>
       <div class="emp-grid" id="emp-grid"></div>
     </div>
@@ -1008,17 +1078,17 @@
         <span class="emp-toolbar-title">Papeles Importantes</span>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
           <select id="papeles-cat-nueva" style="font-family:'Inter',sans-serif;font-size:13px;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
-            <option value="IRS - Taxes">IRS - Taxes</option>
-            <option value="Banco">Banco</option>
-            <option value="Seguro">Seguro</option>
-            <option value="Licencias">Licencias</option>
-            <option value="Vehiculos">Vehículos</option>
-            <option value="Contratos">Contratos</option>
-            <option value="Propiedad">Propiedad</option>
-            <option value="Gobierno">Gobierno</option>
-            <option value="Otro">Otro</option>
+            <option value="IRS - Taxes" data-i18n="irs_taxes">IRS - Taxes</option>
+            <option value="Banco" data-i18n="banco">Banco</option>
+            <option value="Seguro" data-i18n="seguro">Seguro</option>
+            <option value="Licencias" data-i18n="licencias">Licencias</option>
+            <option value="Vehiculos" data-i18n="vehiculos">Vehículos</option>
+            <option value="Contratos" data-i18n="contratos">Contratos</option>
+            <option value="Propiedad" data-i18n="propiedad">Propiedad</option>
+            <option value="Gobierno" data-i18n="gobierno">Gobierno</option>
+            <option value="Otro" data-i18n="otro">Otro</option>
           </select>
-          <button class="gc-save-btn" id="btn-subir-papel">+ Subir PDF</button>
+          <button class="gc-save-btn" data-i18n="subir_pdf" id="btn-subir-papel">+ Subir PDF</button>
         </div>
       </div>
       <div id="papeles-filtros" class="papeles-filtros"></div>
@@ -1033,11 +1103,11 @@
 <!-- ===== NÓMINA ===== -->
 <div class="gc-panel" id="panel-nomina">
   <div class="inv-subnav">
-    <button class="nom-subtab active" data-nsub="registro">Registrar pago</button>
-    <button class="nom-subtab" data-nsub="semanal">Recibo semanal</button>
-    <button class="nom-subtab" data-nsub="historial">Historial</button>
-    <button class="nom-subtab" data-nsub="buscar">Buscar por persona</button>
-    <button class="nom-subtab" data-nsub="trabajadores">Trabajadores</button>
+    <button class="nom-subtab active" data-i18n="registrar_pago" data-nsub="registro">Registrar pago</button>
+    <button class="nom-subtab" data-i18n="recibo_semanal" data-nsub="semanal">Recibo semanal</button>
+    <button class="nom-subtab" data-i18n="historial" data-nsub="historial">Historial</button>
+    <button class="nom-subtab" data-i18n="buscar_por_persona" data-nsub="buscar">Buscar por persona</button>
+    <button class="nom-subtab" data-i18n="trabajadores" data-nsub="trabajadores">Trabajadores</button>
   </div>
 
   <!-- Registrar pago -->
@@ -1055,14 +1125,14 @@
         <input type="text" id="nom-grid-buscar" list="dl-trab-todos" placeholder="Agregar otro trabajador a esta semana…" autocomplete="off"
           style="flex:1;font-family:'Inter',sans-serif;font-size:13.5px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
         <datalist id="dl-trab-todos"></datalist>
-        <button type="button" class="gc-action-btn" id="nom-grid-btn-add">+ Agregar</button>
+        <button type="button" class="gc-action-btn" data-i18n="agregar" id="nom-grid-btn-add">+ Agregar</button>
       </div>
 
       <div id="nom-grid-lista"></div>
       <div class="gc-empty" id="nom-grid-empty" style="display:none;">No hay trabajadores todavía. Agrégalos arriba.</div>
 
       <div style="display:flex;justify-content:flex-end;margin-top:14px;">
-        <button class="gc-save-btn" id="nom-grid-guardar">Guardar cambios de la semana</button>
+        <button class="gc-save-btn" data-i18n="guardar_cambios_de_la_semana" id="nom-grid-guardar">Guardar cambios de la semana</button>
       </div>
       <p id="nom-status" style="font-size:12px;color:var(--muted);text-align:right;margin-top:8px;height:14px;"></p>
     </div>
@@ -1077,7 +1147,7 @@
     <!-- Pagos guardados (movido desde Registrar pago) -->
     <div class="gc-card" style="margin-top:24px;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
-        <p class="gc-card-title" style="margin:0;">Pagos guardados</p>
+        <p class="gc-card-title" data-i18n="pagos_guardados" style="margin:0;">Pagos guardados</p>
         <input type="text" id="nom-reg-buscar" placeholder="Buscar…" style="font-family:'Inter',sans-serif;font-size:13px;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);max-width:220px;">
       </div>
       <div class="gc-empty" id="nom-reg-empty" style="display:none;">Aún no has guardado pagos.</div>
@@ -1088,7 +1158,7 @@
   <!-- Historial -->
   <div class="nom-subpanel" id="nom-sub-historial">
     <div class="gc-card">
-      <p class="gc-card-title">Historial de pagos</p>
+      <p class="gc-card-title" data-i18n="historial_de_pagos">Historial de pagos</p>
       <div style="margin-bottom:16px;">
         <input type="text" id="nom-hist-buscar" placeholder="Buscar por trabajador o nota…"
           style="width:100%;font-family:'Inter',sans-serif;font-size:13.5px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
@@ -1096,7 +1166,7 @@
       <div class="gc-empty" id="nom-hist-empty" style="display:none;">No hay pagos registrados aún.</div>
       <div style="overflow-x:auto;">
         <table class="inv-list-t" id="nom-hist-tbl" style="display:none;">
-          <thead><tr><th>Trabajador</th><th class="num">Días</th><th>Fechas trabajadas</th><th class="num">Monto</th><th>Nota</th><th></th></tr></thead>
+          <thead><tr><th data-i18n="trabajador">Trabajador</th><th class="num" data-i18n="h_dias">Días</th><th data-i18n="h_fechas_trabajadas">Fechas trabajadas</th><th class="num" data-i18n="h_monto">Monto</th><th data-i18n="h_nota">Nota</th><th></th></tr></thead>
           <tbody id="nom-hist-tbody"></tbody>
         </table>
       </div>
@@ -1106,18 +1176,18 @@
   <!-- Buscar por persona -->
   <div class="nom-subpanel" id="nom-sub-buscar">
     <div class="gc-card">
-      <p class="gc-card-title">Cuánto lleva ganando una persona</p>
+      <p class="gc-card-title" data-i18n="cuanto_lleva_ganando_una_persona">Cuánto lleva ganando una persona</p>
       <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:16px;">
-        <div class="gc-field"><label>Trabajador</label>
+        <div class="gc-field"><label data-i18n="trabajador">Trabajador</label>
           <input type="text" id="nom-buscar-persona" list="dl-trabajadores-2" placeholder="Escribe o selecciona un trabajador" autocomplete="off">
           <datalist id="dl-trabajadores-2"></datalist>
         </div>
-        <div class="gc-field"><label>Intervalo</label>
+        <div class="gc-field"><label data-i18n="intervalo">Intervalo</label>
           <select id="nom-buscar-intervalo">
-            <option value="semana">Por semana</option>
-            <option value="mes">Por mes</option>
-            <option value="año">Por año</option>
-            <option value="todo" selected>Todo el tiempo</option>
+            <option value="semana" data-i18n="por_semana">Por semana</option>
+            <option value="mes" data-i18n="por_mes">Por mes</option>
+            <option value="año" data-i18n="por_ano">Por año</option>
+            <option value="todo" data-i18n="todo_el_tiempo" selected>Todo el tiempo</option>
           </select>
         </div>
       </div>
@@ -1128,21 +1198,21 @@
   <!-- Trabajadores -->
   <div class="nom-subpanel" id="nom-sub-trabajadores">
     <div class="gc-card">
-      <p class="gc-card-title">Trabajadores y sus sueldos</p>
+      <p class="gc-card-title" data-i18n="trabajadores_y_sus_sueldos">Trabajadores y sus sueldos</p>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Estos son los mismos trabajadores de <strong>Empleados</strong> (en Ajustes) — aquí defines su sueldo por día. Al registrar un pago, el monto se calcula solo (días × sueldo). Puedes aumentar o rebajar el sueldo cuando quieras.</p>
       <div style="display:grid;grid-template-columns:2fr 1fr auto;gap:10px;margin-bottom:18px;align-items:end;">
-        <div class="gc-field"><label>Nombre del trabajador</label>
+        <div class="gc-field"><label data-i18n="nombre_del_trabajador">Nombre del trabajador</label>
           <input type="text" id="trab-nom-nuevo" placeholder="Nombre…" autocomplete="off">
         </div>
-        <div class="gc-field"><label>Sueldo por día ($)</label>
+        <div class="gc-field"><label data-i18n="sueldo_por_dia">Sueldo por día ($)</label>
           <input type="text" id="trab-nom-sueldo" inputmode="decimal" placeholder="0.00" autocomplete="off">
         </div>
-        <button class="gc-save-btn" id="trab-nom-btn-add" style="height:40px;">+ Agregar</button>
+        <button class="gc-save-btn" data-i18n="agregar" id="trab-nom-btn-add" style="height:40px;">+ Agregar</button>
       </div>
       <div class="gc-empty" id="trab-nom-empty" style="display:none;">No hay trabajadores. Agrega el primero arriba.</div>
       <div style="overflow-x:auto;">
         <table class="inv-list-t" id="trab-nom-tbl" style="display:none;">
-          <thead><tr><th>Trabajador</th><th class="num">Sueldo por día</th><th>Ajustar sueldo</th><th></th></tr></thead>
+          <thead><tr><th data-i18n="trabajador">Trabajador</th><th class="num" data-i18n="h_sueldo_por_dia">Sueldo por día</th><th data-i18n="h_ajustar_sueldo">Ajustar sueldo</th><th></th></tr></thead>
           <tbody id="trab-nom-tbody"></tbody>
         </table>
       </div>
@@ -1153,9 +1223,9 @@
 <!-- Overlay de recibo de nómina -->
 <div class="gc-print-overlay" id="nom-ov" style="display:none;">
   <div class="gc-print-toolbar no-print">
-    <button class="gc-save-btn" id="nom-btn-imprimir-recibo">Imprimir</button>
-    <button class="gc-action-btn" id="nom-btn-descargar-recibo" style="background:#fff;">⬇ Descargar</button>
-    <button class="gc-action-btn" id="nom-btn-cerrar-recibo" style="background:#fff;">Cerrar</button>
+    <button class="gc-save-btn" data-i18n="imprimir" id="nom-btn-imprimir-recibo">Imprimir</button>
+    <button class="gc-action-btn" data-i18n="descargar" id="nom-btn-descargar-recibo" style="background:#fff;">⬇ Descargar</button>
+    <button class="gc-action-btn" data-i18n="cerrar" id="nom-btn-cerrar-recibo" style="background:#fff;">Cerrar</button>
   </div>
   <div class="inv-print-sheet" id="nom-recibo-content"></div>
 </div>
@@ -1163,31 +1233,32 @@
 <!-- ===== FACTURAS ===== -->
 <div class="gc-panel" id="panel-facturas">
   <div class="inv-subnav">
-    <button class="inv-subtab active" data-sub="nueva">+ Nueva Factura</button>
-    <button class="inv-subtab" data-sub="guardadas">Guardadas</button>
-    <button class="inv-subtab" data-sub="cobros">Cobros por casa</button>
-    <button class="inv-subtab" data-sub="clientes">Clientes</button>
-    <button class="inv-subtab" data-sub="trabajos">Trabajos</button>
-    <button class="inv-subtab" data-sub="colonias">Colonias</button>
+    <button class="inv-subtab active" data-i18n="nueva_factura" data-sub="nueva">+ Nueva Factura</button>
+    <button class="inv-subtab" data-i18n="guardadas" data-sub="guardadas">Guardadas</button>
+    <button class="inv-subtab" data-i18n="cal_calendario" data-sub="calendario">📅 Calendario</button>
+    <button class="inv-subtab" data-i18n="cobros_por_casa" data-sub="cobros">Cobros por casa</button>
+    <button class="inv-subtab" data-i18n="clientes" data-sub="clientes">Clientes</button>
+    <button class="inv-subtab" data-i18n="trabajos" data-sub="trabajos">Trabajos</button>
+    <button class="inv-subtab" data-i18n="colonias" data-sub="colonias">Colonias</button>
   </div>
   <!-- Nueva Factura -->
   <div class="inv-subpanel active" id="inv-sub-nueva">
     <div class="gc-card">
-      <p class="gc-card-title">Información</p>
+      <p class="gc-card-title" data-i18n="informacion">Información</p>
       <div class="gc-form-row">
-        <div class="gc-field"><label>Invoice #</label><input type="text" id="inv-num" placeholder="INV-2026-001"></div>
-        <div class="gc-field"><label>Fecha</label><input type="date" id="inv-fecha"></div>
-        <div class="gc-field"><label>Bill To — Nombre / Compañía</label>
+        <div class="gc-field"><label data-i18n="invoice">Invoice #</label><input type="text" id="inv-num" placeholder="INV-2026-001"></div>
+        <div class="gc-field"><label data-i18n="fecha">Fecha</label><input type="date" id="inv-fecha"></div>
+        <div class="gc-field"><label data-i18n="bill_to_nombre_compania">Bill To — Nombre / Compañía</label>
           <input type="text" id="inv-cliente" list="dl-clientes" placeholder="Airtron o escribe otro cliente" autocomplete="off">
           <datalist id="dl-clientes"></datalist>
         </div>
       </div>
-      <div class="gc-field"><label>Dirección (opcional — aparece en la factura)</label>
+      <div class="gc-field"><label data-i18n="direccion_opcional_aparece_en_la_factura">Dirección (opcional — aparece en la factura)</label>
         <input type="text" id="inv-direccion-emisor" autocomplete="off">
       </div>
     </div>
     <div class="gc-card">
-      <p class="gc-card-title">Trabajos</p>
+      <p class="gc-card-title" data-i18n="trabajos">Trabajos</p>
       <div style="overflow-x:auto;margin-bottom:12px;">
         <table class="inv-tbl"><thead><tr>
           <th style="width:36px;">#</th><th style="width:110px;">JOB #</th>
@@ -1201,7 +1272,7 @@
     </div>
     <div style="display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start;">
       <div class="gc-card">
-        <p class="gc-card-title">Notas</p>
+        <p class="gc-card-title" data-i18n="notas">Notas</p>
         <div class="gc-field"><textarea id="inv-notas" placeholder="Notas adicionales…" style="min-height:80px;"></textarea></div>
       </div>
       <div class="gc-card" style="padding:18px 20px;min-width:250px;">
@@ -1213,16 +1284,16 @@
       </div>
     </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;">
-      <button class="gc-action-btn" id="inv-btn-limpiar">Limpiar</button>
-      <button class="gc-action-btn" id="inv-btn-preview">Vista previa</button>
-      <button class="gc-save-btn" id="inv-btn-guardar">Guardar Factura</button>
+      <button class="gc-action-btn" data-i18n="limpiar" id="inv-btn-limpiar">Limpiar</button>
+      <button class="gc-action-btn" data-i18n="vista_previa" id="inv-btn-preview">Vista previa</button>
+      <button class="gc-save-btn" data-i18n="guardar_factura" id="inv-btn-guardar">Guardar Factura</button>
     </div>
     <input type="hidden" id="inv-editando" value="">
   </div>
   <!-- Guardadas -->
   <div class="inv-subpanel" id="inv-sub-guardadas">
     <div class="gc-card">
-      <p class="gc-card-title">Facturas Guardadas</p>
+      <p class="gc-card-title" data-i18n="facturas_guardadas">Facturas Guardadas</p>
       <div style="margin-bottom:16px;">
         <input type="text" id="inv-buscar" placeholder="Buscar por Job #, colonia, lote, cliente o # de factura…"
           style="width:100%;font-family:'Inter',sans-serif;font-size:13.5px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
@@ -1231,16 +1302,51 @@
       <div class="gc-empty" id="inv-list-empty" style="display:none;">No hay facturas guardadas aún.</div>
       <div style="overflow-x:auto;">
         <table class="inv-list-t" id="inv-list-tbl" style="display:none;">
-          <thead><tr><th>Invoice #</th><th>Fecha</th><th>Cliente</th><th class="r">Total</th><th>Estado</th><th></th></tr></thead>
+          <thead><tr><th data-i18n="invoice">Invoice #</th><th data-i18n="fecha">Fecha</th><th data-i18n="h_cliente">Cliente</th><th class="r" data-i18n="h_total">Total</th><th data-i18n="estado">Estado</th><th></th></tr></thead>
           <tbody id="inv-list-tbody"></tbody>
         </table>
       </div>
     </div>
   </div>
+  <!-- Calendario de trabajos -->
+  <div class="inv-subpanel" id="inv-sub-calendario">
+    <div class="gc-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:4px;">
+        <p class="gc-card-title" data-i18n="cal_calendario_de_trabajos" style="margin:0;">Calendario de trabajos</p>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button type="button" class="gc-action-btn" id="cal-btn-prev" style="padding:8px 13px;">‹</button>
+          <span id="cal-semana-label" style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:var(--ink);min-width:135px;text-align:center;"></span>
+          <button type="button" class="gc-action-btn" id="cal-btn-next" style="padding:8px 13px;">›</button>
+        </div>
+      </div>
+      <p style="font-size:11.5px;color:var(--muted);margin:6px 0 16px;">Agenda tus trabajos por día. Cada uno se puede mandar directo al Calendario del iPhone con el botón 📅.</p>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
+        <button type="button" class="gc-save-btn" data-i18n="cal_exportar_semana" id="cal-btn-exportar-semana" style="padding:9px 18px;font-size:13px;">📅 Exportar semana a Calendario</button>
+      </div>
+      <div id="cal-dias-wrap"></div>
+    </div>
+  </div>
+
+  <!-- Modal: nuevo/editar trabajo agendado -->
+  <div class="cal-modal-overlay" id="cal-modal" style="display:none;">
+    <div class="cal-modal-box">
+      <p class="gc-card-title" id="cal-modal-titulo">Nuevo trabajo</p>
+      <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="fecha">Fecha</label><input type="date" id="cal-f-fecha"></div>
+      <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="cal_hora_opcional">Hora (opcional)</label><input type="time" id="cal-f-hora"></div>
+      <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="h_cliente">Cliente</label><input type="text" id="cal-f-cliente" list="dl-clientes" autocomplete="off"></div>
+      <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="cal_direccion_desc">Dirección / Descripción del trabajo</label><input type="text" id="cal-f-desc" autocomplete="off"></div>
+      <div class="gc-field" style="margin-bottom:18px;"><label data-i18n="notas">Notas</label><input type="text" id="cal-f-notas" autocomplete="off"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button type="button" class="gc-action-btn" data-i18n="cancelar" id="cal-modal-cancelar">Cancelar</button>
+        <button type="button" class="gc-save-btn" data-i18n="guardar" id="cal-modal-guardar">Guardar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Cobros por casa -->
   <div class="inv-subpanel" id="inv-sub-cobros">
     <div class="gc-card">
-      <p class="gc-card-title">Cobros por casa</p>
+      <p class="gc-card-title" data-i18n="cobros_por_casa">Cobros por casa</p>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Cada trabajo de todas tus facturas aparece aquí como un cobro individual. Se llena solo cuando guardas una factura. Busca por Job #, colonia o lote.</p>
       <div style="margin-bottom:16px;">
         <input type="text" id="cobros-buscar" placeholder="Buscar por Job #, colonia, lote o trabajo…"
@@ -1250,7 +1356,7 @@
       <div class="gc-empty" id="cobros-empty" style="display:none;">No hay cobros aún. Guarda una factura para verlos aquí.</div>
       <div style="overflow-x:auto;">
         <table class="inv-list-t" id="cobros-tbl" style="display:none;">
-          <thead><tr><th>Job #</th><th>Colonia / Lote</th><th>Trabajo</th><th>Factura</th><th>Cliente</th><th class="r">Monto</th></tr></thead>
+          <thead><tr><th>Job #</th><th data-i18n="h_colonia_lote">Colonia / Lote</th><th data-i18n="h_trabajo">Trabajo</th><th data-i18n="h_factura">Factura</th><th data-i18n="h_cliente">Cliente</th><th class="r" data-i18n="h_monto">Monto</th></tr></thead>
           <tbody id="cobros-tbody"></tbody>
         </table>
       </div>
@@ -1259,11 +1365,11 @@
   <!-- Clientes -->
   <div class="inv-subpanel" id="inv-sub-clientes">
     <div class="gc-card">
-      <p class="gc-card-title">Base de datos de Clientes</p>
+      <p class="gc-card-title" data-i18n="base_de_datos_de_clientes">Base de datos de Clientes</p>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Estos clientes aparecen como sugerencias en el campo <strong>Bill To</strong> de cada factura. También puedes escribir uno nuevo directo en el campo.</p>
       <div style="display:flex;gap:10px;margin-bottom:18px;">
         <input type="text" id="cli-nueva" placeholder="Nombre del cliente o compañía…" style="flex:1;font-family:'Inter',sans-serif;font-size:13.5px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
-        <button class="gc-save-btn" id="cli-btn-add">+ Agregar</button>
+        <button class="gc-save-btn" data-i18n="agregar" id="cli-btn-add">+ Agregar</button>
       </div>
       <div id="cli-list" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
       <div class="gc-empty" id="cli-empty" style="display:none;">No hay clientes. Agrega el primero arriba.</div>
@@ -1273,11 +1379,11 @@
   <!-- Trabajos -->
   <div class="inv-subpanel" id="inv-sub-trabajos">
     <div class="gc-card">
-      <p class="gc-card-title">Descripciones de Trabajo</p>
+      <p class="gc-card-title" data-i18n="descripciones_de_trabajo">Descripciones de Trabajo</p>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Estas descripciones aparecen como sugerencias en el campo <strong>Work Performed</strong>. También puedes escribir lo que quieras directo en el campo.</p>
       <div style="display:flex;gap:10px;margin-bottom:18px;">
         <input type="text" id="trab-nueva" style="flex:1;font-family:'Inter',sans-serif;font-size:13.5px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
-        <button class="gc-save-btn" id="trab-btn-add">+ Agregar</button>
+        <button class="gc-save-btn" data-i18n="agregar" id="trab-btn-add">+ Agregar</button>
       </div>
       <div id="trab-list" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
       <div class="gc-empty" id="trab-empty" style="display:none;">No hay descripciones. Agrega la primera arriba.</div>
@@ -1288,11 +1394,11 @@
   <!-- Colonias -->
   <div class="inv-subpanel" id="inv-sub-colonias">
     <div class="gc-card">
-      <p class="gc-card-title">Colonias / Subdivisions</p>
+      <p class="gc-card-title" data-i18n="colonias_subdivisions">Colonias / Subdivisions</p>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Estas colonias aparecen en el menú de <strong>JOB LOCATION</strong> de cada factura.</p>
       <div style="display:flex;gap:10px;margin-bottom:18px;">
         <input type="text" id="col-nueva" placeholder="Nombre de la colonia…" style="flex:1;font-family:'Inter',sans-serif;font-size:13.5px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
-        <button class="gc-save-btn" id="col-btn-add">+ Agregar</button>
+        <button class="gc-save-btn" data-i18n="agregar" id="col-btn-add">+ Agregar</button>
       </div>
       <div id="col-list" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
       <div class="gc-empty" id="col-empty" style="display:none;">No hay colonias. Agrega la primera arriba.</div>
@@ -1303,9 +1409,10 @@
 <!-- Print overlay para invoices -->
 <div class="gc-print-overlay" id="inv-ov" style="display:none;">
   <div class="gc-print-toolbar no-print">
-    <button class="gc-save-btn" id="inv-btn-imprimir">Imprimir</button>
-    <button class="gc-action-btn" id="inv-btn-descargar" style="background:#fff;">⬇ Descargar</button>
-    <button class="gc-action-btn" id="inv-btn-cerrar-ov" style="background:#fff;">Cerrar</button>
+    <button class="gc-save-btn" data-i18n="imprimir" id="inv-btn-imprimir">Imprimir</button>
+    <button class="gc-action-btn" data-i18n="enviar" id="inv-btn-enviar" style="background:#fff;">↗ Enviar</button>
+    <button class="gc-action-btn" data-i18n="descargar" id="inv-btn-descargar" style="background:#fff;">⬇ Descargar</button>
+    <button class="gc-action-btn" data-i18n="cerrar" id="inv-btn-cerrar-ov" style="background:#fff;">Cerrar</button>
   </div>
   <div class="inv-print-sheet" id="inv-print-content"></div>
 </div>
@@ -1328,36 +1435,36 @@
     <div class="emp-modal-body">
       <div id="emp-etab-info">
         <div class="emp-info-grid">
-          <div class="emp-field"><label>Nombre(s)</label><input id="emp-nombre" type="text" placeholder="Juan"></div>
-          <div class="emp-field"><label>Apellido(s)</label><input id="emp-apellido" type="text" placeholder="García"></div>
-          <div class="emp-field"><label>Puesto / Rol</label>
+          <div class="emp-field"><label data-i18n="nombre_s">Nombre(s)</label><input id="emp-nombre" type="text" placeholder="Juan"></div>
+          <div class="emp-field"><label data-i18n="apellido_s">Apellido(s)</label><input id="emp-apellido" type="text" placeholder="García"></div>
+          <div class="emp-field"><label data-i18n="puesto_rol">Puesto / Rol</label>
             <select id="emp-rol"><option>Técnico HVAC</option><option>Ayudante</option><option>Instalador</option><option>Electricista</option><option>Administrativo</option><option>Otro</option></select>
           </div>
-          <div class="emp-field"><label>Estado</label>
-            <select id="emp-estado"><option value="activo">Activo</option><option value="inactivo">Inactivo</option></select>
+          <div class="emp-field"><label data-i18n="estado">Estado</label>
+            <select id="emp-estado"><option value="activo" data-i18n="activo">Activo</option><option value="inactivo" data-i18n="inactivo">Inactivo</option></select>
           </div>
-          <div class="emp-field"><label>Sueldo por día ($)</label><input id="emp-sueldo" type="text" inputmode="decimal" placeholder="0.00"></div>
-          <div class="emp-field"><label>Teléfono</label><input id="emp-tel" type="tel" placeholder="615-000-0000"></div>
-          <div class="emp-field"><label>Email</label><input id="emp-email" type="email" placeholder="juan@email.com"></div>
-          <div class="emp-field"><label>Fecha de inicio</label><input id="emp-inicio" type="date"></div>
-          <div class="emp-field"><label>SS (últimos 4)</label><input id="emp-ss" type="text" maxlength="4" placeholder="XXXX"></div>
-          <div class="emp-field wide"><label>Contacto de emergencia</label><input id="emp-emergencia" type="text" placeholder="Nombre - Teléfono"></div>
-          <div class="emp-field wide"><label>Dirección</label><input id="emp-direccion" type="text" placeholder="1234 Main St, Nashville, TN"></div>
-          <div class="emp-field wide"><label>Notas</label><textarea id="emp-notas" placeholder="Notas adicionales..."></textarea></div>
+          <div class="emp-field"><label data-i18n="sueldo_por_dia">Sueldo por día ($)</label><input id="emp-sueldo" type="text" inputmode="decimal" placeholder="0.00"></div>
+          <div class="emp-field"><label data-i18n="telefono">Teléfono</label><input id="emp-tel" type="tel" placeholder="615-000-0000"></div>
+          <div class="emp-field"><label data-i18n="email">Email</label><input id="emp-email" type="email" placeholder="juan@email.com"></div>
+          <div class="emp-field"><label data-i18n="fecha_de_inicio">Fecha de inicio</label><input id="emp-inicio" type="date"></div>
+          <div class="emp-field"><label data-i18n="ss_ultimos_4">SS (últimos 4)</label><input id="emp-ss" type="text" maxlength="4" placeholder="XXXX"></div>
+          <div class="emp-field wide"><label data-i18n="contacto_de_emergencia">Contacto de emergencia</label><input id="emp-emergencia" type="text" placeholder="Nombre - Teléfono"></div>
+          <div class="emp-field wide"><label data-i18n="direccion">Dirección</label><input id="emp-direccion" type="text" placeholder="1234 Main St, Nashville, TN"></div>
+          <div class="emp-field wide"><label data-i18n="notas">Notas</label><textarea id="emp-notas" placeholder="Notas adicionales..."></textarea></div>
         </div>
         <div class="emp-modal-actions">
-          <button class="gc-save-btn" id="btn-guardar-empleado">Guardar</button>
-          <button class="gc-action-btn" id="btn-imprimir-empleado" style="display:none;">Imprimir</button>
-          <button class="gc-action-btn" id="btn-descargar-empleado" style="display:none;">⬇ Descargar</button>
-          <button class="gc-action-btn" id="btn-eliminar-empleado" style="display:none;color:var(--ember);border-color:var(--ember);">Eliminar</button>
+          <button class="gc-save-btn" data-i18n="guardar" id="btn-guardar-empleado">Guardar</button>
+          <button class="gc-action-btn" data-i18n="imprimir" id="btn-imprimir-empleado" style="display:none;">Imprimir</button>
+          <button class="gc-action-btn" data-i18n="descargar" id="btn-descargar-empleado" style="display:none;">⬇ Descargar</button>
+          <button class="gc-action-btn" data-i18n="eliminar" id="btn-eliminar-empleado" style="display:none;color:var(--ember);border-color:var(--ember);">Eliminar</button>
         </div>
         <p id="emp-status" style="font-size:12px;margin-top:10px;"></p>
       </div>
       <div id="emp-etab-docs" style="display:none;">
         <div id="docs-electron-ui">
           <div class="doc-upload-bar">
-            <select id="doc-categoria"><option value="Contrato">Contrato</option><option value="Seguro">Seguro</option><option value="Identificación">Identificación</option><option value="Licencia">Licencia</option><option value="Otro">Otro</option></select>
-            <button class="gc-save-btn" id="btn-subir-doc">+ Subir PDF</button>
+            <select id="doc-categoria"><option value="Contrato" data-i18n="contrato">Contrato</option><option value="Seguro" data-i18n="seguro">Seguro</option><option value="Identificación" data-i18n="identificacion">Identificación</option><option value="Licencia" data-i18n="licencia">Licencia</option><option value="Otro" data-i18n="otro">Otro</option></select>
+            <button class="gc-save-btn" data-i18n="subir_pdf" id="btn-subir-doc">+ Subir PDF</button>
           </div>
           <div class="doc-list" id="doc-list"></div>
         </div>
@@ -1370,11 +1477,11 @@
   <div class="gc-panel" id="panel-cobros">
     <div class="gc-card">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:4px;">
-        <p class="gc-card-title" style="margin:0;">Pendientes</p>
+        <p class="gc-card-title" data-i18n="pendientes" style="margin:0;">Pendientes</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <input type="text" id="cob-buscar" placeholder="Buscar cliente…" autocomplete="off"
             style="font-family:'Inter',sans-serif;font-size:13px;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
-          <button type="button" class="gc-save-btn" id="cob-btn-agregar" style="padding:8px 16px;font-size:13px;">+ Fila</button>
+          <button type="button" class="gc-save-btn" data-i18n="fila" id="cob-btn-agregar" style="padding:8px 16px;font-size:13px;">+ Fila</button>
         </div>
       </div>
       <p style="font-size:11.5px;color:var(--muted);margin-bottom:14px;">Escribe directo en las celdas, como en una hoja de cálculo — Enter o ↓ baja a la siguiente fila, ↑ sube.</p>
@@ -1383,12 +1490,12 @@
           <thead>
             <tr>
               <th class="cob-rownum-th"></th>
-              <th>Cliente</th>
-              <th>Concepto</th>
-              <th class="num">Monto</th>
-              <th>Fecha</th>
-              <th>Estado</th>
-              <th>Notas</th>
+              <th data-i18n="h_cliente">Cliente</th>
+              <th data-i18n="h_concepto">Concepto</th>
+              <th class="num" data-i18n="h_monto">Monto</th>
+              <th data-i18n="fecha">Fecha</th>
+              <th data-i18n="estado">Estado</th>
+              <th data-i18n="notas">Notas</th>
               <th style="width:32px;"></th>
             </tr>
           </thead>
@@ -1412,9 +1519,9 @@
 <!-- Print modal -->
 <div class="gc-print-overlay" id="modal-print" style="display:none;">
   <div class="gc-print-toolbar no-print">
-    <button class="gc-save-btn" id="btn-imprimir-modal">Imprimir</button>
-    <button class="gc-action-btn" id="btn-descargar-desde-modal" style="background:#fff;">⬇ Descargar</button>
-    <button class="gc-action-btn" id="btn-cerrar-modal" style="background:#fff;">Cerrar</button>
+    <button class="gc-save-btn" data-i18n="imprimir" id="btn-imprimir-modal">Imprimir</button>
+    <button class="gc-action-btn" data-i18n="descargar" id="btn-descargar-desde-modal" style="background:#fff;">⬇ Descargar</button>
+    <button class="gc-action-btn" data-i18n="cerrar" id="btn-cerrar-modal" style="background:#fff;">Cerrar</button>
   </div>
   <div class="gc-print-sheet" id="modal-print-sheet"></div>
 </div>
@@ -1594,7 +1701,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v40 · 14 sep';
+  const APP_VERSION = 'v43 · 15 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -1827,6 +1934,7 @@
       $('ajuste-direccion-row').style.display = esAjuste ? 'block' : 'none';
       $('cat-field-wrap').style.display = esAjuste ? 'none' : 'block';
       $('ingreso-semana-row').style.display = esIngreso ? 'block' : 'none';
+      $('gasto-deducible-row').style.display = tipoActual === 'gasto' ? 'block' : 'none';
       if (esIngreso) actualizarSemanaIngreso();
       if ($('mov-cat-nueva-row')) $('mov-cat-nueva-row').style.display = 'none';
       renderCatSelect();
@@ -1962,6 +2070,7 @@
     }
     $('m-monto').value = '';
     $('m-desc').value = '';
+    $('m-deducible').checked = false;
     // El tipo (Ingreso/Gasto/Ajuste) se queda donde el usuario lo dejó — no se resetea
     renderCatSelect();
     refrescarSugerenciasDesc();
@@ -1978,6 +2087,7 @@
     const cat = esAjuste ? (ajusteDir === 'sumar' ? 'Ajuste +' : 'Ajuste −') : $('m-cat').value;
     const monto = parseFloat($('m-monto').value.replace(',', '.'));
     const desc = $('m-desc').value.trim();
+    const deducible = tipoActual === 'gasto' && $('m-deducible').checked;
 
     if (!esAjuste && !cat) { $('status-mov').textContent = 'Agrega al menos una categoría primero'; return; }
     if (cat === '__nueva__') { $('status-mov').textContent = 'Termina de agregar la categoría nueva, o elige una de la lista'; $('mov-cat-nueva-row').style.display = 'block'; $('mov-cat-nueva-input').focus(); return; }
@@ -1993,7 +2103,7 @@
       if (idx >= 0) {
         const orig = movimientos[idx];
         const fechaCambio = !esAjuste && tipoActual === 'gasto' && orig.tipo === 'gasto' && orig.fecha !== fecha;
-        movimientos[idx] = { id: movEditandoId, fecha, tipo: tipoActual, cat, monto, desc,
+        movimientos[idx] = { id: movEditandoId, fecha, tipo: tipoActual, cat, monto, desc, deducible,
           ajusteDir: esAjuste ? ajusteDir : (orig.ajusteDir || undefined) };
         if (!esAjuste) delete movimientos[idx].ajusteDir;
 
@@ -2020,7 +2130,7 @@
       return;
     }
 
-    const nuevo = { id: Date.now(), fecha, tipo: tipoActual, cat, monto, desc };
+    const nuevo = { id: Date.now(), fecha, tipo: tipoActual, cat, monto, desc, deducible };
     if (esAjuste) nuevo.ajusteDir = ajusteDir;
     movimientos.push(nuevo);
     limpiarFormularioMov(false);
@@ -2129,7 +2239,7 @@
         tr.innerHTML = `
           <td>${m.fecha || ''}</td>
           <td><span class="gc-tipo-tag ${m.tipo}">${tipoLabel}</span></td>
-          <td>${escapeHtml(m.cat || '')}</td>
+          <td>${escapeHtml(m.cat || '')}${m.tipo === 'gasto' && m.deducible ? ' <span title="Deducible de impuestos" style="display:inline-block;font-size:9px;font-weight:800;color:var(--gold);background:var(--gold-bg);padding:2px 7px;border-radius:8px;letter-spacing:.3px;vertical-align:middle;">DEDUCIBLE</span>' : ''}</td>
           <td>${escapeHtml(m.desc || '')}</td>
           <td class="gc-num" style="color:${tipoColor}">${fmt(m.monto)}</td>
           <td style="white-space:nowrap;">
@@ -2301,6 +2411,8 @@
     $('ajuste-direccion-row').style.display = esAjuste ? 'block' : 'none';
     $('cat-field-wrap').style.display = esAjuste ? 'none' : 'block';
     $('ingreso-semana-row').style.display = esIngreso ? 'block' : 'none';
+    $('gasto-deducible-row').style.display = m.tipo === 'gasto' ? 'block' : 'none';
+    $('m-deducible').checked = !!m.deducible;
     if (esAjuste) {
       ajusteDir = m.ajusteDir || 'sumar';
       document.querySelectorAll('.ajuste-dir-btn').forEach((b) => {
@@ -2341,6 +2453,8 @@
     $('ajuste-direccion-row').style.display = esAjuste ? 'block' : 'none';
     $('cat-field-wrap').style.display = esAjuste ? 'none' : 'block';
     $('ingreso-semana-row').style.display = esIngreso ? 'block' : 'none';
+    $('gasto-deducible-row').style.display = m.tipo === 'gasto' ? 'block' : 'none';
+    $('m-deducible').checked = !!m.deducible;
     if (esAjuste) {
       ajusteDir = m.ajusteDir || 'sumar';
       document.querySelectorAll('.ajuste-dir-btn').forEach((b) => {
@@ -2436,7 +2550,7 @@
     const listaSocios = cfgSocios && cfgSocios.length ? cfgSocios : [{ nombre: cfgSocioBonus }];
     const filaEnc = $('tabla-invoices-thead-row');
     if (filaEnc) {
-      filaEnc.innerHTML = `<th>Semana</th><th>Guardado</th><th class="num">Gastos</th>${listaSocios.map((s) => `<th class="num">${escapeHtml(s.nombre)}</th>`).join('')}<th></th>`;
+      filaEnc.innerHTML = `<th data-i18n="h_semana">Semana</th><th data-i18n="h_guardado">Guardado</th><th class="num" data-i18n="h_gastos">Gastos</th>${listaSocios.map((s) => `<th class="num">${escapeHtml(s.nombre)}</th>`).join('')}<th></th>`;
     }
 
     sorted.forEach((inv) => {
@@ -2456,7 +2570,7 @@
         <td>${fechaGuardado}</td>
         <td class="gc-num">${fmt(inv.gastosTotales)}</td>
         ${montosPorSocio.map((m) => `<td class="gc-num">${m == null ? '—' : fmt(m)}</td>`).join('')}
-        <td><button class="gc-action-btn gc-ver-invoice-btn" data-id="${idInv}" style="padding:4px 10px; font-size:11px;">Ver</button> <button class="gc-action-btn gc-reabrir-invoice-btn" data-id="${idInv}" style="padding:4px 10px; font-size:11px;color:var(--gold);border-color:var(--gold);">✎ Editar</button> <button class="gc-del" data-id="${idInv}">✕</button></td>
+        <td><button class="gc-action-btn gc-ver-invoice-btn" data-i18n="ver" data-id="${idInv}" style="padding:4px 10px; font-size:11px;">Ver</button> <button class="gc-action-btn gc-reabrir-invoice-btn" data-i18n="editar_2" data-id="${idInv}" style="padding:4px 10px; font-size:11px;color:var(--gold);border-color:var(--gold);">✎ Editar</button> <button class="gc-del" data-id="${idInv}">✕</button></td>
       `;
       tbody.appendChild(tr);
     });
@@ -2609,7 +2723,7 @@
     const selectAnio = $('taxas-anio-filtro');
     const aniosActual = selectAnio.value;
     const anios = [...new Set(invoicesGuardados.map((inv) => (inv.guardadoEn || '').slice(0, 4)).filter(Boolean))].sort().reverse();
-    selectAnio.innerHTML = '<option value="todos">Todos los años</option>' + anios.map((a) => `<option value="${a}">${a}</option>`).join('');
+    selectAnio.innerHTML = '<option value="todos" data-i18n="todos_los_anos">Todos los años</option>' + anios.map((a) => `<option value="${a}">${a}</option>`).join('');
     if (aniosActual && (aniosActual === 'todos' || anios.includes(aniosActual))) selectAnio.value = aniosActual;
   }
 
@@ -2619,6 +2733,29 @@
 
   // ── Toast notifications ──────────────────────────────────────────────
   function toast(msg, tipo = 'success', duracion = 2500) {
+    // Traduce el mensaje si hay una versión en inglés y ese es el idioma activo
+    // (coincidencia exacta primero; si no, intenta por el PREFIJO estático de
+    // mensajes que terminan en "algo dinámico", como "No se pudo guardar: " + error).
+    if (typeof I18N !== 'undefined' && typeof idiomaActual === 'function' && idiomaActual() === 'en') {
+      let traducido = null;
+      for (const k in I18N) {
+        if (I18N[k].es === msg) { traducido = I18N[k].en; break; }
+      }
+      if (!traducido) {
+        // Solo intenta el prefijo con entradas pensadas para eso (terminan en
+        // ": " o en espacio, para pegarles texto dinámico después) — así una
+        // palabra corta de la interfaz (ej. "Notas") nunca se cuela por error
+        // como si fuera el inicio de un mensaje sin relación.
+        for (const k in I18N) {
+          const es = I18N[k].es;
+          if (es && (es.endsWith(': ') || es.endsWith(' ')) && es.length > 5 && msg.indexOf(es) === 0) {
+            traducido = I18N[k].en + msg.slice(es.length);
+            break;
+          }
+        }
+      }
+      if (traducido) msg = traducido;
+    }
     const cont = document.getElementById('gc-toast');
     const el = document.createElement('div');
     el.className = `gc-toast-item ${tipo}`;
@@ -2745,7 +2882,7 @@
     const actual = select.value;
     const todos = todosMov();
     const anios = [...new Set(todos.map((m) => (m.fecha || today()).slice(0, 4)))].sort().reverse();
-    select.innerHTML = '<option value="todos">Todos los años</option>' + anios.map((a) => `<option value="${a}">${a}</option>`).join('');
+    select.innerHTML = '<option value="todos" data-i18n="todos_los_anos">Todos los años</option>' + anios.map((a) => `<option value="${a}">${a}</option>`).join('');
     if (actual && (actual === 'todos' || anios.includes(actual))) select.value = actual;
   }
 
@@ -2884,7 +3021,7 @@
 
       <h2>Detalle de gastos</h2>
       <table>
-        <thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th class="num">Monto</th></tr></thead>
+        <thead><tr><th data-i18n="fecha">Fecha</th><th data-i18n="categoria">Categoría</th><th data-i18n="descripcion">Descripción</th><th class="num" data-i18n="h_monto">Monto</th></tr></thead>
         <tbody>${filasGasto}</tbody>
         <tfoot>
           <tr><td colspan="3">Subtotal gastos</td><td class="num">${fmt(inv.gastos)}</td></tr>
@@ -3030,25 +3167,25 @@
         <h2 style="font-size:14px;margin:20px 0 8px;color:#1B2A4A;">Movimientos</h2>
         <table style="width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:16px;">
           <thead><tr>
-            <th style="text-align:left;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">Fecha</th>
-            <th style="text-align:left;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">Tipo</th>
-            <th style="text-align:left;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">Categoría</th>
-            <th style="text-align:left;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">Descripción</th>
-            <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">Monto</th>
+            <th style="text-align:left;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;" data-i18n="fecha">Fecha</th>
+            <th style="text-align:left;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;" data-i18n="tipo">Tipo</th>
+            <th style="text-align:left;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;" data-i18n="categoria">Categoría</th>
+            <th style="text-align:left;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;" data-i18n="descripcion">Descripción</th>
+            <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;" data-i18n="h_monto">Monto</th>
           </tr></thead>
           <tbody>${filasMov || '<tr><td colspan="5" style="padding:6px;">Sin movimientos</td></tr>'}</tbody>
         </table>
         <h2 style="font-size:14px;margin:20px 0 8px;color:#1B2A4A;">Reparto semanal</h2>
         <table style="width:100%;border-collapse:collapse;font-size:11.5px;">
           <thead><tr>
-            <th style="text-align:left;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">Semana</th>
-            <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">Ingresos</th>
-            <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">Gastos</th>
-            <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">Taxas</th>
-            <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">Neto</th>
+            <th style="text-align:left;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;" data-i18n="h_semana">Semana</th>
+            <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;" data-i18n="h_ingresos">Ingresos</th>
+            <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;" data-i18n="h_gastos">Gastos</th>
+            <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;" data-i18n="h_taxas">Taxas</th>
+            <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;" data-i18n="h_neto">Neto</th>
             <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">${cfgSocioBonus}</th>
             <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">${cfgSocioMitad}</th>
-            <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;">Tax Guzman</th>
+            <th style="text-align:right;border-bottom:2px solid #1B2A4A;padding:6px;font-size:10px;text-transform:uppercase;" data-i18n="h_tax_guzman">Tax Guzman</th>
           </tr></thead>
           <tbody>${filasReparto || '<tr><td colspan="8" style="padding:6px;">Sin datos</td></tr>'}</tbody>
         </table>
@@ -3119,6 +3256,24 @@
     toast('Respaldo completo descargado ✓', 'success');
   });
 
+  // ---- Trimestre rápido: llena el rango de fechas con un clic (para reportes al contador) ----
+  (function () {
+    const inputAnio = $('rep-trim-anio');
+    if (inputAnio) inputAnio.value = new Date().getFullYear();
+    document.querySelectorAll('[data-trim]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const anio = parseInt(inputAnio.value, 10) || new Date().getFullYear();
+        const trimestre = parseInt(btn.dataset.trim, 10);
+        const mesInicio = (trimestre - 1) * 3;
+        const desde = new Date(anio, mesInicio, 1);
+        const hasta = new Date(anio, mesInicio + 3, 0);
+        $('rep-desde').value = desde.toISOString().slice(0, 10);
+        $('rep-hasta').value = hasta.toISOString().slice(0, 10);
+        toast(`Rango puesto: Q${trimestre} ${anio}`, 'info');
+      });
+    });
+  })();
+
   // ---- Reportes y exportación (Excel + PDF) ----
   // Trae nómina y empleados frescos de storage (por si no se visitaron esas
   // pestañas todavía); movimientos e invoices ya están siempre cargados.
@@ -3143,9 +3298,20 @@
 
     const hojaMovs = movs.map((m) => ({
       Fecha: m.fecha || '', Tipo: m.tipo === 'ingreso' ? 'Ingreso' : m.tipo === 'gasto' ? 'Gasto' : 'Ajuste',
-      Categoría: m.cat || '', Descripción: m.desc || '', Monto: Number(m.monto) || 0
+      Categoría: m.cat || '', Descripción: m.desc || '', Monto: Number(m.monto) || 0,
+      Deducible: m.tipo === 'gasto' ? (m.deducible ? 'Sí' : 'No') : ''
     }));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hojaMovs), 'Movimientos');
+
+    // Hoja aparte solo con los gastos marcados como deducibles — lista para el contador
+    const gastosDeducibles = movs.filter((m) => m.tipo === 'gasto' && m.deducible);
+    if (gastosDeducibles.length) {
+      const hojaDeducibles = gastosDeducibles.map((m) => ({
+        Fecha: m.fecha || '', Categoría: m.cat || '', Descripción: m.desc || '', Monto: Number(m.monto) || 0
+      }));
+      hojaDeducibles.push({ Fecha: '', Categoría: '', Descripción: 'TOTAL DEDUCIBLE', Monto: gastosDeducibles.reduce((s, m) => s + (Number(m.monto) || 0), 0) });
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hojaDeducibles), 'Gastos deducibles');
+    }
 
     const hojaInv = invs.map((i) => {
       const fila = {
@@ -3206,25 +3372,25 @@
 
         <div style="font-family:'Zilla Slab',serif;font-size:15px;font-weight:700;margin-bottom:8px;">Invoices guardados (${invs.length})</div>
         <table style="width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:20px;">
-          <thead><tr style="background:#F5F7FC;"><th style="text-align:left;padding:6px;">Semana</th><th style="text-align:right;padding:6px;">Ingresos</th><th style="text-align:right;padding:6px;">Gastos</th>${(cfgSocios && cfgSocios.length ? cfgSocios : [{ nombre: cfgSocioBonus }, { nombre: cfgSocioMitad }]).map((s) => `<th style="text-align:right;padding:6px;">${escapeHtml(s.nombre)}</th>`).join('')}</tr></thead>
+          <thead><tr style="background:#F5F7FC;"><th style="text-align:left;padding:6px;" data-i18n="h_semana">Semana</th><th style="text-align:right;padding:6px;" data-i18n="h_ingresos">Ingresos</th><th style="text-align:right;padding:6px;" data-i18n="h_gastos">Gastos</th>${(cfgSocios && cfgSocios.length ? cfgSocios : [{ nombre: cfgSocioBonus }, { nombre: cfgSocioMitad }]).map((s) => `<th style="text-align:right;padding:6px;">${escapeHtml(s.nombre)}</th>`).join('')}</tr></thead>
           <tbody>${invs.map(filaInv).join('') || `<tr><td colspan="${3 + (cfgSocios && cfgSocios.length ? cfgSocios.length : 2)}" style="padding:8px;color:#63708C;">Sin invoices en este rango.</td></tr>`}</tbody>
         </table>
 
         <div style="font-family:'Zilla Slab',serif;font-size:15px;font-weight:700;margin-bottom:8px;">Movimientos (${movs.length})</div>
         <table style="width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:20px;">
-          <thead><tr style="background:#F5F7FC;"><th style="text-align:left;padding:6px;">Fecha</th><th style="text-align:left;padding:6px;">Tipo</th><th style="text-align:left;padding:6px;">Categoría</th><th style="text-align:left;padding:6px;">Descripción</th><th style="text-align:right;padding:6px;">Monto</th></tr></thead>
+          <thead><tr style="background:#F5F7FC;"><th style="text-align:left;padding:6px;" data-i18n="fecha">Fecha</th><th style="text-align:left;padding:6px;" data-i18n="tipo">Tipo</th><th style="text-align:left;padding:6px;" data-i18n="categoria">Categoría</th><th style="text-align:left;padding:6px;" data-i18n="descripcion">Descripción</th><th style="text-align:right;padding:6px;" data-i18n="h_monto">Monto</th></tr></thead>
           <tbody>${movs.map(filaMov).join('') || '<tr><td colspan="5" style="padding:8px;color:#63708C;">Sin movimientos en este rango.</td></tr>'}</tbody>
         </table>
 
         <div style="font-family:'Zilla Slab',serif;font-size:15px;font-weight:700;margin-bottom:8px;">Nómina (${nomina.length} pagos)</div>
         <table style="width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:20px;">
-          <thead><tr style="background:#F5F7FC;"><th style="text-align:left;padding:6px;">Trabajador</th><th style="text-align:left;padding:6px;">Fecha</th><th style="text-align:center;padding:6px;">Días</th><th style="text-align:right;padding:6px;">Monto</th></tr></thead>
+          <thead><tr style="background:#F5F7FC;"><th style="text-align:left;padding:6px;" data-i18n="trabajador">Trabajador</th><th style="text-align:left;padding:6px;" data-i18n="fecha">Fecha</th><th style="text-align:center;padding:6px;" data-i18n="h_dias">Días</th><th style="text-align:right;padding:6px;" data-i18n="h_monto">Monto</th></tr></thead>
           <tbody>${nomina.map(filaNom).join('') || '<tr><td colspan="4" style="padding:8px;color:#63708C;">Sin pagos en este rango.</td></tr>'}</tbody>
         </table>
 
         <div style="font-family:'Zilla Slab',serif;font-size:15px;font-weight:700;margin-bottom:8px;">Empleados activos (${activos.length})</div>
         <table style="width:100%;border-collapse:collapse;font-size:11.5px;">
-          <thead><tr style="background:#F5F7FC;"><th style="text-align:left;padding:6px;">Nombre</th><th style="text-align:left;padding:6px;">Rol</th><th style="text-align:right;padding:6px;">Sueldo</th></tr></thead>
+          <thead><tr style="background:#F5F7FC;"><th style="text-align:left;padding:6px;" data-i18n="h_nombre">Nombre</th><th style="text-align:left;padding:6px;" data-i18n="rol">Rol</th><th style="text-align:right;padding:6px;" data-i18n="h_sueldo">Sueldo</th></tr></thead>
           <tbody>${activos.map(filaEmp).join('') || '<tr><td colspan="3" style="padding:8px;color:#63708C;">Sin empleados activos.</td></tr>'}</tbody>
         </table>
       </div>`;
@@ -3390,7 +3556,7 @@
             <div class="doc-name">${escapeHtml(p.nombre)}</div>
             <div class="doc-cat">${escapeHtml(cat)}</div>
           </div>
-          <button class="gc-action-btn" style="padding:4px 12px;font-size:12px;" data-archivo="${escapeHtml(p.archivo)}">Abrir</button>
+          <button class="gc-action-btn" data-i18n="abrir" style="padding:4px 12px;font-size:12px;" data-archivo="${escapeHtml(p.archivo)}">Abrir</button>
           <button class="gc-del" data-archivo="${escapeHtml(p.archivo)}">✕</button>
         `;
         item.querySelector('.gc-action-btn').addEventListener('click', async () => {
@@ -3531,7 +3697,7 @@
           <input type="text" class="aj-socio-nombre" data-idx="${i}" value="${escapeHtml(s.nombre)}">
         </div>
         <div class="gc-field" style="flex:0 0 90px;min-width:0;">
-          <label>Tax %</label>
+          <label data-i18n="tax">Tax %</label>
           <input type="text" inputmode="decimal" class="aj-socio-bonopct" data-idx="${i}" value="${s.bonoPct}">
         </div>
         <button type="button" class="gc-del aj-socio-del" data-idx="${i}"${ajSociosEdit.length <= 1 ? ' disabled style="opacity:.3;cursor:not-allowed;"' : ''} title="Quitar socio">✕</button>
@@ -3760,14 +3926,14 @@
           <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:3px 8px;border-radius:20px;background:${u.activo ? '#E3F5E8' : '#FBEEE6'};color:${u.activo ? '#2E7D46' : '#C6551E'};">${u.activo ? 'activo' : 'pendiente'}</span>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-          <div class="gc-field"><label>Base de datos que ve</label>
+          <div class="gc-field"><label data-i18n="base_de_datos_que_ve">Base de datos que ve</label>
             <select class="admin-cuenta-sel" data-id="${u.id}">${optsHtml}</select>
           </div>
-          <div class="gc-field"><label>Rol</label>
+          <div class="gc-field"><label data-i18n="rol">Rol</label>
             <select class="admin-rol-sel" data-id="${u.id}">
-              <option value="admin"${u.rol === 'admin' ? ' selected' : ''}>Admin (edita todo)</option>
-              <option value="empleado"${u.rol === 'empleado' ? ' selected' : ''}>Empleado (edita su base de datos)</option>
-              <option value="visor"${u.rol === 'visor' ? ' selected' : ''}>Visor (solo lectura)</option>
+              <option value="admin" data-i18n="admin_edita_todo"${u.rol === 'admin' ? ' selected' : ''}>Admin (edita todo)</option>
+              <option value="empleado" data-i18n="empleado_edita_su_base_de_datos"${u.rol === 'empleado' ? ' selected' : ''}>Empleado (edita su base de datos)</option>
+              <option value="visor" data-i18n="visor_solo_lectura"${u.rol === 'visor' ? ' selected' : ''}>Visor (solo lectura)</option>
             </select>
           </div>
         </div>
@@ -3778,7 +3944,7 @@
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
           <button class="gc-action-btn admin-toggle-activo" data-id="${u.id}" data-activo="${u.activo ? '1' : '0'}">${u.activo ? 'Desactivar' : 'Aprobar / activar'}</button>
-          <button class="gc-save-btn admin-guardar" data-id="${u.id}">Guardar cambios</button>
+          <button class="gc-save-btn admin-guardar" data-i18n="guardar_cambios" data-id="${u.id}">Guardar cambios</button>
         </div>`;
       cont.appendChild(card);
     });
@@ -3826,6 +3992,321 @@
     $('aj-btn-refrescar-usuarios').addEventListener('click', ajCargarUsuarios);
   }
 
+  // ============================================================
+  // IDIOMA: Español / English (local a este teléfono — traduce
+  // menús, títulos y botones marcados con data-i18n; no toca datos).
+  // ============================================================
+  const I18N = {
+    abrir: {es:'Abrir',en:'Open'},
+    acerca_de: {es:'Acerca de',en:'About'},
+    activar_face_id_en_este_telefono: {es:'Activar Face ID en este teléfono',en:'Turn on Face ID on this phone'},
+    activo: {es:'Activo',en:'Active'},
+    actualizar_lista: {es:'Actualizar lista',en:'Refresh list'},
+    admin_edita_todo: {es:'Admin (edita todo)',en:'Admin (edits everything)'},
+    agregar: {es:'+ Agregar',en:'+ Add'},
+    agregar_2: {es:'Agregar',en:'Add'},
+    agregar_empleado: {es:'+ Agregar empleado',en:'+ Add employee'},
+    agregar_movimiento: {es:'Agregar movimiento',en:'Add transaction'},
+    agregar_socio: {es:'+ Agregar socio',en:'+ Add partner'},
+    ajuste: {es:'± Ajuste',en:'± Adjustment'},
+    ajustes: {es:'Ajustes',en:'Settings'},
+    ano: {es:'Año',en:'Year'},
+    apariencia: {es:'Apariencia',en:'Appearance'},
+    apellido_s: {es:'Apellido(s)',en:'Last name(s)'},
+    avanzado: {es:'Avanzado',en:'Advanced'},
+    banco: {es:'Banco',en:'Bank'},
+    base_de_datos_actual: {es:'Base de datos actual',en:'Current database'},
+    base_de_datos_de_clientes: {es:'Base de datos de Clientes',en:'Client database'},
+    base_de_datos_que_estas_viendo: {es:'Base de datos que estás viendo',en:'Database you are viewing'},
+    base_de_datos_que_ve: {es:'Base de datos que ve',en:'Database they can see'},
+    bases_de_datos: {es:'Bases de datos',en:'Databases'},
+    bill_to_nombre_compania: {es:'Bill To — Nombre / Compañía',en:'Bill To — Name / Company'},
+    buscar: {es:'Buscar',en:'Search'},
+    buscar_actualizacion_ahora: {es:'Buscar actualización ahora',en:'Check for update now'},
+    buscar_en_tiempo_real: {es:'Buscar en tiempo real',en:'Live search'},
+    buscar_por_persona: {es:'Buscar por persona',en:'Search by person'},
+    cambiar_a_otra_base_de_datos: {es:'Cambiar a otra base de datos',en:'Switch to another database'},
+    cancelar: {es:'Cancelar',en:'Cancel'},
+    categoria: {es:'Categoría',en:'Category'},
+    categorias: {es:'Categorías',en:'Categories'},
+    cerrar: {es:'Cerrar',en:'Close'},
+    cerrar_sesion: {es:'Cerrar sesión',en:'Log out'},
+    clientes: {es:'Clientes',en:'Clients'},
+    cobrado: {es:'Cobrado',en:'Collected'},
+    cobros_por_casa: {es:'Cobros por casa',en:'Collections by house'},
+    colonias: {es:'Colonias',en:'Subdivisions'},
+    colonias_subdivisions: {es:'Colonias / Subdivisions',en:'Subdivisions'},
+    contacto_de_emergencia: {es:'Contacto de emergencia',en:'Emergency contact'},
+    contrato: {es:'Contrato',en:'Contract'},
+    contratos: {es:'Contratos',en:'Contracts'},
+    crear: {es:'+ Crear',en:'+ Create'},
+    csv: {es:'⬇ CSV',en:'⬇ CSV'},
+    cuanto_lleva_ganando_una_persona: {es:'Cuánto lleva ganando una persona',en:'How much a person has earned'},
+    datos_de_la_factura_y_recibos: {es:'Datos de la factura y recibos',en:'Invoice & receipt details'},
+    descargar: {es:'⬇ Descargar',en:'⬇ Download'},
+    descargar_excel_completo: {es:'Descargar Excel completo',en:'Download full Excel'},
+    descargar_reporte_en_pdf: {es:'Descargar reporte en PDF',en:'Download PDF report'},
+    descargar_respaldo: {es:'Descargar respaldo',en:'Download backup'},
+    descargar_respaldo_completo: {es:'Descargar respaldo completo',en:'Download full backup'},
+    descripcion: {es:'Descripción',en:'Description'},
+    descripciones_de_trabajo: {es:'Descripciones de Trabajo',en:'Job descriptions'},
+    desde_opcional: {es:'Desde (opcional)',en:'From (optional)'},
+    direccion: {es:'Dirección',en:'Address'},
+    direccion_aparece_en_la_factura: {es:'Dirección (aparece en la factura)',en:'Address (shows on invoice)'},
+    direccion_opcional_aparece_en_la_factura: {es:'Dirección (opcional — aparece en la factura)',en:'Address (optional — shows on invoice)'},
+    editar: {es:'Editar',en:'Edit'},
+    editar_2: {es:'✎ Editar',en:'✎ Edit'},
+    editar_semana: {es:'Editar semana',en:'Edit week'},
+    eliminar: {es:'Eliminar',en:'Delete'},
+    email: {es:'Email',en:'Email'},
+    empleado_edita_su_base_de_datos: {es:'Empleado (edita su base de datos)',en:'Employee (edits their database)'},
+    empleados: {es:'Empleados',en:'Employees'},
+    en_que_se_va_el_dinero_gastos_por_catego: {es:'En qué se va el dinero — gastos por categoría',en:'Where the money goes — expenses by category'},
+    enviar: {es:'↗ Enviar',en:'↗ Share'},
+    estado: {es:'Estado',en:'Status'},
+    facturas: {es:'Facturas',en:'Invoices'},
+    facturas_guardadas: {es:'Facturas Guardadas',en:'Saved invoices'},
+    fecha: {es:'Fecha',en:'Date'},
+    fecha_de_inicio: {es:'Fecha de inicio',en:'Start date'},
+    fila: {es:'+ Fila',en:'+ Row'},
+    gasto: {es:'↓ Gasto',en:'↓ Expense'},
+    general: {es:'General',en:'General'},
+    gobierno: {es:'Gobierno',en:'Government'},
+    guardadas: {es:'Guardadas',en:'Saved'},
+    guardar: {es:'Guardar',en:'Save'},
+    guardar_cambios: {es:'Guardar cambios',en:'Save changes'},
+    guardar_cambios_de_la_semana: {es:'Guardar cambios de la semana',en:'Save week changes'},
+    guardar_datos_de_factura: {es:'Guardar datos de factura',en:'Save invoice details'},
+    guardar_factura: {es:'Guardar Factura',en:'Save Invoice'},
+    guardar_invoice: {es:'Guardar invoice',en:'Save invoice'},
+    guardar_movimiento: {es:'Guardar movimiento',en:'Save transaction'},
+    guardar_pin: {es:'Guardar PIN',en:'Save PIN'},
+    guardar_socios: {es:'Guardar socios',en:'Save partners'},
+    hasta_opcional: {es:'Hasta (opcional)',en:'To (optional)'},
+    historial: {es:'Historial',en:'History'},
+    historial_de_pagos: {es:'Historial de pagos',en:'Payment history'},
+    identificacion: {es:'Identificación',en:'ID'},
+    idioma: {es:'Idioma',en:'Language'},
+    imprimir: {es:'Imprimir',en:'Print'},
+    inactivo: {es:'Inactivo',en:'Inactive'},
+    informacion: {es:'Información',en:'Information'},
+    ingreso: {es:'↑ Ingreso',en:'↑ Income'},
+    intervalo: {es:'Intervalo',en:'Interval'},
+    invoice: {es:'Invoice #',en:'Invoice #'},
+    invoices_guardados: {es:'Invoices guardados',en:'Saved invoices'},
+    irs_taxes: {es:'IRS - Taxes',en:'IRS - Taxes'},
+    licencia: {es:'Licencia',en:'License'},
+    licencias: {es:'Licencias',en:'Licenses'},
+    limpiar: {es:'Limpiar',en:'Clear'},
+    limpiar_fechas: {es:'Limpiar fechas',en:'Clear dates'},
+    mi_cuenta: {es:'Mi cuenta',en:'My account'},
+    monto: {es:'Monto ($)',en:'Amount ($)'},
+    movimientos: {es:'Movimientos',en:'Transactions'},
+    nombre_de_la_nueva_base_de_datos: {es:'Nombre de la nueva base de datos',en:'New database name'},
+    nombre_de_la_nueva_categoria: {es:'Nombre de la nueva categoría',en:'New category name'},
+    nombre_del_trabajador: {es:'Nombre del trabajador',en:'Worker name'},
+    nombre_en_la_factura_recibos: {es:'Nombre en la factura / recibos',en:'Name on invoice / receipts'},
+    nombre_s: {es:'Nombre(s)',en:'First name(s)'},
+    nomina: {es:'Nómina',en:'Payroll'},
+    notas: {es:'Notas',en:'Notes'},
+    nueva_factura: {es:'+ Nueva Factura',en:'+ New Invoice'},
+    otro: {es:'Otro',en:'Other'},
+    pagos_guardados: {es:'Pagos guardados',en:'Saved payments'},
+    papeles: {es:'Papeles',en:'Documents'},
+    pendiente: {es:'Pendiente',en:'Pending'},
+    pendientes: {es:'Pendientes',en:'Pending'},
+    pin_de_respaldo_4_a_8_numeros: {es:'PIN de respaldo (4 a 8 números)',en:'Backup PIN (4 to 8 digits)'},
+    por_ano: {es:'Por año',en:'Yearly'},
+    por_mes: {es:'Por mes',en:'Monthly'},
+    por_semana: {es:'Por semana',en:'Weekly'},
+    propiedad: {es:'Propiedad',en:'Property'},
+    puesto_rol: {es:'Puesto / Rol',en:'Position / Role'},
+    que_semana_es_este_ingreso: {es:'¿Qué semana es este ingreso?',en:'Which week is this income for?'},
+    quitar_logo: {es:'Quitar logo',en:'Remove logo'},
+    rango_de_fechas_opcional_vacio_todo: {es:'Rango de fechas (opcional — vacío = todo)',en:'Date range (optional — blank = everything)'},
+    recibo_semanal: {es:'Recibo semanal',en:'Weekly receipt'},
+    registrar_pago: {es:'Registrar pago',en:'Log payment'},
+    registro: {es:'Registro',en:'Log'},
+    reportes_y_exportacion: {es:'Reportes y exportación',en:'Reports & export'},
+    restar: {es:'− Restar',en:'− Subtract'},
+    restaurar_respaldo: {es:'Restaurar respaldo',en:'Restore backup'},
+    resumen_anual_taxas_y_pago_por_socio: {es:'Resumen anual — Taxas y pago por socio',en:'Annual summary — Taxes & partner payout'},
+    rol: {es:'Rol',en:'Role'},
+    seguridad: {es:'Seguridad',en:'Security'},
+    seguro: {es:'Seguro',en:'Insurance'},
+    seleccionar: {es:'— Seleccionar —',en:'— Select —'},
+    socios_reparto: {es:'Socios (reparto)',en:'Partners (split)'},
+    solo_ajustes: {es:'Solo ajustes',en:'Adjustments only'},
+    solo_gastos: {es:'Solo gastos',en:'Expenses only'},
+    solo_ingresos: {es:'Solo ingresos',en:'Income only'},
+    ss_ultimos_4: {es:'SS (últimos 4)',en:'SSN (last 4)'},
+    subir_pdf: {es:'+ Subir PDF',en:'+ Upload PDF'},
+    sueldo_por_dia: {es:'Sueldo por día ($)',en:'Pay per day ($)'},
+    sumar: {es:'+ Sumar',en:'+ Add'},
+    tax: {es:'Tax %',en:'Tax %'},
+    telefono: {es:'Teléfono',en:'Phone'},
+    tendencia_ultimas_semanas: {es:'Tendencia — últimas semanas',en:'Trend — last few weeks'},
+    tipo: {es:'Tipo',en:'Type'},
+    todo_el_tiempo: {es:'Todo el tiempo',en:'All time'},
+    todos: {es:'Todos',en:'All'},
+    todos_los_anos: {es:'Todos los años',en:'All years'},
+    total_pagado_por_socio: {es:'Total pagado por socio',en:'Total paid per partner'},
+    trabajador: {es:'Trabajador',en:'Worker'},
+    trabajadores: {es:'Trabajadores',en:'Workers'},
+    trabajadores_y_sus_sueldos: {es:'Trabajadores y sus sueldos',en:'Workers & their pay'},
+    trabajos: {es:'Trabajos',en:'Jobs'},
+    trimestre_rapido_para_el_contador: {es:'Trimestre rápido (para el contador)',en:'Quick quarter (for your accountant)'},
+    usuarios_y_a_que_base_de_datos_entran: {es:'Usuarios y a qué base de datos entran',en:'Users & which database they access'},
+    vehiculos: {es:'Vehículos',en:'Vehicles'},
+    ver: {es:'Ver',en:'View'},
+    ver_esta_base_de_datos: {es:'Ver esta base de datos',en:'View this database'},
+    ver_recibo: {es:'Ver recibo',en:'View receipt'},
+    visor_solo_lectura: {es:'Visor (solo lectura)',en:'Viewer (read-only)'},
+    vista_previa: {es:'Vista previa',en:'Preview'},
+    t_agrega_al_menos_un_trabajo: {es:'Agrega al menos un trabajo',en:'Add at least one job'},
+    t_agrega_un_numero_de_factura: {es:'Agrega un número de factura',en:'Add an invoice number'},
+    t_ahi_esta: {es:'Ahí está ',en:'There it is: '},
+    t_base_de_datos_creada: {es:'Base de datos creada ✓',en:'Database created ✓'},
+    t_base_de_datos_quitada_de_la_lista: {es:'Base de datos quitada de la lista',en:'Database removed from the list'},
+    t_cambiando: {es:'Cambiando…',en:'Switching…'},
+    t_cambios_guardados: {es:'Cambios guardados ✓',en:'Changes saved ✓'},
+    t_categoria_agregada: {es:'Categoría agregada ✓',en:'Category added ✓'},
+    t_cliente_agregado: {es:'Cliente agregado ✓',en:'Client added ✓'},
+    t_cliente_eliminado: {es:'Cliente eliminado',en:'Client deleted'},
+    t_colonia_agregada: {es:'Colonia agregada ✓',en:'Subdivision added ✓'},
+    t_colonia_eliminada: {es:'Colonia eliminada',en:'Subdivision deleted'},
+    t_color_de_acento_actualizado: {es:'Color de acento actualizado ✓',en:'Accent color updated ✓'},
+    t_conexion_restablecida: {es:'Conexión restablecida ✓',en:'Connection restored ✓'},
+    t_datos_de_factura_guardados: {es:'Datos de factura guardados ✓',en:'Invoice details saved ✓'},
+    t_debe_haber_al_menos_un_socio: {es:'Debe haber al menos un socio',en:'There must be at least one partner'},
+    t_descripcion_agregada: {es:'Descripción agregada ✓',en:'Description added ✓'},
+    t_descripcion_eliminada: {es:'Descripción eliminada',en:'Description deleted'},
+    t_editando: {es:'Editando ',en:'Editing '},
+    t_editando_movimiento_cambia_los_datos_y_g: {es:'Editando movimiento — cambia los datos y guarda',en:'Editing transaction — change the details and save'},
+    t_el_pin_debe_tener_de_4_a_8_numeros: {es:'El PIN debe tener de 4 a 8 números.',en:'The PIN must be 4 to 8 digits.'},
+    t_empleado_guardado: {es:'Empleado guardado ✓',en:'Employee saved ✓'},
+    t_error_al_subir: {es:'Error al subir: ',en:'Upload error: '},
+    t_escribe_el_nombre_de_todos_los_socios: {es:'Escribe el nombre de todos los socios',en:'Enter every partner\'s name'},
+    t_escribe_un_nombre_para_la_base_de_datos: {es:'Escribe un nombre para la base de datos',en:'Enter a name for the database'},
+    t_escribe_un_sueldo_valido: {es:'Escribe un sueldo válido',en:'Enter a valid pay rate'},
+    t_este_dispositivo_no_tiene_face_id_touch_: {es:'Este dispositivo no tiene Face ID/Touch ID disponible.',en:'This device does not have Face ID/Touch ID available.'},
+    t_este_navegador_no_soporta_face_id_touch_: {es:'Este navegador no soporta Face ID/Touch ID para apps web.',en:'This browser does not support Face ID/Touch ID for web apps.'},
+    t_este_navegador_no_soporta_compartir_dire: {es:'Este navegador no soporta compartir directo — usa el botón Descargar.',en:'This browser does not support direct sharing — use the Download button.'},
+    t_excel_descargado: {es:'Excel descargado ✓',en:'Excel downloaded ✓'},
+    t_face_id_activado_en_este_telefono: {es:'Face ID activado en este teléfono ✓',en:'Face ID turned on for this phone ✓'},
+    t_factura_eliminada: {es:'Factura eliminada',en:'Invoice deleted'},
+    t_guarda_primero_los_datos_del_empleado_an: {es:'Guarda primero los datos del empleado antes de subir documentos.',en:'Save the employee\'s details first before uploading documents.'},
+    t_invoice_eliminado: {es:'Invoice eliminado',en:'Invoice deleted'},
+    t_invoice_guardado_y_archivado_en_registro: {es:'Invoice guardado y archivado en Registro ✓',en:'Invoice saved and filed under Log ✓'},
+    t_invoice_reabierto_edita_los_movimientos_: {es:'Invoice reabierto — edita los movimientos y vuelve a guardarlo',en:'Invoice reopened — edit the transactions and save it again'},
+    t_logo_actualizado: {es:'Logo actualizado ✓',en:'Logo updated ✓'},
+    t_logo_de_guzman_hvac_restaurado: {es:'Logo de Guzman HVAC restaurado',en:'Guzman HVAC logo restored'},
+    t_movimiento_eliminado: {es:'Movimiento eliminado',en:'Transaction deleted'},
+    t_movimiento_repetido_con_la_fecha_de_hoy_: {es:'Movimiento repetido con la fecha de hoy — revisa el monto y guarda',en:'Transaction repeated with today\'s date — check the amount and save'},
+    t_no_hay_movimientos_para_guardar: {es:'No hay movimientos para guardar',en:'No transactions to save'},
+    t_no_se_pudo_abrir_para_compartir_usa_desc: {es:'No se pudo abrir para compartir — usa Descargar.',en:'Could not open to share — use Download.'},
+    t_no_se_pudo_activar_face_id_intenta_de_nu: {es:'No se pudo activar Face ID — intenta de nuevo.',en:'Could not turn on Face ID — try again.'},
+    t_no_se_pudo_cambiar: {es:'No se pudo cambiar: ',en:'Could not switch: '},
+    t_no_se_pudo_cargar_el_generador_de_excel_: {es:'No se pudo cargar el generador de Excel. Revisa tu conexión e intenta de nuevo.',en:'Could not load the Excel generator. Check your connection and try again.'},
+    t_no_se_pudo_completar_una_accion_problema: {es:'No se pudo completar una acción (problema de conexión o datos). Intenta de nuevo.',en:'Could not complete an action (connection or data issue). Try again.'},
+    t_no_se_pudo_crear_puede_que_tu_usuario_no: {es:'No se pudo crear. Puede que tu usuario no sea admin en Supabase. Detalle: ',en:'Could not create it. Your user may not be an admin in Supabase. Detail: '},
+    t_no_se_pudo_guardar: {es:'No se pudo guardar: ',en:'Could not save: '},
+    t_ocurrio_un_error_inesperado_si_algo_no_s: {es:'Ocurrió un error inesperado. Si algo no se guardó, inténtalo de nuevo.',en:'An unexpected error occurred. If something did not save, try again.'},
+    t_pin_guardado: {es:'PIN guardado ✓',en:'PIN saved ✓'},
+    t_pago_eliminado: {es:'Pago eliminado',en:'Payment deleted'},
+    t_para_abrir_pdfs_usa_la_app_de_escritorio: {es:'Para abrir PDFs usa la app de escritorio.',en:'To open PDFs, use the desktop app.'},
+    t_para_guardar_pdfs_en_la_app_usa_la_app_d: {es:'Para guardar PDFs en la app usa la app de escritorio (Electron).',en:'To save PDFs in the app, use the desktop app (Electron).'},
+    t_para_subir_pdfs_usa_la_app_de_escritorio: {es:'Para subir PDFs usa la app de escritorio (Electron).',en:'To upload PDFs, use the desktop app (Electron).'},
+    t_primero_activa_face_id_o_guarda_un_pin_p: {es:'Primero activa Face ID o guarda un PIN, para no quedar fuera de la app.',en:'First turn on Face ID or save a PIN, so you never get locked out.'},
+    t_respaldo_completo_descargado: {es:'Respaldo completo descargado ✓',en:'Full backup downloaded ✓'},
+    t_respaldo_restaurado_todo_actualizado: {es:'Respaldo restaurado ✓ — todo actualizado',en:'Backup restored ✓ — everything is up to date'},
+    t_se_perdio_la_conexion_a_internet: {es:'Se perdió la conexión a internet',en:'Internet connection lost'},
+    t_socios_guardados: {es:'Socios guardados ✓',en:'Partners saved ✓'},
+    t_solo_funciona_con_sesion_en_la_nube: {es:'Solo funciona con sesión en la nube',en:'Only works when signed in to the cloud'},
+    t_sueldo_actualizado: {es:'Sueldo actualizado ✓',en:'Pay rate updated ✓'},
+    t_trabajador_agregado: {es:'Trabajador agregado ✓',en:'Worker added ✓'},
+    t_trabajador_marcado_como_inactivo: {es:'Trabajador marcado como inactivo',en:'Worker marked inactive'},
+    t_ya_esta_en_la_lista_de_esta_semana: {es:'Ya está en la lista de esta semana',en:'Already on this week\'s list'},
+    t_ya_estas_en_esa_base_de_datos: {es:'Ya estás en esa base de datos',en:'You are already on that database'},
+    t_ya_existe: {es:'Ya existe',en:'Already exists'},
+    t_ya_existe_una_base_de_datos_con_ese_nomb: {es:'Ya existe una base de datos con ese nombre',en:'A database with that name already exists'},
+    h_ajustar_sueldo: {es:'Ajustar sueldo',en:'Adjust pay'},
+    h_cliente: {es:'Cliente',en:'Client'},
+    h_colonia_lote: {es:'Colonia / Lote',en:'Subdivision / Lot'},
+    h_concepto: {es:'Concepto',en:'Concept'},
+    h_dia: {es:'Día',en:'Day'},
+    h_dias: {es:'Días',en:'Days'},
+    h_dias_trabajados: {es:'Días trabajados',en:'Days worked'},
+    h_factura: {es:'Factura',en:'Invoice'},
+    h_fechas_trabajadas: {es:'Fechas trabajadas',en:'Dates worked'},
+    h_ganado: {es:'Ganado',en:'Earned'},
+    h_gastos: {es:'Gastos',en:'Expenses'},
+    h_guardado: {es:'Guardado',en:'Saved'},
+    h_ingresos: {es:'Ingresos',en:'Income'},
+    h_monto: {es:'Monto',en:'Amount'},
+    h_movs: {es:'Movs.',en:'Txns.'},
+    h_neto: {es:'Neto',en:'Net'},
+    h_nombre: {es:'Nombre',en:'Name'},
+    h_nota: {es:'Nota',en:'Note'},
+    h_semana: {es:'Semana',en:'Week'},
+    h_semana_invoice: {es:'Semana / Invoice',en:'Week / Invoice'},
+    h_sueldo: {es:'Sueldo',en:'Pay'},
+    h_sueldo_por_dia: {es:'Sueldo por día',en:'Pay per day'},
+    h_sueldo_dia: {es:'Sueldo/día',en:'Pay/day'},
+    h_tax_guzman: {es:'Tax Guzman',en:'Guzman Tax'},
+    h_tax_total: {es:'Tax total',en:'Total tax'},
+    h_taxas: {es:'Taxas',en:'Taxes'},
+    h_taxas_10: {es:'Taxas (10%)',en:'Taxes (10%)'},
+    h_taxas_restantes: {es:'Taxas Restantes',en:'Remaining Taxes'},
+    h_total: {es:'Total',en:'Total'},
+    h_trabajo: {es:'Trabajo',en:'Job'},
+    cal_calendario: {es:'📅 Calendario',en:'📅 Calendar'},
+    cal_calendario_de_trabajos: {es:'Calendario de trabajos',en:'Work calendar'},
+    cal_hora_opcional: {es:'Hora (opcional)',en:'Time (optional)'},
+    cal_direccion_desc: {es:'Dirección / Descripción del trabajo',en:'Address / Job description'},
+    cal_exportar_semana: {es:'📅 Exportar semana a Calendario',en:'📅 Export week to Calendar'},
+    cal_nuevo_trabajo: {es:'Nuevo trabajo',en:'New job'},
+    cal_editar_trabajo: {es:'Editar trabajo',en:'Edit job'},
+    cal_sin_trabajos: {es:'Sin trabajos agendados',en:'No jobs scheduled'},
+    cal_sin_cliente: {es:'(sin cliente)',en:'(no client)'},
+    t_trabajo_guardado: {es:'Trabajo guardado ✓',en:'Job saved ✓'},
+    t_no_hay_trabajos_exportar: {es:'No hay trabajos para exportar',en:'No jobs to export'},
+    t_escribe_una_fecha: {es:'Escribe una fecha',en:'Enter a date'},
+    t_borrar_trabajo_agendado: {es:'¿Borrar este trabajo agendado?',en:'Delete this scheduled job?'}
+  };
+  const IDIOMA_KEY = 'gh-idioma';
+
+  function idiomaActual() {
+    try { return localStorage.getItem(IDIOMA_KEY) || 'es'; } catch (e) { return 'es'; }
+  }
+
+  // Cambia solo el último nodo de texto directo de un elemento, sin tocar
+  // hijos como <svg> (los íconos de las pestañas) — así nunca se borra un ícono.
+  function ghSetTextoPreservandoIconos(el, texto) {
+    for (let i = el.childNodes.length - 1; i >= 0; i--) {
+      if (el.childNodes[i].nodeType === 3) { el.childNodes[i].nodeValue = texto; return; }
+    }
+    el.textContent = texto;
+  }
+
+  function aplicarIdioma(lang) {
+    document.documentElement.lang = lang === 'en' ? 'en' : 'es';
+    document.querySelectorAll('[data-i18n]').forEach((el) => {
+      const entry = I18N[el.dataset.i18n];
+      if (!entry) return;
+      ghSetTextoPreservandoIconos(el, lang === 'en' ? entry.en : entry.es);
+    });
+    document.querySelectorAll('.gh-lang-btn').forEach((b) => {
+      b.classList.toggle('active', b.dataset.lang === lang);
+    });
+    try { localStorage.setItem(IDIOMA_KEY, lang); } catch (e) {}
+  }
+
+  aplicarIdioma(idiomaActual());
+  document.querySelectorAll('.gh-lang-btn').forEach((btn) => {
+    btn.addEventListener('click', () => aplicarIdioma(btn.dataset.lang));
+  });
+
   // ---- Apariencia: color de acento (guardado por base de datos/cuenta) ----
   const ACCENT_KEY = 'kontaly-accent';
   function aplicarAcento(nombre) {
@@ -3859,6 +4340,178 @@
       toast('Color de acento actualizado ✓', 'success', 1800);
     });
   });
+
+  // ============================================================
+  // SEGURIDAD: bloqueo con Face ID / PIN (local a este teléfono —
+  // no usa window.storage porque una credencial de Face ID no tiene
+  // sentido fuera del dispositivo donde se creó; así tampoco afecta
+  // a la versión de escritorio ni a otros teléfonos).
+  // Expuesto en window.GH_APPLOCK_* para que el script de "control de
+  // acceso" al final del archivo pueda usarlo antes de revelar la app.
+  // ============================================================
+  const APPLOCK_KEY = 'gh-applock-enabled';
+  const APPLOCK_CRED_KEY = 'gh-applock-cred-id';
+  const APPLOCK_PIN_HASH_KEY = 'gh-applock-pin-hash';
+
+  async function ghSha256Hex(texto) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto));
+    return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function applockHabilitado() {
+    try { return localStorage.getItem(APPLOCK_KEY) === '1'; } catch (e) { return false; }
+  }
+
+  function mostrarPantallaBloqueo(onDesbloqueado) {
+    const overlay = document.createElement('div');
+    overlay.id = 'gh-applock-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;background:linear-gradient(135deg,#0E1830 0%,#213661 100%);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;font-family:Inter,sans-serif;color:#fff;text-align:center;padding:26px;';
+    let credId = null;
+    try { credId = localStorage.getItem(APPLOCK_CRED_KEY); } catch (e) {}
+    overlay.innerHTML = `
+      <svg width="60" height="60" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="applock-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C2611B"/><stop offset="1" stop-color="#0E1830"/></linearGradient></defs>
+        <rect x="8" y="8" width="144" height="144" rx="40" fill="url(#applock-grad)"/>
+        <path d="M 109.73 108.77 A 40 40 0 1 1 118.04 69.64" fill="none" stroke="#fff" stroke-width="15.5" stroke-linecap="round"/>
+        <path d="M 109.73 108.77 L 80 100" fill="none" stroke="#fff" stroke-width="15.5" stroke-linecap="round"/>
+        <path d="M 80 100 L 100 92 L 92 112 Z" fill="#1CB8A8"/>
+      </svg>
+      <div style="font-size:16.5px;font-weight:700;">Guzman HVAC bloqueada</div>
+      <div id="gh-applock-msg" style="font-size:12.5px;color:rgba(255,255,255,.72);min-height:18px;max-width:280px;"></div>
+      ${credId ? `<button id="gh-applock-btn-faceid" style="background:#0C9184;color:#fff;border:none;padding:14px 28px;border-radius:999px;font-weight:700;font-size:14.5px;cursor:pointer;">Desbloquear con Face ID</button>` : ''}
+      <div id="gh-applock-pin-zona" style="${credId ? 'display:none;' : ''}width:100%;max-width:260px;">
+        <input id="gh-applock-pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="PIN" style="width:100%;text-align:center;font-size:22px;letter-spacing:8px;padding:13px;border-radius:12px;border:none;margin-bottom:10px;box-sizing:border-box;">
+        <button id="gh-applock-btn-pin" style="width:100%;background:#C2611B;color:#fff;border:none;padding:13px;border-radius:999px;font-weight:700;font-size:14px;cursor:pointer;">Desbloquear con PIN</button>
+      </div>
+      ${credId ? `<button id="gh-applock-usar-pin" style="background:none;border:none;color:rgba(255,255,255,.62);font-size:12.5px;text-decoration:underline;cursor:pointer;padding:6px;">Usar PIN en su lugar</button>` : ''}
+    `;
+    document.body.appendChild(overlay);
+
+    const msg = (t) => { const m = document.getElementById('gh-applock-msg'); if (m) m.textContent = t; };
+
+    async function intentarFaceId() {
+      if (!credId) return;
+      msg('');
+      try {
+        await navigator.credentials.get({
+          publicKey: {
+            challenge: crypto.getRandomValues(new Uint8Array(24)),
+            allowCredentials: [{ id: Uint8Array.from(atob(credId), (c) => c.charCodeAt(0)), type: 'public-key' }],
+            userVerification: 'required',
+            timeout: 30000
+          }
+        });
+        overlay.remove();
+        onDesbloqueado();
+      } catch (e) {
+        msg('No se pudo verificar — intenta de nuevo o usa tu PIN.');
+      }
+    }
+    const btnFace = document.getElementById('gh-applock-btn-faceid');
+    if (btnFace) btnFace.addEventListener('click', intentarFaceId);
+    // Nota: Face ID/WebAuthn se dispara SOLO desde el botón (gesto directo del
+    // usuario) — Safari rechaza silenciosamente el intento si se llama sin un
+    // tap justo antes, así que no conviene intentarlo automático al abrir.
+
+    const btnUsarPin = document.getElementById('gh-applock-usar-pin');
+    if (btnUsarPin) btnUsarPin.addEventListener('click', () => {
+      document.getElementById('gh-applock-pin-zona').style.display = 'block';
+      document.getElementById('gh-applock-pin-input').focus();
+    });
+
+    async function intentarPin() {
+      const input = document.getElementById('gh-applock-pin-input');
+      const pin = (input.value || '').trim();
+      if (!pin) return;
+      let hashGuardado = null;
+      try { hashGuardado = localStorage.getItem(APPLOCK_PIN_HASH_KEY); } catch (e) {}
+      const hashIntento = await ghSha256Hex('gh-pin::' + pin);
+      if (hashGuardado && hashIntento === hashGuardado) {
+        overlay.remove();
+        onDesbloqueado();
+      } else {
+        msg('PIN incorrecto.');
+        input.value = '';
+        input.focus();
+      }
+    }
+    const btnPin = document.getElementById('gh-applock-btn-pin');
+    if (btnPin) btnPin.addEventListener('click', intentarPin);
+    const pinInput = document.getElementById('gh-applock-pin-input');
+    if (pinInput) pinInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') intentarPin(); });
+  }
+
+  window.GH_APPLOCK_VERIFICAR_Y_REVELAR = function (callback) {
+    if (!applockHabilitado()) { callback(); return; }
+    mostrarPantallaBloqueo(callback);
+  };
+
+  // ---- Configuración del bloqueo (Ajustes → Seguridad) ----
+  (function () {
+    const toggle = $('aj-applock-toggle');
+    const config = $('aj-applock-config');
+    if (!toggle || !config) return;
+
+    function actualizarEstadoFaceId() {
+      const el = $('aj-applock-faceid-estado');
+      if (!el) return;
+      let tiene = null;
+      try { tiene = localStorage.getItem(APPLOCK_CRED_KEY); } catch (e) {}
+      el.textContent = tiene ? 'Face ID activado en este teléfono ✓' : 'Face ID no activado en este teléfono todavía.';
+    }
+
+    toggle.checked = applockHabilitado();
+    config.style.display = toggle.checked ? 'block' : 'none';
+    actualizarEstadoFaceId();
+
+    toggle.addEventListener('change', () => {
+      let tieneCred = null, tienePin = null;
+      try { tieneCred = localStorage.getItem(APPLOCK_CRED_KEY); tienePin = localStorage.getItem(APPLOCK_PIN_HASH_KEY); } catch (e) {}
+      if (toggle.checked && !tieneCred && !tienePin) {
+        toast('Primero activa Face ID o guarda un PIN, para no quedar fuera de la app.', 'info', 3800);
+        toggle.checked = false;
+        return;
+      }
+      try { localStorage.setItem(APPLOCK_KEY, toggle.checked ? '1' : '0'); } catch (e) {}
+      config.style.display = toggle.checked ? 'block' : 'none';
+      toast(toggle.checked ? 'Bloqueo activado en este teléfono ✓' : 'Bloqueo desactivado', 'success');
+    });
+
+    const btnFaceId = $('aj-applock-btn-faceid');
+    if (btnFaceId) btnFaceId.addEventListener('click', async () => {
+      if (!window.PublicKeyCredential) { toast('Este navegador no soporta Face ID/Touch ID para apps web.', 'error', 4000); return; }
+      try {
+        const disponible = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+        if (!disponible) { toast('Este dispositivo no tiene Face ID/Touch ID disponible.', 'error', 4000); return; }
+        const cred = await navigator.credentials.create({
+          publicKey: {
+            challenge: crypto.getRandomValues(new Uint8Array(24)),
+            rp: { name: 'Guzman HVAC' },
+            user: { id: crypto.getRandomValues(new Uint8Array(16)), name: (window.GH_NOMBRE || 'usuario'), displayName: (window.GH_NOMBRE || 'Usuario') },
+            pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+            authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+            timeout: 30000
+          }
+        });
+        const credIdB64 = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
+        try { localStorage.setItem(APPLOCK_CRED_KEY, credIdB64); } catch (e) {}
+        actualizarEstadoFaceId();
+        toast('Face ID activado en este teléfono ✓', 'success');
+      } catch (e) {
+        toast('No se pudo activar Face ID — intenta de nuevo.', 'error', 3500);
+      }
+    });
+
+    const btnGuardarPin = $('aj-applock-btn-guardar-pin');
+    if (btnGuardarPin) btnGuardarPin.addEventListener('click', async () => {
+      const pin = ($('aj-applock-pin-nuevo').value || '').trim();
+      if (!/^\d{4,8}$/.test(pin)) { toast('El PIN debe tener de 4 a 8 números.', 'error', 3000); return; }
+      const hash = await ghSha256Hex('gh-pin::' + pin);
+      try { localStorage.setItem(APPLOCK_PIN_HASH_KEY, hash); } catch (e) {}
+      $('aj-applock-pin-nuevo').value = '';
+      toast('PIN guardado ✓', 'success');
+    });
+  })();
 
   // ---- Logo personalizado (opcional, reemplaza el de Guzman HVAC en el encabezado) ----
   function ajRefrescarPreviewLogo() {
@@ -4179,7 +4832,7 @@
           <div class="doc-name">${escapeHtml(nombreLimpio)}</div>
           <div class="doc-cat">${escapeHtml(cat)}</div>
         </div>
-        <button class="gc-action-btn" style="padding:4px 10px;font-size:11px;" data-doc="${escapeHtml(doc)}">Abrir</button>
+        <button class="gc-action-btn" data-i18n="abrir" style="padding:4px 10px;font-size:11px;" data-doc="${escapeHtml(doc)}">Abrir</button>
         <button class="gc-del" data-doc="${escapeHtml(doc)}">✕</button>
       `;
       item.querySelector('.gc-action-btn').addEventListener('click', async () => {
@@ -4253,6 +4906,197 @@
     'Coil cleaning','Refrigerant recharge','Fan motor replacement'
   ];
   const invFmt = n => '$'+(Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  // ====================================================================
+  // MÓDULO: CALENDARIO DE TRABAJOS (dentro de Facturas)
+  // ====================================================================
+  const CITAS_KEY = 'gh-citas';
+  let citas = [];
+  let citasCargadas = false;
+  let calSemanaOffset = 0;
+  let calEditandoId = null;
+
+  const CAL_DIAS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+  const CAL_MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+  function calLunesDeSemana(offset) {
+    const hoy = new Date();
+    const dow = hoy.getDay(); // 0=domingo..6=sabado
+    const diffAlLunes = dow === 0 ? -6 : 1 - dow;
+    const lunes = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + diffAlLunes + offset * 7);
+    return lunes;
+  }
+  function calFechaISO(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function calFormatHora(hora) {
+    const partes = (hora || '').split(':');
+    if (partes.length < 2) return '';
+    const h = parseInt(partes[0], 10), m = partes[1];
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${h12}:${m} ${ampm}`;
+  }
+
+  async function calCargarDatos() {
+    if (citasCargadas) return;
+    citasCargadas = true;
+    const r = await window.storage.get(CITAS_KEY).catch(() => null);
+    try { citas = JSON.parse(r.value); } catch (e) { citas = []; }
+    calRender();
+  }
+  async function calGuardar() {
+    try { await window.storage.set(CITAS_KEY, JSON.stringify(citas)); } catch (e) {}
+  }
+
+  function calRender() {
+    if (!$('cal-dias-wrap')) return;
+    const lunes = calLunesDeSemana(calSemanaOffset);
+    const domingo = new Date(lunes.getFullYear(), lunes.getMonth(), lunes.getDate() + 6);
+    $('cal-semana-label').textContent = `${lunes.getDate()} ${CAL_MESES[lunes.getMonth()]} – ${domingo.getDate()} ${CAL_MESES[domingo.getMonth()]}`;
+
+    const hoyISO = calFechaISO(new Date());
+    const wrap = $('cal-dias-wrap');
+    wrap.innerHTML = '';
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(lunes.getFullYear(), lunes.getMonth(), lunes.getDate() + i);
+      const iso = calFechaISO(d);
+      const citasDia = citas.filter((c) => c.fecha === iso).sort((a, b) => (a.hora || '99:99').localeCompare(b.hora || '99:99'));
+
+      const dia = document.createElement('div');
+      dia.className = 'cal-dia';
+      dia.innerHTML = `
+        <div class="cal-dia-header${iso === hoyISO ? ' hoy' : ''}">
+          <span>${CAL_DIAS[i]} ${d.getDate()} ${CAL_MESES[d.getMonth()]}</span>
+          <button type="button" class="cal-add-btn">+ Agregar</button>
+        </div>
+        <div class="cal-dia-lista"></div>`;
+      dia.querySelector('.cal-add-btn').addEventListener('click', () => calAbrirModal(null, iso));
+
+      const lista = dia.querySelector('.cal-dia-lista');
+      if (citasDia.length === 0) {
+        lista.innerHTML = `<div class="cal-vacio">${idiomaActual() === 'en' ? I18N.cal_sin_trabajos.en : 'Sin trabajos agendados'}</div>`;
+      } else {
+        citasDia.forEach((c) => {
+          const job = document.createElement('div');
+          job.className = 'cal-job';
+          job.innerHTML = `
+            <div class="cal-job-time">${calFormatHora(c.hora)}</div>
+            <div class="cal-job-body">
+              <div class="cal-job-cliente">${escapeHtml(c.cliente || (idiomaActual() === 'en' ? I18N.cal_sin_cliente.en : '(sin cliente)'))}</div>
+              <div class="cal-job-desc">${escapeHtml(c.descripcion || '')}</div>
+            </div>
+            <div class="cal-job-actions">
+              <button type="button" class="cal-job-btn" title="Agregar al Calendario del iPhone">📅</button>
+              <button type="button" class="cal-job-btn" title="Editar">✎</button>
+              <button type="button" class="cal-job-btn" title="Borrar">✕</button>
+            </div>`;
+          const [btnIcs, btnEditar, btnBorrar] = job.querySelectorAll('.cal-job-btn');
+          btnIcs.addEventListener('click', () => calExportarICS([c]));
+          btnEditar.addEventListener('click', () => calAbrirModal(c));
+          btnBorrar.addEventListener('click', async () => {
+            if (!(await gcConfirm('¿Borrar este trabajo agendado?', { okText: 'Borrar', danger: true }))) return;
+            citas = citas.filter((x) => x.id !== c.id);
+            await calGuardar();
+            calRender();
+          });
+          lista.appendChild(job);
+        });
+      }
+      wrap.appendChild(dia);
+    }
+  }
+
+  function calAbrirModal(cita, fechaPredeterminada) {
+    calEditandoId = cita ? cita.id : null;
+    $('cal-modal-titulo').textContent = idiomaActual() === 'en' ? (cita ? I18N.cal_editar_trabajo.en : I18N.cal_nuevo_trabajo.en) : (cita ? 'Editar trabajo' : 'Nuevo trabajo');
+    $('cal-f-fecha').value = cita ? cita.fecha : (fechaPredeterminada || today());
+    $('cal-f-hora').value = cita ? (cita.hora || '') : '';
+    $('cal-f-cliente').value = cita ? (cita.cliente || '') : '';
+    $('cal-f-desc').value = cita ? (cita.descripcion || '') : '';
+    $('cal-f-notas').value = cita ? (cita.notas || '') : '';
+    $('cal-modal').style.display = 'flex';
+    $('cal-f-fecha').focus();
+  }
+  $('cal-modal-cancelar').addEventListener('click', () => { $('cal-modal').style.display = 'none'; });
+  $('cal-modal').addEventListener('click', (e) => { if (e.target === $('cal-modal')) $('cal-modal').style.display = 'none'; });
+  $('cal-modal-guardar').addEventListener('click', async () => {
+    const fecha = $('cal-f-fecha').value;
+    if (!fecha) { toast('Escribe una fecha', 'error'); return; }
+    const datos = {
+      fecha,
+      hora: $('cal-f-hora').value || '',
+      cliente: $('cal-f-cliente').value.trim(),
+      descripcion: $('cal-f-desc').value.trim(),
+      notas: $('cal-f-notas').value.trim()
+    };
+    if (calEditandoId) {
+      const idx = citas.findIndex((c) => c.id === calEditandoId);
+      if (idx > -1) citas[idx] = { ...citas[idx], ...datos };
+    } else {
+      citas.push({ id: 'cita_' + Date.now(), ...datos });
+    }
+    await calGuardar();
+    $('cal-modal').style.display = 'none';
+    calRender();
+    toast('Trabajo guardado ✓');
+  });
+
+  $('cal-btn-prev').addEventListener('click', () => { calSemanaOffset--; calRender(); });
+  $('cal-btn-next').addEventListener('click', () => { calSemanaOffset++; calRender(); });
+
+  // ---- Exportar a Calendario del iPhone (archivo .ics estándar) ----
+  function calICSEscape(t) {
+    return String(t || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+  }
+  function calExportarICS(lista) {
+    if (!lista.length) { toast('No hay trabajos para exportar', 'info'); return; }
+    let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Guzman HVAC//Calendario//ES\r\nCALSCALE:GREGORIAN\r\n';
+    lista.forEach((c) => {
+      const uid = (c.id || ('cita_' + Date.now())) + '@guzmanhvac.app';
+      const titulo = calICSEscape(c.cliente ? `${c.cliente}${c.descripcion ? ' — ' + c.descripcion : ''}` : (c.descripcion || 'Trabajo'));
+      const notas = calICSEscape(c.notas || '');
+      const [y, m, d] = c.fecha.split('-');
+      ics += 'BEGIN:VEVENT\r\n';
+      ics += `UID:${uid}\r\n`;
+      ics += `SUMMARY:${titulo}\r\n`;
+      if (notas) ics += `DESCRIPTION:${notas}\r\n`;
+      if (c.hora) {
+        const [hh, mm] = c.hora.split(':');
+        const finH = String((parseInt(hh, 10) + 1) % 24).padStart(2, '0');
+        ics += `DTSTART:${y}${m}${d}T${hh}${mm}00\r\n`;
+        ics += `DTEND:${y}${m}${d}T${finH}${mm}00\r\n`;
+      } else {
+        ics += `DTSTART;VALUE=DATE:${y}${m}${d}\r\n`;
+      }
+      ics += `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z\r\n`;
+      ics += 'END:VEVENT\r\n';
+    });
+    ics += 'END:VCALENDAR\r\n';
+    const nombre = lista.length === 1 ? `trabajo-${lista[0].fecha}.ics` : `trabajos-semana.ics`;
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    if (navigator.canShare) {
+      const archivo = new File([blob], nombre, { type: 'text/calendar' });
+      if (navigator.canShare({ files: [archivo] })) {
+        navigator.share({ files: [archivo], title: 'Trabajos agendados' }).catch(() => {});
+        return;
+      }
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = nombre;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+  $('cal-btn-exportar-semana').addEventListener('click', () => {
+    const lunes = calLunesDeSemana(calSemanaOffset);
+    const domingo = new Date(lunes.getFullYear(), lunes.getMonth(), lunes.getDate() + 6);
+    const inicioISO = calFechaISO(lunes), finISO = calFechaISO(domingo);
+    calExportarICS(citas.filter((c) => c.fecha >= inicioISO && c.fecha <= finISO));
+  });
+  // FIN MÓDULO CALENDARIO DE TRABAJOS
+  // ====================================================================
+
   const invToday = () => new Date().toISOString().slice(0,10);
 
   // Sub-tabs de facturas
@@ -4263,6 +5107,7 @@
       tab.classList.add('active');
       $('inv-sub-' + tab.dataset.sub).classList.add('active');
       if (tab.dataset.sub === 'guardadas') invRenderLista();
+      if (tab.dataset.sub === 'calendario') calCargarDatos();
       if (tab.dataset.sub === 'cobros') invRenderCobros();
       if (tab.dataset.sub === 'colonias') invRenderColonias();
       if (tab.dataset.sub === 'clientes') invRenderClientes();
@@ -4289,7 +5134,7 @@
   }
 
   function invColOpts(sel = '') {
-    return ['<option value="">— Seleccionar —</option>',
+    return ['<option value="" data-i18n="seleccionar">— Seleccionar —</option>',
       ...invColonias.map(c => `<option value="${escapeHtml(c)}"${c===sel?' selected':''}>${escapeHtml(c)}</option>`)
     ].join('');
   }
@@ -4512,6 +5357,30 @@
     a.click(); URL.revokeObjectURL(a.href);
   });
 
+  // ---- Enviar (share sheet nativo: Mensajes, WhatsApp, Mail…) ----
+  $('inv-btn-enviar').addEventListener('click', async () => {
+    if (!invEnVista) return;
+    const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice ${escapeHtml(invEnVista.numero||'')}</title><style>body{font-family:Arial,sans-serif;padding:32px;max-width:800px;margin:0 auto;}</style></head><body>${invBuildPrint(invEnVista)}</body></html>`;
+    const nombreArchivo = `invoice-${(invEnVista.numero||'inv').replace(/[^a-z0-9]/gi,'-').toLowerCase()}.html`;
+    const resumen = `Invoice ${invEnVista.numero||''}${invEnVista.cliente?' — '+invEnVista.cliente:''} — ${invFmt(invEnVista.total)}`;
+    try {
+      const archivo = new File([html], nombreArchivo, { type: 'text/html' });
+      if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
+        await navigator.share({ files: [archivo], title: `Invoice ${invEnVista.numero||''}`, text: resumen });
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') return; // el usuario cerró el share sheet sin elegir nada
+    }
+    // Respaldo si el navegador no puede compartir archivos: comparte solo el resumen en texto.
+    if (navigator.share) {
+      try { await navigator.share({ title: `Invoice ${invEnVista.numero||''}`, text: resumen }); }
+      catch (e) { if (!e || e.name !== 'AbortError') toast('No se pudo abrir para compartir — usa Descargar.', 'error'); }
+    } else {
+      toast('Este navegador no soporta compartir directo — usa el botón Descargar.', 'info');
+    }
+  });
+
   $('inv-btn-cerrar-ov').addEventListener('click', () => { $('inv-ov').style.display='none'; invEnVista=null; });
   $('inv-ov').addEventListener('click', e => { if(e.target.id==='inv-ov'){$('inv-ov').style.display='none';invEnVista=null;} });
 
@@ -4552,8 +5421,8 @@
           <button class="inv-toggle-pagada" data-id="${inv.id}" style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;border:1.5px solid ${pagada ? '#2E8B84' : '#C6551E'};background:${pagada ? '#E3F5F1' : '#FBEEE6'};color:${pagada ? '#0E6F65' : '#C6551E'};cursor:pointer;">${pagada ? 'Pagada' : 'Pendiente'}</button>
         </td>
         <td style="white-space:nowrap;">
-          <button class="gc-action-btn" style="padding:4px 10px;font-size:11.5px;" data-a="ver" data-id="${inv.id}">Ver</button>
-          <button class="gc-action-btn" style="padding:4px 10px;font-size:11.5px;margin-left:4px;" data-a="editar" data-id="${inv.id}">Editar</button>
+          <button class="gc-action-btn" data-i18n="ver" style="padding:4px 10px;font-size:11.5px;" data-a="ver" data-id="${inv.id}">Ver</button>
+          <button class="gc-action-btn" data-i18n="editar" style="padding:4px 10px;font-size:11.5px;margin-left:4px;" data-a="editar" data-id="${inv.id}">Editar</button>
           <button class="gc-del" style="margin-left:4px;" data-a="borrar" data-id="${inv.id}">✕</button>
         </td>`;
       tbody.appendChild(tr);
@@ -5102,8 +5971,8 @@
       <table style="width:100%;border-collapse:collapse;margin-bottom:18px;">
         <thead><tr style="background:#0E1830;">
           <th style="padding:9px 6px;text-align:left;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;width:34px;">#</th>
-          <th style="padding:9px 6px;text-align:left;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;">Día</th>
-          <th style="padding:9px 6px;text-align:right;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;width:110px;">Sueldo/día</th>
+          <th style="padding:9px 6px;text-align:left;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;" data-i18n="h_dia">Día</th>
+          <th style="padding:9px 6px;text-align:right;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;width:110px;" data-i18n="h_sueldo_dia">Sueldo/día</th>
         </tr></thead>
         <tbody>${filasDias || '<tr><td colspan="3" style="padding:8px;font-size:12.5px;">Sin días</td></tr>'}</tbody>
       </table>
@@ -5182,8 +6051,8 @@
         <td class="num" style="font-weight:700;color:var(--teal);">${nomFmt(n.monto)}</td>
         <td style="font-size:12.5px;color:var(--muted);">${escapeHtml(n.nota || '')}</td>
         <td style="white-space:nowrap;">
-          <button class="gc-action-btn nom-ver-btn" data-id="${n.id}" style="padding:4px 10px;font-size:11.5px;">Ver</button>
-          <button class="gc-action-btn nom-imp-btn" data-id="${n.id}" style="padding:4px 10px;font-size:11.5px;margin-left:3px;">Imprimir</button>
+          <button class="gc-action-btn nom-ver-btn" data-i18n="ver" data-id="${n.id}" style="padding:4px 10px;font-size:11.5px;">Ver</button>
+          <button class="gc-action-btn nom-imp-btn" data-i18n="imprimir" data-id="${n.id}" style="padding:4px 10px;font-size:11.5px;margin-left:3px;">Imprimir</button>
           <button class="gc-action-btn nom-edit-btn" data-id="${n.id}" style="padding:4px 10px;font-size:11.5px;margin-left:3px;">✎</button>
           <button class="gc-del nom-del-btn" data-id="${n.id}" style="margin-left:3px;">✕</button>
         </td>`;
@@ -5298,7 +6167,7 @@
       });
 
       const periodos = [...grupos.entries()].sort((a, b) => b[0].localeCompare(a[0]));
-      html += `<table class="inv-list-t"><thead><tr><th>Periodo (${intervalo})</th><th class="num">Días</th><th class="num">Ganado</th></tr></thead><tbody>`;
+      html += `<table class="inv-list-t"><thead><tr><th>Periodo (${intervalo})</th><th class="num" data-i18n="h_dias">Días</th><th class="num" data-i18n="h_ganado">Ganado</th></tr></thead><tbody>`;
       periodos.forEach(([periodo, g]) => {
         html += `<tr>
           <td style="font-weight:500;">${escapeHtml(periodo)}</td>
@@ -5308,7 +6177,7 @@
       });
       html += '</tbody></table>';
     } else {
-      html += `<table class="inv-list-t"><thead><tr><th class="num">Días</th><th>Fechas trabajadas</th><th class="num">Monto</th><th>Nota</th></tr></thead><tbody>`;
+      html += `<table class="inv-list-t"><thead><tr><th class="num" data-i18n="h_dias">Días</th><th data-i18n="h_fechas_trabajadas">Fechas trabajadas</th><th class="num" data-i18n="h_monto">Monto</th><th data-i18n="h_nota">Nota</th></tr></thead><tbody>`;
       pagos.sort((a, b) => (b.creadoEn || '').localeCompare(a.creadoEn || '')).forEach((n) => {
         html += `<tr>
           <td class="num">${nomCuentaDias(n.dias)}</td>
@@ -5340,9 +6209,9 @@
         <td class="num" style="font-weight:700;color:var(--teal);">${nomFmt(emp.sueldo)}</td>
         <td style="white-space:nowrap;">
           <input type="text" inputmode="decimal" class="trab-sueldo-input" data-id="${emp.id}" placeholder="Nuevo sueldo $" style="width:110px;padding:6px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:12.5px;">
-          <button class="gc-action-btn trab-sueldo-set" data-id="${emp.id}" style="padding:5px 12px;font-size:11.5px;margin-left:4px;">Guardar</button>
+          <button class="gc-action-btn trab-sueldo-set" data-i18n="guardar" data-id="${emp.id}" style="padding:5px 12px;font-size:11.5px;margin-left:4px;">Guardar</button>
         </td>
-        <td><button class="gc-action-btn trab-nom-del" data-id="${emp.id}" style="padding:5px 10px;font-size:11px;" title="Marcar inactivo (no se borra su información)">Inactivo</button></td>`;
+        <td><button class="gc-action-btn trab-nom-del" data-i18n="inactivo" data-id="${emp.id}" style="padding:5px 10px;font-size:11px;" title="Marcar inactivo (no se borra su información)">Inactivo</button></td>`;
       tbody.appendChild(tr);
     });
 
@@ -5514,7 +6383,7 @@
             </div>
             <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
               <div style="font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--teal);font-size:14px;white-space:nowrap;">${nomFmt(t.monto)}</div>
-              <button type="button" class="gc-action-btn nom-sem-editar-trab" data-wk="${wk}" data-nombre="${escapeHtml(nombre)}" style="padding:4px 10px;font-size:11px;" title="Editar este pago">Editar</button>
+              <button type="button" class="gc-action-btn nom-sem-editar-trab" data-i18n="editar" data-wk="${wk}" data-nombre="${escapeHtml(nombre)}" style="padding:4px 10px;font-size:11px;" title="Editar este pago">Editar</button>
             </div>
           </div>`;
       });
@@ -5526,9 +6395,9 @@
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
           <p style="font-family:'Zilla Slab',serif;font-size:15px;font-weight:600;color:var(--ink);margin:0;">Semana del ${nomFechaCortaTexto(rango.inicio)} al ${nomFechaCortaTexto(rango.fin)}</p>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="gc-action-btn nom-sem-editar" data-wk="${wk}" style="padding:5px 12px;font-size:11.5px;">Editar semana</button>
-            <button class="gc-action-btn nom-sem-ver" data-wk="${wk}" style="padding:5px 12px;font-size:11.5px;">Ver recibo</button>
-            <button class="gc-action-btn nom-sem-imp" data-wk="${wk}" style="padding:5px 12px;font-size:11.5px;">Imprimir</button>
+            <button class="gc-action-btn nom-sem-editar" data-i18n="editar_semana" data-wk="${wk}" style="padding:5px 12px;font-size:11.5px;">Editar semana</button>
+            <button class="gc-action-btn nom-sem-ver" data-i18n="ver_recibo" data-wk="${wk}" style="padding:5px 12px;font-size:11.5px;">Ver recibo</button>
+            <button class="gc-action-btn nom-sem-imp" data-i18n="imprimir" data-wk="${wk}" style="padding:5px 12px;font-size:11.5px;">Imprimir</button>
           </div>
         </div>
         <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;">
@@ -5598,10 +6467,10 @@
 
       <table style="width:100%;border-collapse:collapse;margin-bottom:18px;">
         <thead><tr style="background:#0E1830;">
-          <th style="padding:10px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;">Trabajador</th>
-          <th style="padding:10px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;">Días trabajados</th>
-          <th style="padding:10px 8px;text-align:center;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;width:60px;">Días</th>
-          <th style="padding:10px 8px;text-align:right;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;width:110px;">Total</th>
+          <th style="padding:10px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;" data-i18n="trabajador">Trabajador</th>
+          <th style="padding:10px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;" data-i18n="h_dias_trabajados">Días trabajados</th>
+          <th style="padding:10px 8px;text-align:center;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;width:60px;" data-i18n="h_dias">Días</th>
+          <th style="padding:10px 8px;text-align:right;font-size:10px;color:rgba(255,255,255,.85);text-transform:uppercase;width:110px;" data-i18n="h_total">Total</th>
         </tr></thead>
         <tbody>${filas}</tbody>
       </table>
@@ -5655,8 +6524,8 @@
           </div>
           <div style="font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--teal);font-size:14px;white-space:nowrap;">${nomFmt(n.monto)}</div>
           <div style="white-space:nowrap;display:flex;gap:3px;">
-            <button class="gc-action-btn nom-reg-ver" data-id="${n.id}" style="padding:4px 9px;font-size:11px;">Ver</button>
-            <button class="gc-action-btn nom-reg-imp" data-id="${n.id}" style="padding:4px 9px;font-size:11px;">Imprimir</button>
+            <button class="gc-action-btn nom-reg-ver" data-i18n="ver" data-id="${n.id}" style="padding:4px 9px;font-size:11px;">Ver</button>
+            <button class="gc-action-btn nom-reg-imp" data-i18n="imprimir" data-id="${n.id}" style="padding:4px 9px;font-size:11px;">Imprimir</button>
             <button class="gc-action-btn nom-reg-edit" data-id="${n.id}" style="padding:4px 9px;font-size:11px;">✎</button>
             <button class="gc-del nom-reg-del" data-id="${n.id}">✕</button>
           </div>
@@ -5755,8 +6624,8 @@
         <td><input type="date" class="cob-cell-input" data-id="${f.id}" data-campo="fecha" value="${escapeHtml(f.fecha)}"></td>
         <td>
           <select class="cob-cell-input" data-id="${f.id}" data-campo="estado">
-            <option value="Pendiente" ${f.estado !== 'Cobrado' ? 'selected' : ''}>Pendiente</option>
-            <option value="Cobrado" ${f.estado === 'Cobrado' ? 'selected' : ''}>Cobrado</option>
+            <option value="Pendiente" data-i18n="pendiente" ${f.estado !== 'Cobrado' ? 'selected' : ''}>Pendiente</option>
+            <option value="Cobrado" data-i18n="cobrado" ${f.estado === 'Cobrado' ? 'selected' : ''}>Cobrado</option>
           </select>
         </td>
         <td><input class="cob-cell-input" data-id="${f.id}" data-campo="notas" value="${escapeHtml(f.notas)}" placeholder="…"></td>
@@ -5857,7 +6726,13 @@
      ============================================================ -->
 <script>
 (function () {
-  if (typeof window.GH_ESPERAR_SESION !== 'function') { revelarAppNormal(); return; } // no aplica (Windows / CRA) — no hay nada que esperar
+  // Envoltura defensiva: si por algún motivo el módulo de seguridad no cargó,
+  // nunca debe dejar a alguien afuera de su propia app — revela directo.
+  function revelarConBloqueo() {
+    (window.GH_APPLOCK_VERIFICAR_Y_REVELAR || function (cb) { cb(); })(revelarAppNormal);
+  }
+
+  if (typeof window.GH_ESPERAR_SESION !== 'function') { revelarConBloqueo(); return; } // no aplica (Windows / CRA) — no hay nada que esperar
 
   window.GH_ESPERAR_SESION().then(async () => {
     const rol = window.GH_ROL;
@@ -5869,9 +6744,9 @@
       // cuenta) ANTES de revelar — así el visor nunca ve, ni un instante,
       // la app normal con datos completos.
       await aplicarModoVisorMultiCuenta();
-      revelarAppNormal();
+      revelarConBloqueo();
     } else {
-      revelarAppNormal();
+      revelarConBloqueo();
     }
   });
 
@@ -6000,8 +6875,8 @@
       panel.dataset.visorCuenta = codigo;
       panel.innerHTML = `
         <div class="inv-subnav">
-          <button type="button" class="mov-subtab active" data-vsub="invoices">Invoices guardados</button>
-          <button type="button" class="mov-subtab" data-vsub="semanal">Recibo semanal</button>
+          <button type="button" class="mov-subtab active" data-i18n="invoices_guardados" data-vsub="invoices">Invoices guardados</button>
+          <button type="button" class="mov-subtab" data-i18n="recibo_semanal" data-vsub="semanal">Recibo semanal</button>
         </div>
         <div class="mov-subpanel active" data-vsub="invoices">${htmlInvoicesVisor(d)}</div>
         <div class="mov-subpanel" data-vsub="semanal">${htmlReciboSemanalVisor(d)}</div>
@@ -6023,7 +6898,7 @@
     panelAjustes.dataset.visorCuenta = '__ajustes';
     panelAjustes.innerHTML = `
       <div class="gc-card">
-        <p class="gc-card-title">Apariencia</p>
+        <p class="gc-card-title" data-i18n="apariencia">Apariencia</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Elige el color de acento de la app.</p>
         <div id="visor-accent-picker" style="display:flex;gap:12px;flex-wrap:wrap;">
           <button type="button" class="visor-accent-sw" data-accent="cobre" title="Cobre" style="width:38px;height:38px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;background:linear-gradient(135deg,#C46E20,#A2560F);"></button>
@@ -6033,9 +6908,9 @@
         </div>
       </div>
       <div class="gc-card" style="margin-top:16px;">
-        <p class="gc-card-title">Mi cuenta</p>
+        <p class="gc-card-title" data-i18n="mi_cuenta">Mi cuenta</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Conectado como <strong>${escapeHtmlVisor(window.GH_NOMBRE || 'usuario')}</strong> (visor)</p>
-        <button type="button" class="gc-action-btn" id="visor-btn-cerrar-sesion">Cerrar sesión</button>
+        <button type="button" class="gc-action-btn" data-i18n="cerrar_sesion" id="visor-btn-cerrar-sesion">Cerrar sesión</button>
       </div>
     `;
     body.appendChild(panelAjustes);
@@ -6103,11 +6978,11 @@
 
     return `
       <div class="gc-card">
-        <p class="gc-card-title">Invoices guardados</p>
+        <p class="gc-card-title" data-i18n="invoices_guardados">Invoices guardados</p>
         <div style="overflow-x:auto;">
           <table class="gc-ledger">
             <thead><tr>
-              <th>Semana</th><th>Guardado</th><th class="num">Gastos</th>
+              <th data-i18n="h_semana">Semana</th><th data-i18n="h_guardado">Guardado</th><th class="num" data-i18n="h_gastos">Gastos</th>
               ${nombresSocios.map((n) => `<th class="num">${escapeHtmlVisor(n)}</th>`).join('')}
             </tr></thead>
             <tbody>${filas}</tbody>
