@@ -188,6 +188,7 @@
   .gc-save-btn { background: linear-gradient(135deg, var(--accent), var(--accent-dk)); color: #fff; border: none; padding: 11px 24px; border-radius: 999px; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: transform .14s var(--ease), box-shadow .14s var(--ease), filter .14s; box-shadow: 0 4px 14px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.22); }
   .gc-save-btn:hover { filter: brightness(1.08); box-shadow: 0 7px 20px rgba(154,76,14,.4), inset 0 1px 0 rgba(255,255,255,.28); transform: translateY(-1.5px); }
   .gc-save-btn:active { transform: translateY(0) scale(.96); }
+  .gc-save-btn:disabled { opacity: .55; cursor: default; filter: none; transform: none; }
   .gc-save-btn.danger { background: linear-gradient(135deg, #D6473F, #B23333); box-shadow: 0 4px 14px rgba(178,51,51,.38), inset 0 1px 0 rgba(255,255,255,.22); }
   .gc-action-btn { background: #fff; color: var(--ink); border: 1.5px solid var(--border); padding: 10px 18px; border-radius: var(--r-sm); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .16s var(--ease); }
   .gc-action-btn:hover { border-color: var(--navy); color: var(--navy); background: #F7F9FD; box-shadow: 0 2px 8px rgba(19,28,46,.08); }
@@ -1431,7 +1432,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
           Tomar foto / subir imagen
         </label>
-        <input type="file" id="cal-f-fotos-input" accept="image/*" capture="environment" multiple style="display:none;">
+        <input type="file" id="cal-f-fotos-input" accept="image/*" multiple style="display:none;">
         <p style="font-size:10.5px;color:var(--muted-soft);margin-top:6px;">Se guardan comprimidas en este trabajo — mejor unas cuantas fotos clave que muchas.</p>
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;">
@@ -1469,7 +1470,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
           Tomar foto / subir imagen
         </label>
-        <input type="file" id="pln-f-fotos-input" accept="image/*" capture="environment" multiple style="display:none;">
+        <input type="file" id="pln-f-fotos-input" accept="image/*" multiple style="display:none;">
         <p style="font-size:10.5px;color:var(--muted-soft);margin-top:6px;">Se guardan comprimidas — mejor unas cuantas fotos claras del plano que muchas.</p>
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;">
@@ -1733,7 +1734,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v45 · 15 sep';
+  const APP_VERSION = 'v46 · 15 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -4987,10 +4988,57 @@
     citasCargadas = true;
     const r = await window.storage.get(CITAS_KEY).catch(() => null);
     try { citas = JSON.parse(r.value); } catch (e) { citas = []; }
+    // Migración de una sola vez: versiones anteriores guardaban las fotos
+    // completas DENTRO de cada cita, todas juntas en un solo bloque — con
+    // unas cuantas fotos ese bloque se volvía demasiado grande y el guardado
+    // fallaba en silencio (por eso a veces "desaparecía" la información).
+    // Ahora las fotos de cada trabajo se guardan aparte; si encuentra una
+    // cita con el formato viejo, la separa y la deja liviana.
+    let huboMigracion = false;
+    for (const c of citas) {
+      if (Array.isArray(c.fotos) && c.fotos.length && c.fotos[0] && c.fotos[0].dataUrl) {
+        try { await calGuardarFotosDe(c.id, c.fotos); } catch (e) {}
+        c.numFotos = c.fotos.length;
+        try { c.portada = await calMiniPortada(c.fotos[0].dataUrl); } catch (e) {}
+        delete c.fotos;
+        huboMigracion = true;
+      }
+    }
+    if (huboMigracion) { try { await calGuardar(); } catch (e) {} }
     calRender();
   }
   async function calGuardar() {
-    try { await window.storage.set(CITAS_KEY, JSON.stringify(citas)); } catch (e) {}
+    // Guarda SOLO los datos livianos de cada trabajo (nunca las fotos
+    // completas) — así este guardado nunca se vuelve pesado sin importar
+    // cuántas fotos tenga cada trabajo.
+    const liviano = citas.map((c) => { const { fotos, ...resto } = c; return resto; });
+    try { await window.storage.set(CITAS_KEY, JSON.stringify(liviano)); } catch (e) {}
+  }
+  async function calGuardarFotosDe(id, fotos) {
+    try { await window.storage.set('gh-cita-fotos-' + id, JSON.stringify(fotos)); } catch (e) {}
+  }
+  async function calCargarFotosDe(id) {
+    const r = await window.storage.get('gh-cita-fotos-' + id).catch(() => null);
+    try { return JSON.parse(r.value); } catch (e) { return []; }
+  }
+  // Miniatura chiquita (para la vista de la semana) — separada de las fotos
+  // completas, así el bloque principal de citas se queda siempre liviano.
+  function calMiniPortada(dataUrlOrigen) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const lado = 90;
+        const canvas = document.createElement('canvas');
+        canvas.width = lado; canvas.height = lado;
+        const ctx = canvas.getContext('2d');
+        const escala = Math.max(lado / img.width, lado / img.height);
+        const w = img.width * escala, h = img.height * escala;
+        ctx.drawImage(img, (lado - w) / 2, (lado - h) / 2, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.55));
+      };
+      img.onerror = reject;
+      img.src = dataUrlOrigen;
+    });
   }
 
   function calRender() {
@@ -5024,14 +5072,14 @@
         citasDia.forEach((c) => {
           const job = document.createElement('div');
           job.className = 'cal-job';
-          const fotos = Array.isArray(c.fotos) ? c.fotos : [];
+          const numFotos = c.numFotos || 0;
           const etiqueta = [c.jobNum, c.loc].filter(Boolean).join(' · ');
           job.innerHTML = `
             <div class="cal-job-time">${calFormatHora(c.hora)}</div>
             <div class="cal-job-body">
               <div class="cal-job-cliente">${escapeHtml(c.cliente || (idiomaActual() === 'en' ? I18N.cal_sin_cliente.en : '(sin cliente)'))}</div>
               <div class="cal-job-desc">${etiqueta ? escapeHtml(etiqueta) + ' — ' : ''}${escapeHtml(c.descripcion || '')}</div>
-              ${fotos.length ? `<div class="cal-job-fotos">${fotos.slice(0,4).map(f=>`<img class="cal-job-foto-mini" src="${f.dataUrl}">`).join('')}${fotos.length>4?`<span class="cal-job-foto-count">+${fotos.length-4}</span>`:''}</div>` : ''}
+              ${numFotos ? `<div class="cal-job-fotos">${c.portada ? `<img class="cal-job-foto-mini" src="${c.portada}">` : ''}<span class="cal-job-foto-count">📷 ${numFotos}</span></div>` : ''}
             </div>
             <div class="cal-job-actions">
               <button type="button" class="cal-job-btn" title="Agregar al Calendario del iPhone">📅</button>
@@ -5118,7 +5166,7 @@
 
   function calAbrirModal(cita, fechaPredeterminada) {
     calEditandoId = cita ? cita.id : null;
-    calFotosActuales = cita && Array.isArray(cita.fotos) ? cita.fotos.map((f) => ({ ...f })) : [];
+    calFotosActuales = [];
     $('cal-modal-titulo').textContent = idiomaActual() === 'en' ? (cita ? I18N.cal_editar_trabajo.en : I18N.cal_nuevo_trabajo.en) : (cita ? 'Editar trabajo' : 'Nuevo trabajo');
     $('cal-f-fecha').value = cita ? cita.fecha : (fechaPredeterminada || today());
     $('cal-f-hora').value = cita ? (cita.hora || '') : '';
@@ -5130,12 +5178,25 @@
     calRenderFotosGrid();
     $('cal-modal').style.display = 'flex';
     $('cal-f-fecha').focus();
+    // Las fotos completas se traen aparte (viven en su propio espacio de
+    // guardado) — si el trabajo tiene, se cargan y se pintan en cuanto lleguen.
+    if (cita && cita.numFotos) {
+      $('cal-f-fotos-grid').innerHTML = '<div style="grid-column:1/-1;font-size:11px;color:var(--muted);padding:6px 0;">Cargando fotos…</div>';
+      calCargarFotosDe(cita.id).then((fotos) => {
+        if (calEditandoId !== cita.id) return; // el usuario ya cerró/cambió de trabajo
+        calFotosActuales = fotos;
+        calRenderFotosGrid();
+      });
+    }
   }
   $('cal-modal-cancelar').addEventListener('click', () => { $('cal-modal').style.display = 'none'; });
   $('cal-modal').addEventListener('click', (e) => { if (e.target === $('cal-modal')) $('cal-modal').style.display = 'none'; });
   $('cal-modal-guardar').addEventListener('click', async () => {
     const fecha = $('cal-f-fecha').value;
     if (!fecha) { toast('Escribe una fecha', 'error'); return; }
+    const btnGuardar = $('cal-modal-guardar');
+    btnGuardar.disabled = true;
+    const fotos = calFotosActuales;
     const datos = {
       fecha,
       hora: $('cal-f-hora').value || '',
@@ -5144,15 +5205,20 @@
       loc: $('cal-f-loc').value.trim(),
       descripcion: $('cal-f-desc').value.trim(),
       notas: $('cal-f-notas').value.trim(),
-      fotos: calFotosActuales
+      numFotos: fotos.length,
+      portada: fotos.length ? await calMiniPortada(fotos[0].dataUrl).catch(() => null) : null
     };
-    if (calEditandoId) {
-      const idx = citas.findIndex((c) => c.id === calEditandoId);
+    let id = calEditandoId;
+    if (id) {
+      const idx = citas.findIndex((c) => c.id === id);
       if (idx > -1) citas[idx] = { ...citas[idx], ...datos };
     } else {
-      citas.push({ id: 'cita_' + Date.now(), ...datos });
+      id = 'cita_' + Date.now();
+      citas.push({ id, ...datos });
     }
     await calGuardar();
+    if (fotos.length) await calGuardarFotosDe(id, fotos);
+    btnGuardar.disabled = false;
     $('cal-modal').style.display = 'none';
     calRender();
     toast('Trabajo guardado ✓');
@@ -5229,10 +5295,49 @@
     planosCargados = true;
     const r = await window.storage.get(PLANOS_KEY).catch(() => null);
     try { planos = JSON.parse(r.value); } catch (e) { planos = []; }
+    // Misma migración que Calendario: separa fotos guardadas con el formato
+    // viejo (todas juntas en el mismo bloque) para que el guardado principal
+    // se quede liviano sin importar cuántas fotos tenga cada plano.
+    let huboMigracion = false;
+    for (const p of planos) {
+      if (Array.isArray(p.fotos) && p.fotos.length && p.fotos[0] && p.fotos[0].dataUrl) {
+        try { await plnGuardarFotosDe(p.id, p.fotos); } catch (e) {}
+        p.numFotos = p.fotos.length;
+        try { p.portada = await plnMiniPortada(p.fotos[0].dataUrl); } catch (e) {}
+        delete p.fotos;
+        huboMigracion = true;
+      }
+    }
+    if (huboMigracion) { try { await plnGuardar(); } catch (e) {} }
     plnRender();
   }
   async function plnGuardar() {
-    try { await window.storage.set(PLANOS_KEY, JSON.stringify(planos)); } catch (e) {}
+    const liviano = planos.map((p) => { const { fotos, ...resto } = p; return resto; });
+    try { await window.storage.set(PLANOS_KEY, JSON.stringify(liviano)); } catch (e) {}
+  }
+  async function plnGuardarFotosDe(id, fotos) {
+    try { await window.storage.set('gh-plano-fotos-' + id, JSON.stringify(fotos)); } catch (e) {}
+  }
+  async function plnCargarFotosDe(id) {
+    const r = await window.storage.get('gh-plano-fotos-' + id).catch(() => null);
+    try { return JSON.parse(r.value); } catch (e) { return []; }
+  }
+  function plnMiniPortada(dataUrlOrigen) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const w0 = 260, h0 = 195; // 4:3, coincide con la tarjeta de la cuadrícula
+        const canvas = document.createElement('canvas');
+        canvas.width = w0; canvas.height = h0;
+        const ctx = canvas.getContext('2d');
+        const escala = Math.max(w0 / img.width, h0 / img.height);
+        const w = img.width * escala, h = img.height * escala;
+        ctx.drawImage(img, (w0 - w) / 2, (h0 - h) / 2, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.62));
+      };
+      img.onerror = reject;
+      img.src = dataUrlOrigen;
+    });
   }
 
   function plnRefreshDlConstructores() {
@@ -5257,18 +5362,17 @@
     const grid = $('pln-grid');
     grid.innerHTML = '';
     filtrados.forEach((p) => {
-      const fotos = Array.isArray(p.fotos) ? p.fotos : [];
       const card = document.createElement('div');
       card.className = 'pln-card';
       card.innerHTML = `
         <div class="pln-card-foto-wrap">
           <button type="button" class="pln-card-del" title="Borrar">✕</button>
-          <div class="pln-card-foto">${fotos.length ? `<img src="${fotos[0].dataUrl}">` : PLN_ICONO_VACIO}</div>
+          <div class="pln-card-foto">${p.portada ? `<img src="${p.portada}">` : PLN_ICONO_VACIO}</div>
         </div>
         <div class="pln-card-body">
           <div class="pln-card-nombre">${escapeHtml(p.nombre || '(sin nombre)')}</div>
           <div class="pln-card-constructor">${escapeHtml(p.constructor || '')}</div>
-          ${fotos.length ? `<div class="pln-card-fotos-n">${fotos.length} foto${fotos.length === 1 ? '' : 's'}</div>` : ''}
+          ${p.numFotos ? `<div class="pln-card-fotos-n">${p.numFotos} foto${p.numFotos === 1 ? '' : 's'}</div>` : ''}
         </div>`;
       card.addEventListener('click', () => plnAbrirModal(p));
       card.querySelector('.pln-card-del').addEventListener('click', async (e) => {
@@ -5324,13 +5428,21 @@
 
   function plnAbrirModal(plano) {
     plnEditandoId = plano ? plano.id : null;
-    plnFotosActuales = plano && Array.isArray(plano.fotos) ? plano.fotos.map((f) => ({ ...f })) : [];
+    plnFotosActuales = [];
     $('pln-modal-titulo').textContent = idiomaActual() === 'en' ? (plano ? I18N.pln_editar_plano.en : I18N.pln_nuevo_plano.en) : (plano ? 'Editar plano' : 'Nuevo plano');
     $('pln-f-nombre').value = plano ? (plano.nombre || '') : '';
     $('pln-f-constructor').value = plano ? (plano.constructor || '') : '';
     plnRenderFotosGrid();
     $('pln-modal').style.display = 'flex';
     $('pln-f-nombre').focus();
+    if (plano && plano.numFotos) {
+      $('pln-f-fotos-grid').innerHTML = '<div style="grid-column:1/-1;font-size:11px;color:var(--muted);padding:6px 0;">Cargando fotos…</div>';
+      plnCargarFotosDe(plano.id).then((fotos) => {
+        if (plnEditandoId !== plano.id) return;
+        plnFotosActuales = fotos;
+        plnRenderFotosGrid();
+      });
+    }
   }
   $('pln-btn-nuevo').addEventListener('click', () => plnAbrirModal(null));
   $('pln-modal-cancelar').addEventListener('click', () => { $('pln-modal').style.display = 'none'; });
@@ -5338,18 +5450,26 @@
   $('pln-modal-guardar').addEventListener('click', async () => {
     const nombre = $('pln-f-nombre').value.trim();
     if (!nombre) { toast('Escribe el nombre del plano', 'error'); return; }
+    const btnGuardar = $('pln-modal-guardar');
+    btnGuardar.disabled = true;
+    const fotos = plnFotosActuales;
     const datos = {
       nombre,
       constructor: $('pln-f-constructor').value.trim(),
-      fotos: plnFotosActuales
+      numFotos: fotos.length,
+      portada: fotos.length ? await plnMiniPortada(fotos[0].dataUrl).catch(() => null) : null
     };
-    if (plnEditandoId) {
-      const idx = planos.findIndex((p) => p.id === plnEditandoId);
+    let id = plnEditandoId;
+    if (id) {
+      const idx = planos.findIndex((p) => p.id === id);
       if (idx > -1) planos[idx] = { ...planos[idx], ...datos };
     } else {
-      planos.push({ id: 'plano_' + Date.now(), fecha: today(), ...datos });
+      id = 'plano_' + Date.now();
+      planos.push({ id, fecha: today(), ...datos });
     }
     await plnGuardar();
+    if (fotos.length) await plnGuardarFotosDe(id, fotos);
+    btnGuardar.disabled = false;
     plnRefreshDlConstructores();
     $('pln-modal').style.display = 'none';
     plnRender();
