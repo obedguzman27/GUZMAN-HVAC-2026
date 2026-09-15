@@ -260,19 +260,6 @@
   /* Nota / info */
   .gc-note { font-size: 12.5px; color: var(--muted); background: var(--card); border: 1px solid var(--border-soft); border-left: 3px solid var(--gold); padding: 13px 17px; margin-bottom: 18px; border-radius: var(--r-sm); line-height: 1.6; box-shadow: var(--shadow-sm); }
   .gc-empty { text-align: center; padding: 48px 20px; color: var(--muted); font-size: 13.5px; max-width: 320px; margin: 0 auto; line-height: 1.6; }
-  /* Celdas estilo hoja de cálculo (Pendientes) */
-  .cob-cell-input { width: 100%; border: none; background: transparent; padding: 8px 6px; font-size: 13px; font-family: inherit; color: var(--ink); box-sizing: border-box; }
-  .cob-cell-input:focus { background: #EAF6F4; outline: 2px solid var(--teal); outline-offset: -2px; position: relative; z-index: 1; }
-  #cob-tabla { border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; }
-  #cob-tabla th, #cob-tabla td { border: 1px solid var(--border-soft); }
-  #cob-tabla td { padding: 0; }
-  #cob-tabla thead th { position: sticky; top: 0; z-index: 2; background: #F5F7FC; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); padding: 9px 8px; text-align: left; border-bottom: 1.5px solid var(--border); }
-  #cob-tabla thead th.num { text-align: right; }
-  #cob-tabla tr:nth-child(even) td { background: #FAFBFD; }
-  #cob-tabla tbody tr:hover td { background: var(--teal-bg); }
-  #cob-tabla select.cob-cell-input { cursor: pointer; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 4px center; background-size: 14px; padding-right: 20px; }
-  .cob-rownum { width: 34px; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted-soft); background: #F5F7FC !important; user-select: none; }
-  .cob-rownum-th { width: 34px; }
   .gc-empty::before {
     content: '';
     display: block;
@@ -503,6 +490,21 @@
   .cal-job-fotos { display: flex; gap: 4px; margin-top: 4px; }
   .cal-job-foto-mini { width: 26px; height: 26px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border-soft); }
   .cal-job-foto-count { font-size: 10.5px; font-weight: 700; color: var(--muted); background: #F0F3FA; border-radius: 6px; padding: 0 6px; display: flex; align-items: center; }
+
+  /* ── Planos ─────────────────────────────── */
+  .pln-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .pln-card { border: 1px solid var(--border-soft); border-radius: var(--r-sm); overflow: hidden; background: #fff; cursor: pointer; transition: box-shadow .16s var(--ease), transform .16s var(--ease); }
+  .pln-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+  .pln-card:active { transform: scale(.97); }
+  .pln-card-foto { width: 100%; aspect-ratio: 4/3; background: #F0F3FA; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .pln-card-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .pln-card-foto svg { width: 30px; height: 30px; color: var(--muted-soft); }
+  .pln-card-body { padding: 10px 12px 12px; }
+  .pln-card-nombre { font-size: 12.5px; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pln-card-constructor { font-size: 11px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pln-card-fotos-n { font-size: 10px; color: var(--muted-soft); margin-top: 4px; }
+  .pln-card-del { position: absolute; margin: 6px; top: 0; right: 0; width: 24px; height: 24px; border-radius: 50%; border: none; background: rgba(14,24,48,.68); color: #fff; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .pln-card-foto-wrap { position: relative; }
   .inv-tbl{width:100%;border-collapse:collapse;}
   .inv-tbl thead tr{background:var(--navy);}
   .inv-tbl th{padding:11px 10px;text-align:left;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.85);}
@@ -620,7 +622,8 @@
   <nav class="gc-nav">
     <button class="gc-tab active" data-tab="movimientos" data-i18n="registro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Registro</button>
     <button class="gc-tab" data-tab="facturas" data-i18n="facturas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Facturas</button>
-    <button class="gc-tab" data-tab="cobros" data-i18n="pendientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>Pendientes</button>
+    <button class="gc-tab" data-tab="calendario" data-i18n="cal_calendario_tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendario</button>
+    <button class="gc-tab" data-tab="planos" data-i18n="planos_tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5-9 9"/></svg>Planos</button>
     <button class="gc-tab" data-tab="nomina" data-i18n="nomina"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Nómina</button>
     <button class="gc-tab" data-tab="buscar" data-i18n="buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Buscar</button>
     <button class="gc-tab" data-tab="respaldo" data-i18n="ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Ajustes</button>
@@ -1245,7 +1248,6 @@
   <div class="inv-subnav">
     <button class="inv-subtab active" data-i18n="nueva_factura" data-sub="nueva">+ Nueva Factura</button>
     <button class="inv-subtab" data-i18n="guardadas" data-sub="guardadas">Guardadas</button>
-    <button class="inv-subtab" data-i18n="cal_calendario" data-sub="calendario">📅 Calendario</button>
     <button class="inv-subtab" data-i18n="cobros_por_casa" data-sub="cobros">Cobros por casa</button>
     <button class="inv-subtab" data-i18n="clientes" data-sub="clientes">Clientes</button>
     <button class="inv-subtab" data-i18n="trabajos" data-sub="trabajos">Trabajos</button>
@@ -1323,56 +1325,6 @@
       </div>
     </div>
   </div>
-  <!-- Calendario de trabajos -->
-  <div class="inv-subpanel" id="inv-sub-calendario">
-    <div class="gc-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:4px;">
-        <p class="gc-card-title" data-i18n="cal_calendario_de_trabajos" style="margin:0;">Calendario de trabajos</p>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <button type="button" class="gc-action-btn" id="cal-btn-prev" style="padding:8px 13px;">‹</button>
-          <span id="cal-semana-label" style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:var(--ink);min-width:135px;text-align:center;"></span>
-          <button type="button" class="gc-action-btn" id="cal-btn-next" style="padding:8px 13px;">›</button>
-        </div>
-      </div>
-      <p style="font-size:11.5px;color:var(--muted);margin:6px 0 16px;">Agenda tus trabajos por día. Cada uno se puede mandar directo al Calendario del iPhone con el botón 📅.</p>
-      <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
-        <button type="button" class="gc-save-btn" data-i18n="cal_exportar_semana" id="cal-btn-exportar-semana" style="padding:9px 18px;font-size:13px;">📅 Exportar semana a Calendario</button>
-      </div>
-      <div id="cal-dias-wrap"></div>
-    </div>
-  </div>
-
-  <!-- Modal: nuevo/editar trabajo agendado -->
-  <div class="cal-modal-overlay" id="cal-modal" style="display:none;">
-    <div class="cal-modal-box">
-      <p class="gc-card-title" id="cal-modal-titulo">Nuevo trabajo</p>
-      <div class="gc-form-row">
-        <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="fecha">Fecha</label><input type="date" id="cal-f-fecha"></div>
-        <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="cal_hora_opcional">Hora (opcional)</label><input type="time" id="cal-f-hora"></div>
-      </div>
-      <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="h_cliente">Cliente</label><input type="text" id="cal-f-cliente" list="dl-clientes" autocomplete="off"></div>
-      <div class="gc-form-row">
-        <div class="gc-field" style="margin-bottom:12px;"><label>Job #</label><input type="text" id="cal-f-job" placeholder="Job #" autocomplete="off"></div>
-        <div class="gc-field" style="margin-bottom:12px;"><label>Colonia / Lote</label><input type="text" id="cal-f-loc" list="dl-colonias" placeholder="Colonia + lote" autocomplete="off"></div>
-      </div>
-      <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="cal_direccion_desc">Descripción del trabajo</label><input type="text" id="cal-f-desc" list="dl-trabajos" autocomplete="off"></div>
-      <div class="gc-field" style="margin-bottom:14px;"><label data-i18n="notas">Notas</label><input type="text" id="cal-f-notas" autocomplete="off"></div>
-      <div class="gc-field" style="margin-bottom:8px;">
-        <label>Fotos del trabajo</label>
-        <div id="cal-f-fotos-grid" class="cal-fotos-grid"></div>
-        <label class="cal-foto-add-btn" for="cal-f-fotos-input">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          Tomar foto / subir imagen
-        </label>
-        <input type="file" id="cal-f-fotos-input" accept="image/*" capture="environment" multiple style="display:none;">
-        <p style="font-size:10.5px;color:var(--muted-soft);margin-top:6px;">Se guardan comprimidas en este trabajo — mejor unas cuantas fotos clave que muchas.</p>
-      </div>
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;">
-        <button type="button" class="gc-action-btn" data-i18n="cancelar" id="cal-modal-cancelar">Cancelar</button>
-        <button type="button" class="gc-save-btn" data-i18n="guardar" id="cal-modal-guardar">Guardar</button>
-      </div>
-    </div>
-  </div>
 
   <!-- Cobros por casa -->
   <div class="inv-subpanel" id="inv-sub-cobros">
@@ -1437,6 +1389,96 @@
     <datalist id="dl-colonias"></datalist>
   </div>
 </div><!-- /panel-facturas -->
+
+  <!-- Calendario de trabajos -->
+  <div class="gc-panel" id="panel-calendario">
+    <div class="gc-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:4px;">
+        <p class="gc-card-title" data-i18n="cal_calendario_de_trabajos" style="margin:0;">Calendario de trabajos</p>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button type="button" class="gc-action-btn" id="cal-btn-prev" style="padding:8px 13px;">‹</button>
+          <span id="cal-semana-label" style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:var(--ink);min-width:135px;text-align:center;"></span>
+          <button type="button" class="gc-action-btn" id="cal-btn-next" style="padding:8px 13px;">›</button>
+        </div>
+      </div>
+      <p style="font-size:11.5px;color:var(--muted);margin:6px 0 16px;">Agenda tus trabajos por día. Cada uno se puede mandar directo al Calendario del iPhone con el botón 📅.</p>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
+        <button type="button" class="gc-save-btn" data-i18n="cal_exportar_semana" id="cal-btn-exportar-semana" style="padding:9px 18px;font-size:13px;">📅 Exportar semana a Calendario</button>
+      </div>
+      <div id="cal-dias-wrap"></div>
+    </div>
+  </div>
+
+  <!-- Modal: nuevo/editar trabajo agendado -->
+  <div class="cal-modal-overlay" id="cal-modal" style="display:none;">
+    <div class="cal-modal-box">
+      <p class="gc-card-title" id="cal-modal-titulo">Nuevo trabajo</p>
+      <div class="gc-form-row">
+        <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="fecha">Fecha</label><input type="date" id="cal-f-fecha"></div>
+        <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="cal_hora_opcional">Hora (opcional)</label><input type="time" id="cal-f-hora"></div>
+      </div>
+      <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="h_cliente">Cliente</label><input type="text" id="cal-f-cliente" list="dl-clientes" autocomplete="off"></div>
+      <div class="gc-form-row">
+        <div class="gc-field" style="margin-bottom:12px;"><label>Job #</label><input type="text" id="cal-f-job" placeholder="Job #" autocomplete="off"></div>
+        <div class="gc-field" style="margin-bottom:12px;"><label>Colonia / Lote</label><input type="text" id="cal-f-loc" list="dl-colonias" placeholder="Colonia + lote" autocomplete="off"></div>
+      </div>
+      <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="cal_direccion_desc">Descripción del trabajo</label><input type="text" id="cal-f-desc" list="dl-trabajos" autocomplete="off"></div>
+      <div class="gc-field" style="margin-bottom:14px;"><label data-i18n="notas">Notas</label><input type="text" id="cal-f-notas" autocomplete="off"></div>
+      <div class="gc-field" style="margin-bottom:8px;">
+        <label>Fotos del trabajo</label>
+        <div id="cal-f-fotos-grid" class="cal-fotos-grid"></div>
+        <label class="cal-foto-add-btn" for="cal-f-fotos-input">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Tomar foto / subir imagen
+        </label>
+        <input type="file" id="cal-f-fotos-input" accept="image/*" capture="environment" multiple style="display:none;">
+        <p style="font-size:10.5px;color:var(--muted-soft);margin-top:6px;">Se guardan comprimidas en este trabajo — mejor unas cuantas fotos clave que muchas.</p>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;">
+        <button type="button" class="gc-action-btn" data-i18n="cancelar" id="cal-modal-cancelar">Cancelar</button>
+        <button type="button" class="gc-save-btn" data-i18n="guardar" id="cal-modal-guardar">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PLANOS ===== -->
+  <div class="gc-panel" id="panel-planos">
+    <div class="gc-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:4px;">
+        <p class="gc-card-title" data-i18n="pln_planos_titulo" style="margin:0;">Planos</p>
+        <button type="button" class="gc-save-btn" data-i18n="pln_agregar_plano" id="pln-btn-nuevo" style="padding:8px 16px;font-size:13px;">+ Agregar plano</button>
+      </div>
+      <p style="font-size:11.5px;color:var(--muted);margin:6px 0 16px;">Guarda fotos de planos con el nombre del plano y el constructor, para encontrarlos rápido después.</p>
+      <input type="text" id="pln-buscar" placeholder="Buscar por nombre de plano o constructor…" autocomplete="off"
+        style="width:100%;font-family:'Inter',sans-serif;font-size:13.5px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);margin-bottom:16px;box-sizing:border-box;">
+      <div class="gc-empty" id="pln-empty" style="display:none;">No hay planos guardados todavía. Toca "+ Agregar plano" para subir el primero.</div>
+      <div id="pln-grid" class="pln-grid"></div>
+    </div>
+  </div>
+
+  <!-- Modal: nuevo/editar plano -->
+  <div class="cal-modal-overlay" id="pln-modal" style="display:none;">
+    <div class="cal-modal-box">
+      <p class="gc-card-title" id="pln-modal-titulo">Nuevo plano</p>
+      <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="pln_nombre_del_plano">Nombre del plano</label><input type="text" id="pln-f-nombre" placeholder="Ej. Plan 2140 — elevación B" autocomplete="off"></div>
+      <div class="gc-field" style="margin-bottom:14px;"><label data-i18n="pln_constructor">Constructor</label><input type="text" id="pln-f-constructor" list="dl-planos-constructores" placeholder="Nombre del constructor" autocomplete="off"></div>
+      <div class="gc-field" style="margin-bottom:8px;">
+        <label data-i18n="pln_fotos_del_plano">Fotos del plano</label>
+        <div id="pln-f-fotos-grid" class="cal-fotos-grid"></div>
+        <label class="cal-foto-add-btn" for="pln-f-fotos-input">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Tomar foto / subir imagen
+        </label>
+        <input type="file" id="pln-f-fotos-input" accept="image/*" capture="environment" multiple style="display:none;">
+        <p style="font-size:10.5px;color:var(--muted-soft);margin-top:6px;">Se guardan comprimidas — mejor unas cuantas fotos claras del plano que muchas.</p>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;">
+        <button type="button" class="gc-action-btn" data-i18n="cancelar" id="pln-modal-cancelar">Cancelar</button>
+        <button type="button" class="gc-save-btn" data-i18n="guardar" id="pln-modal-guardar">Guardar</button>
+      </div>
+    </div>
+  </div>
+  <datalist id="dl-planos-constructores"></datalist>
 
 <!-- Print overlay para invoices -->
 <div class="gc-print-overlay" id="inv-ov" style="display:none;">
@@ -1505,48 +1547,6 @@
     </div>
   </div>
 
-  <!-- ===== PENDIENTES (hoja de cálculo de cobros) ===== -->
-  <div class="gc-panel" id="panel-cobros">
-    <div class="gc-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:4px;">
-        <p class="gc-card-title" data-i18n="pendientes" style="margin:0;">Pendientes</p>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <input type="text" id="cob-buscar" placeholder="Buscar cliente…" autocomplete="off"
-            style="font-family:'Inter',sans-serif;font-size:13px;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
-          <button type="button" class="gc-save-btn" data-i18n="fila" id="cob-btn-agregar" style="padding:8px 16px;font-size:13px;">+ Fila</button>
-        </div>
-      </div>
-      <p style="font-size:11.5px;color:var(--muted);margin-bottom:14px;">Escribe directo en las celdas, como en una hoja de cálculo — Enter o ↓ baja a la siguiente fila, ↑ sube.</p>
-      <div style="overflow-x:auto;">
-        <table id="cob-tabla" style="border-collapse:collapse;width:100%;min-width:800px;">
-          <thead>
-            <tr>
-              <th class="cob-rownum-th"></th>
-              <th data-i18n="h_cliente">Cliente</th>
-              <th data-i18n="h_concepto">Concepto</th>
-              <th class="num" data-i18n="h_monto">Monto</th>
-              <th data-i18n="fecha">Fecha</th>
-              <th data-i18n="estado">Estado</th>
-              <th data-i18n="notas">Notas</th>
-              <th style="width:32px;"></th>
-            </tr>
-          </thead>
-          <tbody id="cob-tbody"></tbody>
-          <tfoot>
-            <tr>
-              <td colspan="3" style="border:1px solid var(--border-soft);padding:8px 6px;text-align:right;font-weight:700;font-size:12.5px;">Total pendiente:</td>
-              <td id="cob-total-pendiente" class="num" style="border:1px solid var(--border-soft);padding:8px 6px;text-align:right;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--ember);"></td>
-              <td colspan="2" style="border:1px solid var(--border-soft);padding:8px 6px;text-align:right;font-weight:700;font-size:12.5px;">Total cobrado:</td>
-              <td id="cob-total-cobrado" class="num" style="border:1px solid var(--border-soft);padding:8px 6px;text-align:right;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--teal);"></td>
-              <td style="border:1px solid var(--border-soft);"></td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-      <div class="gc-empty" id="cob-empty">No hay filas todavía. Toca "+ Fila" para agregar una.</div>
-    </div>
-  </div>
-</div>
 
 <!-- Print modal -->
 <div class="gc-print-overlay" id="modal-print" style="display:none;">
@@ -1733,7 +1733,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v44 · 15 sep';
+  const APP_VERSION = 'v45 · 15 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -1897,6 +1897,7 @@
       tab.classList.add('active');
       $('panel-' + tab.dataset.tab).classList.add('active');
       if (tab.dataset.tab === 'buscar') { renderAnios(); renderBusqueda(); renderResumenTaxas(); renderTotalPorSocio(); }
+      if (tab.dataset.tab === 'calendario') calCargarDatos();
     });
   });
 
@@ -4293,6 +4294,18 @@
     h_trabajo: {es:'Trabajo',en:'Job'},
     cal_calendario: {es:'📅 Calendario',en:'📅 Calendar'},
     cal_calendario_de_trabajos: {es:'Calendario de trabajos',en:'Work calendar'},
+    cal_calendario_tab: {es:'Calendario',en:'Calendar'},
+    planos_tab: {es:'Planos',en:'Plans'},
+    pln_planos_titulo: {es:'Planos',en:'Plans'},
+    pln_agregar_plano: {es:'+ Agregar plano',en:'+ Add plan'},
+    pln_nombre_del_plano: {es:'Nombre del plano',en:'Plan name'},
+    pln_constructor: {es:'Constructor',en:'Builder'},
+    pln_fotos_del_plano: {es:'Fotos del plano',en:'Plan photos'},
+    pln_nuevo_plano: {es:'Nuevo plano',en:'New plan'},
+    pln_editar_plano: {es:'Editar plano',en:'Edit plan'},
+    t_escribe_el_nombre_del_plano: {es:'Escribe el nombre del plano',en:'Enter the plan name'},
+    t_plano_guardado: {es:'Plano guardado ✓',en:'Plan saved ✓'},
+    t_borrar_este_plano: {es:'¿Borrar este plano?',en:'Delete this plan?'},
     cal_hora_opcional: {es:'Hora (opcional)',en:'Time (optional)'},
     cal_direccion_desc: {es:'Dirección / Descripción del trabajo',en:'Address / Job description'},
     cal_exportar_semana: {es:'📅 Exportar semana a Calendario',en:'📅 Export week to Calendar'},
@@ -5202,6 +5215,158 @@
   // FIN MÓDULO CALENDARIO DE TRABAJOS
   // ====================================================================
 
+  // ====================================================================
+  // MÓDULO: PLANOS (fotos de planos, buscables por nombre/constructor)
+  // ====================================================================
+  const PLANOS_KEY = 'gh-planos';
+  let planos = [];
+  let planosCargados = false;
+  let plnEditandoId = null;
+  let plnFotosActuales = [];
+
+  async function plnCargarDatos() {
+    if (planosCargados) return;
+    planosCargados = true;
+    const r = await window.storage.get(PLANOS_KEY).catch(() => null);
+    try { planos = JSON.parse(r.value); } catch (e) { planos = []; }
+    plnRender();
+  }
+  async function plnGuardar() {
+    try { await window.storage.set(PLANOS_KEY, JSON.stringify(planos)); } catch (e) {}
+  }
+
+  function plnRefreshDlConstructores() {
+    const dl = $('dl-planos-constructores');
+    if (!dl) return;
+    const nombres = [...new Set(planos.map((p) => p.constructor).filter(Boolean))].sort();
+    dl.innerHTML = nombres.map((n) => `<option value="${escapeHtml(n)}">`).join('');
+  }
+
+  const PLN_ICONO_VACIO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5-9 9"/></svg>`;
+
+  function plnRender() {
+    if (!$('pln-grid')) return;
+    const filtro = ($('pln-buscar').value || '').trim().toLowerCase();
+    const filtrados = planos.filter((p) => !filtro
+      || (p.nombre || '').toLowerCase().includes(filtro)
+      || (p.constructor || '').toLowerCase().includes(filtro));
+
+    $('pln-empty').style.display = planos.length === 0 ? 'block' : 'none';
+    $('pln-grid').style.display = planos.length === 0 ? 'none' : 'grid';
+
+    const grid = $('pln-grid');
+    grid.innerHTML = '';
+    filtrados.forEach((p) => {
+      const fotos = Array.isArray(p.fotos) ? p.fotos : [];
+      const card = document.createElement('div');
+      card.className = 'pln-card';
+      card.innerHTML = `
+        <div class="pln-card-foto-wrap">
+          <button type="button" class="pln-card-del" title="Borrar">✕</button>
+          <div class="pln-card-foto">${fotos.length ? `<img src="${fotos[0].dataUrl}">` : PLN_ICONO_VACIO}</div>
+        </div>
+        <div class="pln-card-body">
+          <div class="pln-card-nombre">${escapeHtml(p.nombre || '(sin nombre)')}</div>
+          <div class="pln-card-constructor">${escapeHtml(p.constructor || '')}</div>
+          ${fotos.length ? `<div class="pln-card-fotos-n">${fotos.length} foto${fotos.length === 1 ? '' : 's'}</div>` : ''}
+        </div>`;
+      card.addEventListener('click', () => plnAbrirModal(p));
+      card.querySelector('.pln-card-del').addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!(await gcConfirm(idiomaActual() === 'en' ? I18N.t_borrar_este_plano.en : '¿Borrar este plano?', { okText: idiomaActual() === 'en' ? 'Delete' : 'Borrar', danger: true }))) return;
+        planos = planos.filter((x) => x.id !== p.id);
+        await plnGuardar();
+        plnRefreshDlConstructores();
+        plnRender();
+      });
+      grid.appendChild(card);
+    });
+    if (filtrados.length === 0 && planos.length > 0) {
+      grid.innerHTML = `<div class="gc-empty" style="grid-column:1/-1;">Ningún plano coincide con "${escapeHtml(filtro)}".</div>`;
+    }
+  }
+  $('pln-buscar').addEventListener('input', debounce(plnRender, 160));
+
+  function plnRenderFotosGrid() {
+    const grid = $('pln-f-fotos-grid');
+    grid.innerHTML = plnFotosActuales.map((f, i) => `
+      <div class="cal-foto-thumb">
+        <img src="${f.dataUrl}">
+        <button type="button" class="cal-foto-del" data-i="${i}" title="Quitar">✕</button>
+        <a class="cal-foto-dl" data-i="${i}" title="Descargar">⬇</a>
+      </div>`).join('');
+    grid.querySelectorAll('.cal-foto-del').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        plnFotosActuales.splice(parseInt(btn.dataset.i, 10), 1);
+        plnRenderFotosGrid();
+      });
+    });
+    grid.querySelectorAll('.cal-foto-dl').forEach((a) => {
+      const i = parseInt(a.dataset.i, 10);
+      const partes = [$('pln-f-nombre').value.trim(), $('pln-f-constructor').value.trim()].filter(Boolean);
+      const base = (partes.length ? partes.join('-') : 'plano').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+      a.href = plnFotosActuales[i].dataUrl;
+      a.download = `${base || 'plano'}-foto${i + 1}.jpg`;
+    });
+  }
+  $('pln-f-fotos-input').addEventListener('change', async (e) => {
+    const archivos = [...(e.target.files || [])];
+    for (const file of archivos) {
+      if (!file.type.startsWith('image/')) continue;
+      try {
+        const dataUrl = await calComprimirFoto(file, 1400, 0.74);
+        plnFotosActuales.push({ dataUrl });
+      } catch (err) {}
+    }
+    plnRenderFotosGrid();
+    $('pln-f-fotos-input').value = '';
+  });
+
+  function plnAbrirModal(plano) {
+    plnEditandoId = plano ? plano.id : null;
+    plnFotosActuales = plano && Array.isArray(plano.fotos) ? plano.fotos.map((f) => ({ ...f })) : [];
+    $('pln-modal-titulo').textContent = idiomaActual() === 'en' ? (plano ? I18N.pln_editar_plano.en : I18N.pln_nuevo_plano.en) : (plano ? 'Editar plano' : 'Nuevo plano');
+    $('pln-f-nombre').value = plano ? (plano.nombre || '') : '';
+    $('pln-f-constructor').value = plano ? (plano.constructor || '') : '';
+    plnRenderFotosGrid();
+    $('pln-modal').style.display = 'flex';
+    $('pln-f-nombre').focus();
+  }
+  $('pln-btn-nuevo').addEventListener('click', () => plnAbrirModal(null));
+  $('pln-modal-cancelar').addEventListener('click', () => { $('pln-modal').style.display = 'none'; });
+  $('pln-modal').addEventListener('click', (e) => { if (e.target === $('pln-modal')) $('pln-modal').style.display = 'none'; });
+  $('pln-modal-guardar').addEventListener('click', async () => {
+    const nombre = $('pln-f-nombre').value.trim();
+    if (!nombre) { toast('Escribe el nombre del plano', 'error'); return; }
+    const datos = {
+      nombre,
+      constructor: $('pln-f-constructor').value.trim(),
+      fotos: plnFotosActuales
+    };
+    if (plnEditandoId) {
+      const idx = planos.findIndex((p) => p.id === plnEditandoId);
+      if (idx > -1) planos[idx] = { ...planos[idx], ...datos };
+    } else {
+      planos.push({ id: 'plano_' + Date.now(), fecha: today(), ...datos });
+    }
+    await plnGuardar();
+    plnRefreshDlConstructores();
+    $('pln-modal').style.display = 'none';
+    plnRender();
+    toast('Plano guardado ✓');
+  });
+
+  document.querySelectorAll('.gc-tab').forEach((tab) => {
+    if (tab.dataset.tab === 'planos') {
+      tab.addEventListener('click', async () => {
+        await plnCargarDatos();
+        plnRefreshDlConstructores();
+      });
+    }
+  });
+  // FIN MÓDULO PLANOS
+  // ====================================================================
+
   const invToday = () => new Date().toISOString().slice(0,10);
 
   // Sub-tabs de facturas
@@ -5212,7 +5377,6 @@
       tab.classList.add('active');
       $('inv-sub-' + tab.dataset.sub).classList.add('active');
       if (tab.dataset.sub === 'guardadas') invRenderLista();
-      if (tab.dataset.sub === 'calendario') calCargarDatos();
       if (tab.dataset.sub === 'cobros') invRenderCobros();
       if (tab.dataset.sub === 'colonias') invRenderColonias();
       if (tab.dataset.sub === 'clientes') invRenderClientes();
@@ -6693,157 +6857,6 @@
 
   // ====================================================================
   // FIN MÓDULO NÓMINA
-  // ====================================================================
-
-  // ====================================================================
-  // MÓDULO: PENDIENTES (tabla estilo hoja de cálculo)
-  // ====================================================================
-  const COB_KEY = 'gh-cobros-pendientes';
-  let cobros = [];
-
-  function cobNuevaFila() {
-    return {
-      id: Date.now().toString() + '-' + Math.random().toString(36).slice(2, 7),
-      cliente: '', concepto: '', monto: '', fecha: today(), estado: 'Pendiente', notas: ''
-    };
-  }
-  async function cobGuardarLista() { await window.storage.set(COB_KEY, JSON.stringify(cobros)); }
-  const cobGuardarDebounced = debounce(cobGuardarLista, 500);
-
-  function cobRenderTotales() {
-    let pendiente = 0, cobrado = 0;
-    cobros.forEach((f) => {
-      const monto = parseFloat(String(f.monto).replace(',', '.')) || 0;
-      if ((f.estado || 'Pendiente') === 'Cobrado') cobrado += monto; else pendiente += monto;
-    });
-    $('cob-total-pendiente').textContent = fmt(pendiente);
-    $('cob-total-cobrado').textContent = fmt(cobrado);
-  }
-
-  function cobMoverFoco(inputActual, delta) {
-    const campo = inputActual.dataset.campo;
-    const filas = [...$('cob-tbody').querySelectorAll('tr')];
-    const idx = filas.indexOf(inputActual.closest('tr'));
-    const siguienteFila = filas[idx + delta];
-    if (!siguienteFila && delta > 0) {
-      cobAgregarFila().then(() => {
-        setTimeout(() => {
-          const nuevasFilas = [...$('cob-tbody').querySelectorAll('tr')];
-          const ultima = nuevasFilas[nuevasFilas.length - 1];
-          const nuevoInput = ultima ? ultima.querySelector(`[data-campo="${campo}"]`) : null;
-          if (nuevoInput) nuevoInput.focus();
-        }, 30);
-      });
-      return;
-    }
-    if (siguienteFila) {
-      const siguienteInput = siguienteFila.querySelector(`[data-campo="${campo}"]`);
-      if (siguienteInput) siguienteInput.focus();
-    }
-  }
-
-  function cobRender() {
-    const filtro = ($('cob-buscar').value || '').trim().toLowerCase();
-    const tbody = $('cob-tbody');
-    const filtrados = cobros.filter((f) => !filtro || (f.cliente || '').toLowerCase().includes(filtro));
-    $('cob-empty').style.display = cobros.length === 0 ? 'block' : 'none';
-    $('cob-tabla').style.display = cobros.length === 0 ? 'none' : 'table';
-
-    tbody.innerHTML = filtrados.map((f, i) => `
-      <tr>
-        <td class="cob-rownum">${i + 1}</td>
-        <td><input class="cob-cell-input" data-id="${f.id}" data-campo="cliente" value="${escapeHtml(f.cliente)}" placeholder="Nombre…"></td>
-        <td><input class="cob-cell-input" data-id="${f.id}" data-campo="concepto" value="${escapeHtml(f.concepto)}" placeholder="Trabajo / factura…"></td>
-        <td><input class="cob-cell-input" data-id="${f.id}" data-campo="monto" inputmode="decimal" style="text-align:right;font-family:'IBM Plex Mono',monospace;" value="${escapeHtml(f.monto)}" placeholder="0.00"></td>
-        <td><input type="date" class="cob-cell-input" data-id="${f.id}" data-campo="fecha" value="${escapeHtml(f.fecha)}"></td>
-        <td>
-          <select class="cob-cell-input" data-id="${f.id}" data-campo="estado">
-            <option value="Pendiente" data-i18n="pendiente" ${f.estado !== 'Cobrado' ? 'selected' : ''}>Pendiente</option>
-            <option value="Cobrado" data-i18n="cobrado" ${f.estado === 'Cobrado' ? 'selected' : ''}>Cobrado</option>
-          </select>
-        </td>
-        <td><input class="cob-cell-input" data-id="${f.id}" data-campo="notas" value="${escapeHtml(f.notas)}" placeholder="…"></td>
-        <td style="text-align:center;"><button type="button" class="cob-del" data-id="${f.id}" tabindex="-1" style="border:none;background:none;color:var(--ember);cursor:pointer;font-size:15px;line-height:1;padding:6px;">✕</button></td>
-      </tr>`).join('');
-
-    tbody.querySelectorAll('.cob-cell-input').forEach((inp) => {
-      inp.addEventListener('input', () => {
-        const f = cobros.find((x) => x.id === inp.dataset.id);
-        if (!f) return;
-        f[inp.dataset.campo] = inp.value;
-        cobGuardarDebounced();
-        if (inp.dataset.campo === 'monto' || inp.dataset.campo === 'estado') cobRenderTotales();
-      });
-      inp.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); cobMoverFoco(inp, 1); return; }
-        // Flechas arriba/abajo para moverse entre filas, como en una hoja de
-        // cálculo — solo en campos de texto simples, para no pisar el
-        // comportamiento nativo de las flechas en <select> (cambia opción)
-        // ni en el campo de fecha (sube/baja día-mes-año).
-        if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && inp.tagName === 'INPUT' && inp.type === 'text') {
-          e.preventDefault();
-          cobMoverFoco(inp, e.key === 'ArrowDown' ? 1 : -1);
-        }
-      });
-    });
-    tbody.querySelectorAll('.cob-del').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        if (!await gcConfirm('¿Borrar esta fila?', { okText: 'Borrar', danger: true })) return;
-        cobros = cobros.filter((x) => x.id !== btn.dataset.id);
-        await cobGuardarLista();
-        cobRender();
-      });
-    });
-    cobRenderTotales();
-  }
-
-  async function cobAgregarFila() {
-    cobros.push(cobNuevaFila());
-    await cobGuardarLista();
-    cobRender();
-  }
-  $('cob-btn-agregar').addEventListener('click', cobAgregarFila);
-  $('cob-buscar').addEventListener('input', debounce(cobRender, 160));
-
-  // Pinta el estado inicial (vacío) de una vez, sin esperar a nada — así la
-  // pestaña nunca se ve en blanco, pase lo que pase con la carga de abajo.
-  cobRender();
-
-  // ---- Carga inicial de Pendientes (al abrir la pestaña por primera vez) ----
-  // Trae los datos guardados y los pinta encima del estado vacío de arriba.
-  let cobCargado = false;
-  async function cobCargarDatos() {
-    if (cobCargado) return;
-    cobCargado = true;
-    const r = await window.storage.get(COB_KEY).catch(() => null);
-    if (r) {
-      try { cobros = JSON.parse(r.value); } catch (e) { cobros = []; }
-    } else {
-      cobros = [];
-    }
-    // Si no queda ninguna fila (primera vez que se abre, o porque antes se
-    // habían borrado todas), siembra unas filas en blanco para que la hoja
-    // aparezca lista para escribir de una vez, como una hoja de cálculo
-    // recién abierta — nunca una pantalla vacía con solo un botón.
-    if (cobros.length === 0) {
-      cobros = [cobNuevaFila(), cobNuevaFila(), cobNuevaFila(), cobNuevaFila(), cobNuevaFila()];
-      try { await cobGuardarLista(); } catch (e) {}
-    }
-    cobRender();
-  }
-  document.querySelectorAll('.gc-tab').forEach((tab) => {
-    if (tab.dataset.tab === 'cobros') {
-      tab.addEventListener('click', () => { cobCargarDatos(); });
-    }
-  });
-  // Si la pestaña ya está activa al cargar la página (poco común, pero por si
-  // acaso), carga los datos de una vez sin esperar un clic.
-  if (document.getElementById('panel-cobros') && document.getElementById('panel-cobros').classList.contains('active')) {
-    cobCargarDatos();
-  }
-
-  // ====================================================================
-  // FIN MÓDULO PENDIENTES
   // ====================================================================
 
   // ---- Carga inicial ----
