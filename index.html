@@ -540,6 +540,61 @@
   .pln-viewer-dots { display: flex; justify-content: center; gap: 6px; padding: 12px; }
   .pln-viewer-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.35); }
   .pln-viewer-dot.on { background: #fff; }
+
+  /* ── MODO SELECCIÓN (estilo app: Seleccionar → marcar → acciones) ── */
+  .sel-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .sel-btn { background: none; border: 1.5px solid var(--border); border-radius: 999px; padding: 7px 15px; font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 700; color: var(--muted); cursor: pointer; transition: all .15s var(--ease); }
+  .sel-btn:hover { border-color: var(--accent); color: var(--accent-dk); }
+  .sel-btn:active { transform: scale(.95); }
+  .sel-btn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .sel-count { font-size: 12.5px; font-weight: 700; color: var(--muted); }
+
+  /* Filas / tarjetas seleccionables */
+  .sel-modo .sel-item { cursor: pointer; position: relative; }
+  .sel-modo tr.sel-item td:first-child { padding-left: 34px; }
+  .sel-modo tr.sel-item td:first-child::before,
+  .sel-modo .sel-item.sel-card::before {
+    content: ''; position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+    width: 17px; height: 17px; border-radius: 50%; border: 2px solid var(--border);
+    background: #fff; box-sizing: border-box;
+  }
+  .sel-modo .sel-item.sel-card::before { left: 8px; top: 8px; transform: none; z-index: 3; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+  .sel-modo tr.sel-item td { position: relative; }
+  .sel-modo tr.sel-item.sel-on td { background: var(--accent-bg) !important; }
+  .sel-modo .sel-item.sel-on::after,
+  .sel-modo tr.sel-item.sel-on td:first-child::after {
+    content: '✓'; position: absolute; color: #fff; font-size: 11px; font-weight: 800;
+    width: 17px; height: 17px; border-radius: 50%; background: var(--accent);
+    display: flex; align-items: center; justify-content: center; box-sizing: border-box;
+  }
+  .sel-modo tr.sel-item.sel-on td:first-child::after { left: 9px; top: 50%; transform: translateY(-50%); }
+  .sel-modo .sel-item.sel-card.sel-on::after { left: 8px; top: 8px; z-index: 4; }
+  .sel-modo .sel-item.sel-card.sel-on { outline: 2.5px solid var(--accent); outline-offset: -2px; }
+  /* Mientras se selecciona, los botones de cada fila no deben distraer */
+  .sel-modo .sel-item button, .sel-modo .sel-item a { pointer-events: none; opacity: .35; }
+
+  /* Barra de acciones abajo */
+  .sel-actionbar {
+    position: fixed; left: 50%; transform: translateX(-50%) translateY(120%);
+    bottom: 18px; z-index: 8000; display: flex; gap: 6px; align-items: center;
+    background: rgba(14,24,48,.97); backdrop-filter: blur(10px);
+    padding: 9px 12px; border-radius: 999px; box-shadow: 0 12px 34px rgba(0,0,0,.4);
+    transition: transform .25s var(--ease), opacity .2s; opacity: 0; pointer-events: none;
+    max-width: calc(100vw - 24px); overflow-x: auto;
+  }
+  .sel-actionbar.show { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
+  .sel-act { background: rgba(255,255,255,.1); border: none; color: #fff; font-family: 'Inter', sans-serif;
+    font-size: 12px; font-weight: 600; padding: 9px 14px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+    display: flex; align-items: center; gap: 5px; transition: background .15s var(--ease), transform .12s var(--ease); }
+  .sel-act:hover { background: rgba(255,255,255,.2); }
+  .sel-act:active { transform: scale(.93); }
+  .sel-act.peligro { background: rgba(198,85,30,.9); }
+  .sel-act:disabled { opacity: .35; cursor: default; }
+  @media (max-width: 720px) {
+    .sel-actionbar { bottom: calc(76px + env(safe-area-inset-bottom)); left: 12px; right: 12px; transform: translateY(120%); max-width: none; }
+    .sel-actionbar.show { transform: translateY(0); }
+    .sel-act { flex: 1; justify-content: center; padding: 10px 8px; }
+  }
   .inv-tbl{width:100%;border-collapse:collapse;}
   .inv-tbl thead tr{background:var(--navy);}
   .inv-tbl th{padding:11px 10px;text-align:left;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.85);}
@@ -770,6 +825,7 @@
           </tr></thead>
           <tbody id="tbody-mov"></tbody>
         </table>
+        <div id="mov-sel-host"></div>
         <div class="gc-empty" id="empty-mov" style="display:none;">Aún no hay movimientos.</div>
         <div id="mov-ver-mas-row" style="display:none;text-align:center;padding:14px;">
           <button type="button" class="gc-action-btn" id="mov-ver-mas-btn"></button>
@@ -782,6 +838,7 @@
       <div class="gc-note"><strong>Registro de invoices guardados.</strong> Aquí solo aparecen las semanas que ya guardaste como invoice desde Movimientos. Cada uno muestra el reparto <span class="socio-bonus">CRA HVAC</span> / <span class="socio-mitad">GUZMAN HVAC</span>. Usa "Ver" para el detalle o "Editar" para reabrirlo.</div>
       <div class="gc-card" style="margin-top:8px;">
         <p class="gc-card-title" data-i18n="invoices_guardados">Invoices guardados</p>
+        <div id="reg-sel-host"></div>
         <div class="gc-empty" id="empty-invoices-guardados" style="display:none;">No hay invoices guardados. Ve a Movimientos y guarda una semana.</div>
         <div style="overflow-x:auto;">
           <table class="gc-inv-table" id="tabla-invoices-guardados" style="display:none;">
@@ -1351,6 +1408,7 @@
           style="width:100%;font-family:'Inter',sans-serif;font-size:13.5px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
         <p id="inv-buscar-info" style="font-size:11.5px;color:var(--muted);margin-top:6px;"></p>
       </div>
+      <div id="inv-sel-host"></div>
       <div class="gc-empty" id="inv-list-empty" style="display:none;">No hay facturas guardadas aún.</div>
       <div style="overflow-x:auto;">
         <table class="inv-list-t" id="inv-list-tbl" style="display:none;">
@@ -1440,6 +1498,7 @@
       <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
         <button type="button" class="gc-save-btn" data-i18n="cal_exportar_semana" id="cal-btn-exportar-semana" style="padding:9px 18px;font-size:13px;">📅 Exportar semana a Calendario</button>
       </div>
+      <div id="cal-sel-host"></div>
       <div id="cal-dias-wrap"></div>
     </div>
   </div>
@@ -1490,6 +1549,7 @@
         <p style="font-size:11.5px;color:var(--muted);margin:6px 0 16px;">Toca un plano para ver la foto en grande. Para editar o borrar, ve a la pestaña "Editar / Borrar".</p>
         <input type="text" id="pln-buscar" placeholder="Buscar por nombre de plano o constructor…" autocomplete="off"
           style="width:100%;font-family:'Inter',sans-serif;font-size:13.5px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);margin-bottom:16px;box-sizing:border-box;">
+        <div id="pln-sel-host"></div>
         <div class="gc-empty" id="pln-empty" style="display:none;">No hay planos guardados todavía. Toca "+ Agregar plano" para subir el primero.</div>
         <div id="pln-grid" class="pln-grid"></div>
       </div>
@@ -1811,7 +1871,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v55 · 16 sep';
+  const APP_VERSION = 'v56 · 16 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -1820,6 +1880,167 @@
   })();
   // Debounce: evita re-renderizar en cada tecla (más rápido y fluido)
   const debounce = (fn, ms = 180) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+
+  // ====================================================================
+  // MODO SELECCIÓN (reutilizable, estilo app: "Seleccionar" → marcar
+  // varios → barra de acciones abajo con Borrar / Compartir / Imprimir).
+  // Se conecta a cualquier lista: tabla o cuadrícula de tarjetas.
+  // ====================================================================
+  const GH_SEL = { activo: null }; // solo una lista en modo selección a la vez
+
+  function ghCrearSeleccion(cfg) {
+    // cfg: { host, contenedor, nombre, plural, acciones: [{id,texto,peligro,fn(ids)}] }
+    const host = typeof cfg.host === 'string' ? document.getElementById(cfg.host) : cfg.host;
+    if (!host) return null;
+
+    const api = { modo: false, ids: new Set() };
+
+    const barra = document.createElement('div');
+    barra.className = 'sel-toolbar';
+    const btnModo = document.createElement('button');
+    btnModo.type = 'button'; btnModo.className = 'sel-btn'; btnModo.textContent = 'Seleccionar';
+    const btnTodos = document.createElement('button');
+    btnTodos.type = 'button'; btnTodos.className = 'sel-btn'; btnTodos.textContent = 'Todos';
+    btnTodos.style.display = 'none';
+    const cuenta = document.createElement('span');
+    cuenta.className = 'sel-count';
+    barra.appendChild(btnModo); barra.appendChild(btnTodos); barra.appendChild(cuenta);
+    host.appendChild(barra);
+
+    const accionbar = document.createElement('div');
+    accionbar.className = 'sel-actionbar';
+    cfg.acciones.forEach((a) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'sel-act' + (a.peligro ? ' peligro' : '');
+      b.textContent = a.texto;
+      b.addEventListener('click', async () => {
+        const ids = [...api.ids];
+        if (!ids.length) return;
+        try { await a.fn(ids); } catch (e) { toast('No se pudo completar: ' + (e && e.message ? e.message : e), 'error', 5000); }
+      });
+      accionbar.appendChild(b);
+    });
+    document.body.appendChild(accionbar);
+
+    function contenedor() {
+      return typeof cfg.contenedor === 'string' ? document.getElementById(cfg.contenedor) : cfg.contenedor();
+    }
+
+    function refrescar() {
+      const n = api.ids.size;
+      cuenta.textContent = api.modo ? (n ? `${n} ${n === 1 ? cfg.nombre : cfg.plural}` : 'Toca para marcar') : '';
+      accionbar.classList.toggle('show', api.modo && n > 0);
+      accionbar.querySelectorAll('.sel-act').forEach((b) => { b.disabled = n === 0; });
+    }
+
+    function salir() {
+      api.modo = false; api.ids.clear();
+      const c = contenedor();
+      if (c) {
+        c.classList.remove('sel-modo');
+        c.querySelectorAll('.sel-on').forEach((el) => el.classList.remove('sel-on'));
+      }
+      btnModo.textContent = 'Seleccionar'; btnModo.classList.remove('on');
+      btnTodos.style.display = 'none';
+      GH_SEL.activo = null;
+      refrescar();
+    }
+    api.salir = salir;
+
+    btnModo.addEventListener('click', () => {
+      if (api.modo) { salir(); return; }
+      if (GH_SEL.activo && GH_SEL.activo !== api) GH_SEL.activo.salir();
+      api.modo = true; GH_SEL.activo = api;
+      const c = contenedor();
+      if (c) c.classList.add('sel-modo');
+      btnModo.textContent = 'Cancelar'; btnModo.classList.add('on');
+      btnTodos.style.display = 'inline-block';
+      refrescar();
+    });
+
+    btnTodos.addEventListener('click', () => {
+      const c = contenedor();
+      if (!c) return;
+      const items = [...c.querySelectorAll('.sel-item')];
+      const faltan = items.some((el) => !el.classList.contains('sel-on'));
+      items.forEach((el) => {
+        el.classList.toggle('sel-on', faltan);
+        if (faltan) api.ids.add(el.dataset.selid); else api.ids.delete(el.dataset.selid);
+      });
+      btnTodos.textContent = faltan ? 'Ninguno' : 'Todos';
+      refrescar();
+    });
+
+    // Un solo manejador para toda la lista (funciona aunque las filas se
+    // vuelvan a dibujar). En captura, para ganarle a los botones de cada fila.
+    const contClick = contenedor();
+    if (contClick) {
+      contClick.addEventListener('click', (e) => {
+        if (!api.modo) return;
+        const item = e.target.closest ? e.target.closest('.sel-item') : null;
+        if (!item) return;
+        e.preventDefault(); e.stopPropagation();
+        const id = item.dataset.selid;
+        if (item.classList.toggle('sel-on')) api.ids.add(id); else api.ids.delete(id);
+        refrescar();
+      }, true);
+    }
+
+    api.refrescarTrasRedibujar = () => {
+      const c = contenedor();
+      if (api.modo && c) {
+        c.classList.add('sel-modo');
+        c.querySelectorAll('.sel-item').forEach((el) => {
+          el.classList.toggle('sel-on', api.ids.has(el.dataset.selid));
+        });
+      }
+      refrescar();
+    };
+
+    refrescar();
+    return api;
+  }
+
+  // Compartir/imprimir varios documentos juntos, en un solo archivo
+  function ghDocumentoCombinado(partes, titulo) {
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHtml(titulo || 'Documentos')}</title>
+      <style>
+        @page { margin: 14mm; }
+        body { font-family: Arial, Helvetica, sans-serif; color:#1a1a1a; margin:0; padding:24px; max-width:820px; }
+        table { width:100%; border-collapse:collapse; }
+        h1 { font-size:21px; margin:0; } h2 { font-size:13.5px; text-transform:uppercase; letter-spacing:.5px; color:#1B2A4A; border-bottom:1px solid #1B2A4A; padding-bottom:4px; margin:22px 0 8px; }
+        th { text-align:left; border-bottom:1.5px solid #1a1a1a; padding:6px 4px; font-size:10.5px; text-transform:uppercase; }
+        td { padding:6px 4px; border-bottom:1px solid #ccc; font-size:12.5px; }
+        .num, .r { text-align:right; }
+        tfoot td { padding:7px 4px; font-weight:600; }
+        tfoot tr.ps-tax td { border-top:1px solid #1a1a1a; }
+        tfoot tr.ps-total td { border-top:2px solid #1a1a1a; font-size:14px; }
+        .ps-addr { font-size:12px; color:#555; margin:4px 0; } .ps-badge { font-size:11px; color:#555; margin-bottom:18px; }
+        .ps-split { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:10px; }
+        .ps-split-box { border:1.5px solid #1a1a1a; padding:14px; }
+        .ps-split-box .ps-name { font-weight:700; font-size:13px; margin-bottom:6px; }
+        .ps-split-box .ps-total { font-size:19px; font-weight:700; }
+        .ps-split-box .ps-note { font-size:11px; color:#555; margin-top:4px; }
+        .gh-doc + .gh-doc { page-break-before: always; border-top: 2px dashed #bbb; margin-top: 34px; padding-top: 26px; }
+      </style></head><body>${partes.map((p) => `<div class="gh-doc">${p}</div>`).join('')}</body></html>`;
+  }
+
+  async function ghCompartirHTML(html, nombreArchivo, resumen) {
+    try {
+      const archivo = new File([html], nombreArchivo, { type: 'text/html' });
+      if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
+        await navigator.share({ files: [archivo], title: resumen, text: resumen });
+        return;
+      }
+    } catch (e) { if (e && e.name === 'AbortError') return; }
+    // Respaldo: descargar el archivo
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8;' }));
+    a.download = nombreArchivo; a.click(); URL.revokeObjectURL(a.href);
+    toast('Se descargó el archivo (este navegador no comparte directo)', 'info', 4000);
+  }
+
   const today = () => new Date().toISOString().slice(0, 10);
 
   // ============================================================
@@ -2302,6 +2523,48 @@
   let movMostrarTodasSemanas = false; // por defecto solo semanas recientes, para no saturar el libro
   const MOV_SEMANAS_LIMITE = 8;
 
+  // ---- Modo selección en Movimientos ----
+  const movSel = ghCrearSeleccion({
+    host: 'mov-sel-host',
+    contenedor: 'tbody-mov',
+    nombre: 'movimiento', plural: 'movimientos',
+    acciones: [
+      { id: 'deducible', texto: '✓ Deducible', fn: async (ids) => {
+          let n = 0;
+          ids.forEach((id) => {
+            const m = movimientos.find((x) => String(x.id) === id);
+            if (m && m.tipo === 'gasto') { m.deducible = true; n++; }
+          });
+          if (!n) { toast('Marca gastos para poder hacerlos deducibles', 'info'); return; }
+          await saveMov(); renderMovimientos();
+          toast(`${n} gasto(s) marcado(s) como deducible(s) ✓`);
+        } },
+      { id: 'csv', texto: '⬇ Exportar', fn: (ids) => {
+          const sel = ids.map((id) => movimientos.find((x) => String(x.id) === id)).filter(Boolean);
+          if (!sel.length) return;
+          const filas = [['Fecha','Tipo','Categoría','Descripción','Monto','Deducible']];
+          sel.forEach((m) => filas.push([
+            m.fecha || '', m.tipo === 'ingreso' ? 'Ingreso' : m.tipo === 'ajuste' ? 'Ajuste' : 'Gasto',
+            m.cat || '', m.desc || '', String(Number(m.monto) || 0),
+            m.tipo === 'gasto' ? (m.deducible ? 'Sí' : 'No') : ''
+          ]));
+          const csv = filas.map((f) => f.map((c) => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }));
+          a.download = `movimientos-${today()}.csv`; a.click(); URL.revokeObjectURL(a.href);
+          toast(`${sel.length} movimiento(s) exportado(s) ✓`);
+        } },
+      { id: 'borrar', texto: '🗑 Borrar', peligro: true, fn: async (ids) => {
+          if (!await gcConfirm(`¿Eliminar ${ids.length} movimiento(s)? Esta acción no se puede deshacer.`, { okText: 'Eliminar', danger: true })) return;
+          movimientos = movimientos.filter((m) => !ids.includes(String(m.id)));
+          await saveMov();
+          movSel.salir();
+          renderMovimientos(); renderReparto();
+          toast(`${ids.length} movimiento(s) eliminado(s)`, 'info');
+        } },
+    ],
+  });
+
   function renderMovimientos() {
     const tbody = $('tbody-mov');
     tbody.innerHTML = '';
@@ -2345,6 +2608,8 @@
 
       g.items.forEach((m) => {
         const tr = document.createElement('tr');
+        tr.className = 'sel-item';
+        tr.dataset.selid = String(m.id);
         const tipoLabel = m.tipo === 'ingreso' ? 'Ingreso' : m.tipo === 'ajuste' ? (m.ajusteDir === 'restar' ? '± Ajuste −' : '± Ajuste +') : 'Gasto';
         const tipoColor = m.tipo === 'ingreso' ? 'var(--income)' : m.tipo === 'ajuste' ? '#4A6FA8' : 'var(--expense)';
         tr.innerHTML = `
@@ -2362,6 +2627,8 @@
         tbody.appendChild(tr);
       });
     });
+
+    if (typeof movSel !== 'undefined' && movSel) movSel.refrescarTrasRedibujar();
 
     tbody.querySelectorAll('.gc-dup-mov').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -2676,6 +2943,8 @@
         return null; // este invoice viejo no tiene datos para un 3er+ socio
       });
       const tr = document.createElement('tr');
+      tr.className = 'sel-item';
+      tr.dataset.selid = String(idxInv);
       tr.innerHTML = `
         <td>${escapeHtml(inv.label || '')}</td>
         <td>${fechaGuardado}</td>
@@ -2745,7 +3014,41 @@
         toast('Invoice eliminado', 'info');
       });
     });
+    if (regSel) regSel.refrescarTrasRedibujar();
+    regSelOrden = sorted;   // para que las acciones sepan a qué invoice corresponde cada marca
   }
+
+  // ---- Modo selección en Registro → Invoices guardados ----
+  let regSelOrden = [];
+  const regSel = ghCrearSeleccion({
+    host: 'reg-sel-host',
+    contenedor: 'tbody-invoices-guardados',
+    nombre: 'invoice', plural: 'invoices',
+    acciones: [
+      { id: 'compartir', texto: '↗ Compartir', fn: async (ids) => {
+          const docs = ids.map((i) => regSelOrden[Number(i)]).filter(Boolean);
+          if (!docs.length) return;
+          const html = ghDocumentoCombinado(docs.map((d) => construirHTMLInvoice(d)), 'Invoices');
+          await ghCompartirHTML(html, `invoices-${docs.length}.html`, `${docs.length} invoice(s)`);
+        } },
+      { id: 'imprimir', texto: '🖨 Imprimir', fn: (ids) => {
+          const docs = ids.map((i) => regSelOrden[Number(i)]).filter(Boolean);
+          if (!docs.length) return;
+          ghImprimirEnVentana(docs.map((d) => `<div class="gh-doc">${construirHTMLInvoice(d)}</div>`).join(''), `Invoices (${docs.length})`);
+        } },
+      { id: 'borrar', texto: '🗑 Borrar', peligro: true, fn: async (ids) => {
+          const docs = ids.map((i) => regSelOrden[Number(i)]).filter(Boolean);
+          if (!docs.length) return;
+          if (!await gcConfirm(`¿Eliminar ${docs.length} invoice(s) guardado(s)? Esta acción no se puede deshacer.`, { okText: 'Eliminar', danger: true })) return;
+          invoicesGuardados = invoicesGuardados.filter((x) => !docs.includes(x));
+          saveInvoices();
+          regSel.salir();
+          renderInvoicesGuardados();
+          renderReparto();
+          toast(`${docs.length} invoice(s) eliminado(s)`, 'info');
+        } },
+    ],
+  });
 
   // ---- Total pagado por socio (suma de todos los invoices del año filtrado) ----
   function renderTotalPorSocio() {
@@ -5213,7 +5516,8 @@
       } else {
         citasDia.forEach((c) => {
           const job = document.createElement('div');
-          job.className = 'cal-job';
+          job.className = 'cal-job sel-item sel-card';
+          job.dataset.selid = c.id;
           const numFotos = c.numFotos || 0;
           const etiqueta = [c.jobNum, c.loc].filter(Boolean).join(' · ');
           job.innerHTML = `
@@ -5241,6 +5545,7 @@
       }
       wrap.appendChild(dia);
     }
+    if (typeof calSel !== 'undefined' && calSel) calSel.refrescarTrasRedibujar();
   }
 
   // ---- Comprimir foto antes de guardarla (misma idea que el logo, pero
@@ -5381,6 +5686,44 @@
     toast('Trabajo guardado ✓');
   });
 
+  // ---- Modo selección en Calendario ----
+  const calSel = ghCrearSeleccion({
+    host: 'cal-sel-host',
+    contenedor: 'cal-dias-wrap',
+    nombre: 'trabajo', plural: 'trabajos',
+    acciones: [
+      { id: 'ics', texto: '📅 Al Calendario', fn: (ids) => {
+          const sel = ids.map((id) => citas.find((c) => c.id === id)).filter(Boolean);
+          if (sel.length) calExportarICS(sel);
+        } },
+      { id: 'factura', texto: '🧾 A factura', fn: (ids) => {
+          const sel = ids.map((id) => citas.find((c) => c.id === id)).filter(Boolean);
+          if (!sel.length) return;
+          sel.forEach((c) => {
+            const tr = invCrearFila({ job: c.jobNum || '', location: c.loc || '', work: c.descripcion || '', dia: invDiaDeFecha(c.fecha) });
+            $('inv-tbody').appendChild(tr);
+          });
+          invRenumerar(); invCalcTotales();
+          if (!$('inv-cliente').value.trim()) {
+            const conCliente = sel.find((c) => c.cliente);
+            if (conCliente) $('inv-cliente').value = conCliente.cliente;
+          }
+          calSel.salir();
+          document.querySelector('.gc-tab[data-tab="facturas"]').click();
+          document.querySelector('.inv-subtab[data-sub="nueva"]').click();
+          toast(`${sel.length} trabajo(s) agregado(s) a la factura ✓`);
+        } },
+      { id: 'borrar', texto: '🗑 Borrar', peligro: true, fn: async (ids) => {
+          if (!await gcConfirm(`¿Borrar ${ids.length} trabajo(s) agendado(s)?`, { okText: 'Borrar', danger: true })) return;
+          citas = citas.filter((c) => !ids.includes(c.id));
+          await calGuardar();
+          calSel.salir();
+          calRender();
+          toast(`${ids.length} trabajo(s) borrado(s)`, 'info');
+        } },
+    ],
+  });
+
   $('cal-btn-prev').addEventListener('click', () => { calSemanaOffset--; calRender(); });
   $('cal-btn-next').addEventListener('click', () => { calSemanaOffset++; calRender(); });
 
@@ -5513,7 +5856,8 @@
     grid.innerHTML = '';
     filtrados.forEach((p) => {
       const card = document.createElement('div');
-      card.className = 'pln-card';
+      card.className = 'pln-card sel-item sel-card';
+      card.dataset.selid = p.id;
       card.innerHTML = `
         <div class="pln-card-foto-wrap">
           <div class="pln-card-foto">${p.portada ? `<img src="${p.portada}">` : PLN_ICONO_VACIO}</div>
@@ -5529,8 +5873,64 @@
     if (filtrados.length === 0 && planos.length > 0) {
       grid.innerHTML = `<div class="gc-empty" style="grid-column:1/-1;">Ningún plano coincide con "${escapeHtml(filtro)}".</div>`;
     }
+    if (typeof plnSel !== 'undefined' && plnSel) plnSel.refrescarTrasRedibujar();
   }
   $('pln-buscar').addEventListener('input', debounce(plnRender, 160));
+
+  // ---- Modo selección en Planos ----
+  const plnSel = ghCrearSeleccion({
+    host: 'pln-sel-host',
+    contenedor: 'pln-grid',
+    nombre: 'plano', plural: 'planos',
+    acciones: [
+      { id: 'compartir', texto: '↗ Compartir', fn: async (ids) => {
+          const sel = ids.map((id) => planos.find((p) => p.id === id)).filter(Boolean);
+          if (!sel.length) return;
+          // Comparte las fotos de los planos marcados (lo útil de un plano es la imagen)
+          const archivos = [];
+          for (const p of sel) {
+            const fotos = p.numFotos ? await plnCargarFotosDe(p.id) : [];
+            const base = (p.nombre || 'plano').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9-]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+            fotos.forEach((f, i) => {
+              const bin = atob(f.dataUrl.split(',')[1]);
+              const bytes = new Uint8Array(bin.length);
+              for (let k = 0; k < bin.length; k++) bytes[k] = bin.charCodeAt(k);
+              archivos.push(new File([bytes], `${base}-${i + 1}.jpg`, { type: 'image/jpeg' }));
+            });
+          }
+          if (!archivos.length) { toast('Esos planos no tienen fotos', 'info'); return; }
+          try {
+            if (navigator.canShare && navigator.canShare({ files: archivos })) {
+              await navigator.share({ files: archivos, title: `${sel.length} plano(s)` });
+              return;
+            }
+          } catch (e) { if (e && e.name === 'AbortError') return; }
+          archivos.forEach((f) => { const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name; a.click(); URL.revokeObjectURL(a.href); });
+          toast('Se descargaron las fotos', 'info', 4000);
+        } },
+      { id: 'imprimir', texto: '🖨 Imprimir', fn: async (ids) => {
+          const sel = ids.map((id) => planos.find((p) => p.id === id)).filter(Boolean);
+          const partes = [];
+          for (const p of sel) {
+            const fotos = p.numFotos ? await plnCargarFotosDe(p.id) : [];
+            partes.push(`<h1>${escapeHtml(p.nombre || '')}</h1>
+              <div class="ps-badge">${escapeHtml([p.constructor, p.fase].filter(Boolean).join(' · '))}</div>
+              ${fotos.map((f) => `<img src="${f.dataUrl}" style="width:100%;max-height:900px;object-fit:contain;margin-bottom:12px;">`).join('')}`);
+          }
+          if (!partes.length) { toast('Nada que imprimir', 'info'); return; }
+          ghImprimirEnVentana(partes.map((p) => `<div class="gh-doc">${p}</div>`).join(''), `Planos (${sel.length})`);
+        } },
+      { id: 'borrar', texto: '🗑 Borrar', peligro: true, fn: async (ids) => {
+          if (!await gcConfirm(`¿Borrar ${ids.length} plano(s)? Esta acción no se puede deshacer.`, { okText: 'Borrar', danger: true })) return;
+          planos = planos.filter((p) => !ids.includes(p.id));
+          await plnGuardar();
+          plnSel.salir();
+          plnRefreshDlConstructores();
+          plnRender(); plnRenderEditar();
+          toast(`${ids.length} plano(s) borrado(s)`, 'info');
+        } },
+    ],
+  });
 
   // ---- Editar / Borrar: lista aparte, con lápiz y ✕ ----
   function plnRenderEditar() {
@@ -6137,6 +6537,8 @@
 
     filtradas.forEach(inv => {
       const tr=document.createElement('tr');
+      tr.className = 'sel-item';
+      tr.dataset.selid = inv.id;
       const pagada = !!inv.pagada;
       tr.innerHTML=`
         <td style="font-family:'IBM Plex Mono',monospace;font-weight:600;">${escapeHtml(inv.numero||'')}</td>
@@ -6177,8 +6579,43 @@
         }
       });
     });
+    if (invSel) invSel.refrescarTrasRedibujar();
   }
   $('inv-buscar').addEventListener('input', debounce(invRenderLista, 160));
+
+  // ---- Modo selección en Facturas Guardadas ----
+  const invSel = ghCrearSeleccion({
+    host: 'inv-sel-host',
+    contenedor: 'inv-list-tbody',
+    nombre: 'factura', plural: 'facturas',
+    acciones: [
+      { id: 'compartir', texto: '↗ Compartir', fn: async (ids) => {
+          const docs = ids.map((id) => invDocs.find((i) => i.id === id)).filter(Boolean);
+          if (!docs.length) return;
+          const html = ghDocumentoCombinado(docs.map((d) => invBuildPrint(d)), 'Facturas');
+          await ghCompartirHTML(html, docs.length === 1 ? `invoice-${(docs[0].numero||'inv')}.html` : `facturas-${docs.length}.html`, `${docs.length} factura(s)`);
+        } },
+      { id: 'imprimir', texto: '🖨 Imprimir', fn: (ids) => {
+          const docs = ids.map((id) => invDocs.find((i) => i.id === id)).filter(Boolean);
+          if (!docs.length) return;
+          ghImprimirEnVentana(docs.map((d) => `<div class="gh-doc">${invBuildPrint(d)}</div>`).join(''), `Facturas (${docs.length})`);
+        } },
+      { id: 'pagada', texto: '✓ Pagada', fn: async (ids) => {
+          ids.forEach((id) => { const inv = invDocs.find((i) => i.id === id); if (inv) inv.pagada = true; });
+          await invSaveInv(); invRenderLista();
+          toast(`${ids.length} factura(s) marcada(s) como pagada(s) ✓`);
+        } },
+      { id: 'borrar', texto: '🗑 Borrar', peligro: true, fn: async (ids) => {
+          if (!await gcConfirm(`¿Eliminar ${ids.length} factura(s)? Esta acción no se puede deshacer.`, { okText: 'Eliminar', danger: true })) return;
+          invDocs = invDocs.filter((i) => !ids.includes(i.id));
+          await invSaveInv();
+          invSel.salir();
+          invRenderLista();
+          if (document.getElementById('cobros-tbody')) invRenderCobros();
+          toast(`${ids.length} factura(s) eliminada(s)`, 'info');
+        } },
+    ],
+  });
 
   // ---- Cobros por casa: cada trabajo de cada factura como un cobro individual ----
   function invRenderCobros() {
