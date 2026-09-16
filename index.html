@@ -1274,7 +1274,7 @@
       <p class="gc-card-title" data-i18n="trabajos">Trabajos</p>
       <div style="overflow-x:auto;margin-bottom:12px;">
         <table class="inv-tbl"><thead><tr>
-          <th style="width:36px;">#</th><th style="width:110px;">JOB #</th>
+          <th style="width:36px;">#</th><th style="width:112px;">DAY</th><th style="width:110px;">JOB #</th>
           <th style="width:220px;">JOB LOCATION</th><th>WORK PERFORMED</th>
           <th class="r" style="width:130px;">AMOUNT DUE</th><th style="width:40px;"></th>
         </tr></thead><tbody id="inv-tbody"></tbody></table>
@@ -1414,10 +1414,7 @@
   <div class="cal-modal-overlay" id="cal-modal" style="display:none;">
     <div class="cal-modal-box">
       <p class="gc-card-title" id="cal-modal-titulo">Nuevo trabajo</p>
-      <div class="gc-form-row">
-        <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="fecha">Fecha</label><input type="date" id="cal-f-fecha"></div>
-        <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="cal_hora_opcional">Hora (opcional)</label><input type="time" id="cal-f-hora"></div>
-      </div>
+      <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="fecha">Fecha</label><input type="date" id="cal-f-fecha"></div>
       <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="h_cliente">Cliente</label><input type="text" id="cal-f-cliente" list="dl-clientes" autocomplete="off"></div>
       <div class="gc-form-row">
         <div class="gc-field" style="margin-bottom:6px;"><label>Job #</label><input type="text" id="cal-f-job" placeholder="Job #" autocomplete="off"></div>
@@ -1426,8 +1423,7 @@
       <div style="text-align:right;margin-bottom:12px;">
         <a href="#" id="cal-f-nuevo-sitio" data-i18n="cal_nuevo_sitio" style="display:none;font-size:11px;color:var(--accent-dk);text-decoration:underline;">Es un sitio nuevo — limpiar estos datos</a>
       </div>
-      <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="cal_direccion_desc">Descripción del trabajo</label><input type="text" id="cal-f-desc" list="dl-trabajos" autocomplete="off"></div>
-      <div class="gc-field" style="margin-bottom:14px;"><label data-i18n="notas">Notas</label><input type="text" id="cal-f-notas" autocomplete="off"></div>
+      <div class="gc-field" style="margin-bottom:14px;"><label data-i18n="cal_work_performed">Work Performed</label><input type="text" id="cal-f-desc" list="dl-trabajos" autocomplete="off"></div>
       <div class="gc-field" style="margin-bottom:8px;">
         <label>Fotos del trabajo</label>
         <div id="cal-f-fotos-grid" class="cal-fotos-grid"></div>
@@ -1737,7 +1733,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v47 · 15 sep';
+  const APP_VERSION = 'v48 · 15 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -4300,6 +4296,7 @@
     cal_calendario_de_trabajos: {es:'Calendario de trabajos',en:'Work calendar'},
     cal_calendario_tab: {es:'Calendario',en:'Calendar'},
     cal_nuevo_sitio: {es:'Es un sitio nuevo — limpiar estos datos',en:'This is a new site — clear these fields'},
+    cal_work_performed: {es:'Work Performed',en:'Work Performed'},
     planos_tab: {es:'Planos',en:'Plans'},
     pln_planos_titulo: {es:'Planos',en:'Plans'},
     pln_agregar_plano: {es:'+ Agregar plano',en:'+ Add plan'},
@@ -4955,6 +4952,14 @@
     'Coil cleaning','Refrigerant recharge','Fan motor replacement'
   ];
   const invFmt = n => '$'+(Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  // Días en inglés para la columna DAY de la factura (el invoice siempre se ve en inglés)
+  const INV_DIAS_SEMANA = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  function invDiaDeFecha(fechaISO) {
+    if (!fechaISO) return '';
+    const [y, m, d] = fechaISO.split('-').map(Number);
+    const dow = new Date(y, m - 1, d).getDay(); // 0=domingo
+    return dow === 0 ? 'Sunday' : INV_DIAS_SEMANA[dow - 1];
+  }
 
   // ====================================================================
   // MÓDULO: CALENDARIO DE TRABAJOS (dentro de Facturas)
@@ -4978,15 +4983,6 @@
   function calFechaISO(d) {
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
-  function calFormatHora(hora) {
-    const partes = (hora || '').split(':');
-    if (partes.length < 2) return '';
-    const h = parseInt(partes[0], 10), m = partes[1];
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    const h12 = h % 12 === 0 ? 12 : h % 12;
-    return `${h12}:${m} ${ampm}`;
-  }
-
   async function calCargarDatos() {
     if (citasCargadas) return;
     citasCargadas = true;
@@ -5057,7 +5053,7 @@
     for (let i = 0; i < 7; i++) {
       const d = new Date(lunes.getFullYear(), lunes.getMonth(), lunes.getDate() + i);
       const iso = calFechaISO(d);
-      const citasDia = citas.filter((c) => c.fecha === iso).sort((a, b) => (a.hora || '99:99').localeCompare(b.hora || '99:99'));
+      const citasDia = citas.filter((c) => c.fecha === iso);
 
       const dia = document.createElement('div');
       dia.className = 'cal-dia';
@@ -5079,7 +5075,6 @@
           const numFotos = c.numFotos || 0;
           const etiqueta = [c.jobNum, c.loc].filter(Boolean).join(' · ');
           job.innerHTML = `
-            <div class="cal-job-time">${calFormatHora(c.hora)}</div>
             <div class="cal-job-body">
               <div class="cal-job-cliente">${escapeHtml(c.cliente || (idiomaActual() === 'en' ? I18N.cal_sin_cliente.en : '(sin cliente)'))}</div>
               <div class="cal-job-desc">${etiqueta ? escapeHtml(etiqueta) + ' — ' : ''}${escapeHtml(c.descripcion || '')}</div>
@@ -5181,7 +5176,6 @@
     calFotosActuales = [];
     $('cal-modal-titulo').textContent = idiomaActual() === 'en' ? (cita ? I18N.cal_editar_trabajo.en : I18N.cal_nuevo_trabajo.en) : (cita ? 'Editar trabajo' : 'Nuevo trabajo');
     $('cal-f-fecha').value = cita ? cita.fecha : (fechaPredeterminada || today());
-    $('cal-f-hora').value = cita ? (cita.hora || '') : '';
     // Trabajo nuevo: precarga Cliente/Job #/Colonia-Lote con lo último que
     // usaste (lo más común es seguir en el mismo sitio) — si cambiaste de
     // lugar, solo corrige estos tres campos o toca "Es un sitio nuevo".
@@ -5190,7 +5184,6 @@
     $('cal-f-job').value = cita ? (cita.jobNum || '') : (ultimo.jobNum || '');
     $('cal-f-loc').value = cita ? (cita.loc || '') : (ultimo.loc || '');
     $('cal-f-desc').value = cita ? (cita.descripcion || '') : '';
-    $('cal-f-notas').value = cita ? (cita.notas || '') : '';
     $('cal-f-nuevo-sitio').style.display = (!cita && (ultimo.jobNum || ultimo.loc || ultimo.cliente)) ? 'inline' : 'none';
     calRenderFotosGrid();
     $('cal-modal').style.display = 'flex';
@@ -5222,12 +5215,10 @@
     const fotos = calFotosActuales;
     const datos = {
       fecha,
-      hora: $('cal-f-hora').value || '',
       cliente: $('cal-f-cliente').value.trim(),
       jobNum: $('cal-f-job').value.trim(),
       loc: $('cal-f-loc').value.trim(),
       descripcion: $('cal-f-desc').value.trim(),
-      notas: $('cal-f-notas').value.trim(),
       numFotos: fotos.length,
       portada: fotos.length ? await calMiniPortada(fotos[0].dataUrl).catch(() => null) : null
     };
@@ -5262,21 +5253,12 @@
       const uid = (c.id || ('cita_' + Date.now())) + '@guzmanhvac.app';
       const prefijo = c.jobNum ? `[${c.jobNum}] ` : '';
       const titulo = calICSEscape(prefijo + (c.cliente ? `${c.cliente}${c.descripcion ? ' — ' + c.descripcion : ''}` : (c.descripcion || 'Trabajo')));
-      const notas = calICSEscape(c.notas || '');
       const [y, m, d] = c.fecha.split('-');
       ics += 'BEGIN:VEVENT\r\n';
       ics += `UID:${uid}\r\n`;
       ics += `SUMMARY:${titulo}\r\n`;
       if (c.loc) ics += `LOCATION:${calICSEscape(c.loc)}\r\n`;
-      if (notas) ics += `DESCRIPTION:${notas}\r\n`;
-      if (c.hora) {
-        const [hh, mm] = c.hora.split(':');
-        const finH = String((parseInt(hh, 10) + 1) % 24).padStart(2, '0');
-        ics += `DTSTART:${y}${m}${d}T${hh}${mm}00\r\n`;
-        ics += `DTEND:${y}${m}${d}T${finH}${mm}00\r\n`;
-      } else {
-        ics += `DTSTART;VALUE=DATE:${y}${m}${d}\r\n`;
-      }
+      ics += `DTSTART;VALUE=DATE:${y}${m}${d}\r\n`;
       ics += `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z\r\n`;
       ics += 'END:VEVENT\r\n';
     });
@@ -5572,6 +5554,12 @@
 
     const numTd = mkTd(); numTd.className='inv-num-c'; numTd.textContent=invFilaC; tr.appendChild(numTd);
 
+    const diaTd = mkTd();
+    const diaSel = document.createElement('select');
+    diaSel.className = 'inv-dia';
+    diaSel.innerHTML = '<option value="">—</option>' + INV_DIAS_SEMANA.map((d) => `<option value="${d}"${item.dia === d ? ' selected' : ''}>${d}</option>`).join('');
+    diaTd.appendChild(diaSel); tr.appendChild(diaTd);
+
     const jobTd=mkTd(); const jobIn=mkIn('inv-job','Job #',item.job); jobTd.appendChild(jobIn); tr.appendChild(jobTd);
     const locTd=mkTd();
     const locDl=document.createElement('datalist'); locDl.className='dl-colonias-row'; locDl.id='dl-col-'+invFilaC;
@@ -5621,7 +5609,7 @@
       return;
     }
     citasSemana.forEach((c) => {
-      const tr = invCrearFila({ job: c.jobNum || '', location: c.loc || '', work: c.descripcion || '' });
+      const tr = invCrearFila({ job: c.jobNum || '', location: c.loc || '', work: c.descripcion || '', dia: invDiaDeFecha(c.fecha) });
       $('inv-tbody').appendChild(tr);
     });
     invRenumerar();
@@ -5659,7 +5647,6 @@
     $('inv-notas').value = '';
     $('inv-tax').value = '0';
     $('inv-tbody').innerHTML = '';
-    for (let i=0;i<3;i++) $('inv-tbody').appendChild(invCrearFila());
     invRenumerar(); invCalcTotales();
   }
   $('inv-btn-limpiar').addEventListener('click', invLimpiar);
@@ -5673,7 +5660,8 @@
       const loc = tr.querySelector('.inv-loc').value;
       const work = tr.querySelector('.inv-work').value.trim();
       const amt = parseFloat((tr.querySelector('.inv-amt').value||'0').replace(',','.'))||0;
-      if (job||loc||work||amt) items.push({job,location:loc,work,amount:amt});
+      const dia = tr.querySelector('.inv-dia').value;
+      if (job||loc||work||amt) items.push({job,location:loc,work,amount:amt,dia});
     });
     if (!items.length) { toast('Agrega al menos un trabajo', 'error'); return; }
     const tots = invCalcTotales();
@@ -5715,6 +5703,7 @@
   function invBuildPrint(inv) {
     const rows = (inv.items||[]).map((it,i) => `<tr style="background:${i%2?'#F7F9FC':'#fff'};">
       <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;color:#8A93A6;font-size:11.5px;">${i+1}</td>
+      <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;font-size:11.5px;color:#5C6B85;">${escapeHtml(it.dia||'')}</td>
       <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;">${escapeHtml(it.job||'')}</td>
       <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;">${escapeHtml(it.location||'')}</td>
       <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;">${escapeHtml(it.work||'')}</td>
@@ -5747,6 +5736,7 @@
       <table style="width:100%;border-collapse:collapse;margin-bottom:18px;font-size:12.5px;">
         <thead><tr style="background:#0E1830;">
           <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.62);text-transform:uppercase;letter-spacing:.5px;width:30px;">#</th>
+          <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.5px;width:82px;">Day</th>
           <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.92);text-transform:uppercase;letter-spacing:.5px;width:100px;">Job #</th>
           <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.92);text-transform:uppercase;letter-spacing:.5px;width:190px;">Job Location</th>
           <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.92);text-transform:uppercase;letter-spacing:.5px;">Work Performed</th>
@@ -5779,7 +5769,8 @@
       const loc=tr.querySelector('.inv-loc').value;
       const work=tr.querySelector('.inv-work').value.trim();
       const amt=parseFloat((tr.querySelector('.inv-amt').value||'0').replace(',','.'))||0;
-      if(job||loc||work||amt) items.push({job,location:loc,work,amount:amt});
+      const dia=tr.querySelector('.inv-dia').value;
+      if(job||loc||work||amt) items.push({job,location:loc,work,amount:amt,dia});
     });
     const tots=invCalcTotales();
     invMostrarVista({numero:$('inv-num').value||'---',fecha:$('inv-fecha').value,cliente:$('inv-cliente').value,direccionEmisor:$('inv-direccion-emisor').value,notas:$('inv-notas').value,items,...tots});
@@ -6044,7 +6035,6 @@
           invRefreshDlClientes(); invRefreshDlTrabajos(); invRefreshDlColonias();
           $('inv-fecha').value = invToday();
           $('inv-tbody').innerHTML='';
-          for(let i=0;i<3;i++) $('inv-tbody').appendChild(invCrearFila());
           invRenumerar(); invCalcTotales();
         }
       });
