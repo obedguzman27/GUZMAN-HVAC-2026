@@ -1810,7 +1810,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v51 · 16 sep';
+  const APP_VERSION = 'v52 · 16 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -2663,8 +2663,8 @@
       filaEnc.innerHTML = `<th data-i18n="h_semana">Semana</th><th data-i18n="h_guardado">Guardado</th><th class="num" data-i18n="h_gastos">Gastos</th>${listaSocios.map((s) => `<th class="num">${escapeHtml(s.nombre)}</th>`).join('')}<th></th>`;
     }
 
-    sorted.forEach((inv) => {
-      const idInv = inv.id || inv.key;
+    sorted.forEach((inv, idxInv) => {
+      const idInv = idxInv; // posición en la lista: siempre existe, aunque el invoice viejo no traiga id/key
       const fechaGuardado = inv.guardadoEn ? new Date(inv.guardadoEn).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }) : '';
       // Montos por socio: usa inv.pagos (invoices nuevos) si coincide en cantidad;
       // si no, usa los campos viejos pagoCra/pagoGuzman como respaldo.
@@ -2687,14 +2687,20 @@
 
     tbody.querySelectorAll('.gc-ver-invoice-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const inv = invoicesGuardados.find((i) =>String(i.id || i.key) === btn.dataset.id);
-        if (inv) mostrarVistaImpresion(inv);
+        const inv = sorted[Number(btn.dataset.id)];
+        if (!inv) { toast('No se pudo abrir este invoice', 'error'); return; }
+        try {
+          mostrarVistaImpresion(inv);
+        } catch (e) {
+          // Nunca dejar el botón "mudo": si algo truena al armar la vista, avisar.
+          toast('No se pudo mostrar el invoice: ' + (e && e.message ? e.message : e), 'error', 5000);
+        }
       });
     });
 
     tbody.querySelectorAll('.gc-reabrir-invoice-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
-        const inv = invoicesGuardados.find((i) =>String(i.id || i.key) === btn.dataset.id);
+        const inv = sorted[Number(btn.dataset.id)];
         if (!inv) return;
         const ok = await gcConfirm(`¿Reabrir el invoice de "${inv.label}"?\n\nLos movimientos volverán a la hoja de Movimientos para que los edites (agregar lo que faltó cobrar, corregir montos, etc). El invoice guardado se quita de la lista y luego lo vuelves a guardar cuando termines.`, { okText: 'Reabrir' });
         if (!ok) return;
@@ -2712,7 +2718,7 @@
         }
 
         movimientos.push(...movsReabiertos);
-        invoicesGuardados = invoicesGuardados.filter((i) =>String(i.id || i.key) !== btn.dataset.id);
+        invoicesGuardados = invoicesGuardados.filter((x) => x !== inv);
         saveMov();
         saveInvoices();
         renderMovimientos();
@@ -2726,8 +2732,12 @@
 
     tbody.querySelectorAll('.gc-del').forEach((btn) => {
       btn.addEventListener('click', async () => {
+        const inv = sorted[Number(btn.dataset.id)];
+        if (!inv) { toast('No se pudo identificar este invoice', 'error'); return; }
         if (!await gcConfirm('¿Eliminar este invoice guardado? Esta acción no se puede deshacer.', { okText: 'Eliminar', danger: true })) return;
-        invoicesGuardados = invoicesGuardados.filter((inv) =>String(inv.id || inv.key) !== btn.dataset.id);
+        // Quita exactamente ese invoice (por referencia), no por id — así
+        // funciona igual con invoices viejos que no traen id ni key.
+        invoicesGuardados = invoicesGuardados.filter((x) => x !== inv);
         saveInvoices();
         renderInvoicesGuardados();
         renderReparto();
@@ -3228,7 +3238,7 @@
       $('btn-enviar-desde-modal').click();
       return;
     }
-    imprimirContenido(construirHTMLInvoice(invoiceEnVista), `Invoice ${invoiceEnVista.label || ''}`);
+    ghImprimirEnVentana(construirHTMLInvoice(invoiceEnVista), `Invoice ${invoiceEnVista.label || ''}`);
   });
 
   $('btn-enviar-desde-modal').addEventListener('click', async () => {
@@ -5995,21 +6005,55 @@
     return window.navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
   }
 
+  // Imprime en una ventana aparte, con su propio estilo — no depende del CSS
+  // de la app ni de #print-area, que es lo que causaba la hoja en blanco.
+  function ghImprimirEnVentana(htmlCuerpo, titulo) {
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHtml(titulo || 'Invoice')}</title>
+      <style>
+        @page { margin: 14mm; }
+        body { font-family: Arial, Helvetica, sans-serif; color:#1a1a1a; margin:0; padding:24px; max-width:820px; }
+        table { width:100%; border-collapse:collapse; }
+        h1 { font-size:21px; margin:0; }
+        h2 { font-size:13.5px; text-transform:uppercase; letter-spacing:.5px; color:#1B2A4A; border-bottom:1px solid #1B2A4A; padding-bottom:4px; margin:22px 0 8px; }
+        .ps-addr { font-size:12px; color:#555; margin:4px 0; }
+        .ps-badge { font-size:11px; color:#555; margin-bottom:18px; }
+        th { text-align:left; border-bottom:1.5px solid #1a1a1a; padding:6px 4px; font-size:10.5px; text-transform:uppercase; }
+        td { padding:6px 4px; border-bottom:1px solid #ccc; font-size:12.5px; }
+        .num { text-align:right; }
+        tfoot td { padding:7px 4px; font-weight:600; }
+        tfoot tr.ps-tax td { border-top:1px solid #1a1a1a; }
+        tfoot tr.ps-total td { border-top:2px solid #1a1a1a; font-size:14px; }
+        .ps-split { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:10px; }
+        .ps-split-box { border:1.5px solid #1a1a1a; padding:14px; }
+        .ps-split-box .ps-name { font-weight:700; font-size:13px; margin-bottom:6px; }
+        .ps-split-box .ps-total { font-size:19px; font-weight:700; }
+        .ps-split-box .ps-note { font-size:11px; color:#555; margin-top:4px; }
+      </style></head><body>${htmlCuerpo}</body></html>`;
+    const win = window.open('', '_blank');
+    if (!win) {
+      toast('El navegador bloqueó la ventana de impresión — permite ventanas emergentes, o usa Descargar.', 'error', 5000);
+      return;
+    }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+    // Espera a que la ventana termine de armar el contenido antes de imprimir
+    // (si se llama de inmediato, sale en blanco).
+    win.onload = () => { win.focus(); win.print(); };
+    setTimeout(() => { try { win.focus(); win.print(); } catch (e) {} }, 500);
+  }
+
   $('inv-btn-imprimir').addEventListener('click', async () => {
     if (!invEnVista) return;
-    // En una app instalada en el iPhone (modo standalone), window.print() de
-    // Safari casi siempre sale con la hoja en blanco — es una limitación
-    // conocida de iOS, no algo que se pueda arreglar desde el código de la
-    // app. En ese caso usamos el mismo botón de compartir, que en iOS sí
-    // trae la opción de Imprimir (AirPrint) dentro del menú.
+    // En la app instalada en iPhone no se pueden abrir ventanas nuevas ni
+    // imprimir directo (limitación de iOS) — ahí el menú de compartir sí
+    // trae Imprimir (AirPrint).
     if (ghEsStandalone() && navigator.share) {
       toast('Se abrirá para compartir — elige "Imprimir" en el menú.', 'info', 3500);
       $('inv-btn-enviar').click();
       return;
     }
-    document.getElementById('print-area').innerHTML = `<div class="gc-print-sheet">${invBuildPrint(invEnVista)}</div>`;
-    window.print();
-    setTimeout(() => { document.getElementById('print-area').innerHTML=''; }, 600);
+    ghImprimirEnVentana(invBuildPrint(invEnVista), `Invoice ${invEnVista.numero || ''}`);
   });
 
   $('inv-btn-descargar').addEventListener('click', () => {
