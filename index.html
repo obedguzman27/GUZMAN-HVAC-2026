@@ -1811,7 +1811,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v54 · 16 sep';
+  const APP_VERSION = 'v55 · 16 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -4959,10 +4959,28 @@
   $('btn-eliminar-empleado').addEventListener('click', async () => {
     if (!empIdActual) return;
     if (!await gcConfirm('¿Eliminar este empleado? Esta acción no se puede deshacer.', { okText: 'Eliminar', danger: true })) return;
-    empleados = empleados.filter((e) => e.id !== empIdActual);
-    await saveEmpleados();
-    renderEmpleados();
-    $('emp-modal').style.display = 'none';
+    const respaldo = empleados.slice();           // por si el guardado falla
+    const idBorrado = empIdActual;
+    empleados = empleados.filter((e) => e.id !== idBorrado);
+    try {
+      await saveEmpleados();
+      // Confirmar que de verdad quedó guardado: si el guardado falla en
+      // silencio (sin internet, error del servidor), el empleado "revive"
+      // al recargar. Mejor avisar aquí que dejar creer que se borró.
+      const r = await window.storage.get(STORAGE_EMPLEADOS).catch(() => null);
+      let guardados = null;
+      try { guardados = JSON.parse(r.value); } catch (e) { guardados = null; }
+      if (Array.isArray(guardados) && guardados.some((e) => e.id === idBorrado)) {
+        throw new Error('el servidor no aceptó el cambio');
+      }
+      renderEmpleados();
+      $('emp-modal').style.display = 'none';
+      toast('Empleado eliminado ✓', 'success');
+    } catch (err) {
+      empleados = respaldo;                        // deshacer en pantalla
+      renderEmpleados();
+      toast('No se pudo eliminar (' + (err && err.message ? err.message : err) + '). Revisa tu conexión e intenta otra vez.', 'error', 6000);
+    }
   });
 
   // ---- Tabs del modal ----
