@@ -1811,7 +1811,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v53 · 16 sep';
+  const APP_VERSION = 'v54 · 16 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -6353,6 +6353,16 @@
       cambiaron = true;
     });
     if (cambiaron) await saveEmpleados();
+    // Esta migración debe correr UNA sola vez: si la lista vieja se queda
+    // guardada, cada vez que se abre Nómina vuelve a copiar esos nombres —
+    // y un empleado que borraste "revive" solo. Por eso, una vez copiada,
+    // se borra la lista vieja.
+    try {
+      if (window.storage.delete) await window.storage.delete(TRAB_NOM_KEY_VIEJO);
+      else await window.storage.set(TRAB_NOM_KEY_VIEJO, '[]');
+    } catch (e) {
+      try { await window.storage.set(TRAB_NOM_KEY_VIEJO, '[]'); } catch (e2) {}
+    }
   }
 
   // Sub-tabs
