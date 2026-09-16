@@ -176,6 +176,7 @@
   .gc-type-btn.active[data-type="gasto"] { background: var(--ember); border-color: var(--ember); color: #fff; box-shadow: 0 4px 12px rgba(198,85,30,.25); }
   .gc-type-btn.active[data-type="ajuste"] { background: var(--blue); border-color: var(--blue); color: #fff; box-shadow: 0 4px 12px rgba(79,111,168,.25); }
   .gc-type-btn:active { transform: scale(.96); }
+  .pln-fase-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,.18); }
   .gc-form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 14px; }
   .gc-form-row.wide { grid-template-columns: 1fr; }
   .gc-field label { display: block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-bottom: 6px; }
@@ -493,6 +494,14 @@
   .cal-job-foto-count { font-size: 10.5px; font-weight: 700; color: var(--muted); background: #F0F3FA; border-radius: 6px; padding: 0 6px; display: flex; align-items: center; }
 
   /* ── Planos ─────────────────────────────── */
+  .pln-subnav{display:flex;gap:0;background:var(--card);border:1px solid var(--border-soft);border-radius:var(--r);overflow:hidden;margin-bottom:20px;box-shadow:var(--shadow-sm);}
+  .pln-subtab{flex:1;padding:12px 16px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--muted);background:none;border:none;cursor:pointer;transition:all .16s var(--ease);border-right:1px solid var(--border-soft);}
+  .pln-subtab:last-child{border-right:none;}
+  .pln-subtab:hover{background:#F5F7FC;color:var(--ink);}
+  .pln-subtab.active{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;}
+  .pln-subtab:active{transform:scale(.97);}
+  .pln-subpanel{display:none;}
+  .pln-subpanel.active{display:block;}
   .pln-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
   .pln-card { border: 1px solid var(--border-soft); border-radius: var(--r-sm); overflow: hidden; background: #fff; cursor: pointer; transition: box-shadow .16s var(--ease), transform .16s var(--ease); }
   .pln-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
@@ -503,9 +512,34 @@
   .pln-card-body { padding: 10px 12px 12px; }
   .pln-card-nombre { font-size: 12.5px; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pln-card-constructor { font-size: 11px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pln-card-fase { display:inline-block; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .3px; color: var(--blue); background: var(--blue-bg); border-radius: 6px; padding: 1px 6px; margin-top: 4px; }
   .pln-card-fotos-n { font-size: 10px; color: var(--muted-soft); margin-top: 4px; }
-  .pln-card-del { position: absolute; margin: 6px; top: 0; right: 0; width: 24px; height: 24px; border-radius: 50%; border: none; background: rgba(14,24,48,.68); color: #fff; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
   .pln-card-foto-wrap { position: relative; }
+  /* Lista para editar/borrar */
+  .pln-edit-row { display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-bottom: 1px solid var(--border-soft); }
+  .pln-edit-row:last-child { border-bottom: none; }
+  .pln-edit-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: #F0F3FA; flex-shrink: 0; }
+  .pln-edit-thumb-vacio { width: 48px; height: 48px; border-radius: 8px; background: #F0F3FA; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--muted-soft); }
+  .pln-edit-body { flex: 1; min-width: 0; }
+  .pln-edit-nombre { font-size: 13px; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pln-edit-constructor { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pln-edit-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .pln-edit-btn { background: none; border: none; cursor: pointer; font-size: 15px; padding: 8px; border-radius: 8px; transition: background .15s var(--ease); }
+  .pln-edit-btn:hover { background: #F0F3FA; }
+  .pln-edit-btn:active { transform: scale(.9); }
+  /* Visor de fotos a pantalla completa */
+  .pln-viewer-overlay { position: fixed; inset: 0; z-index: 9500; background: rgba(8,13,26,.94); display: flex; flex-direction: column; }
+  .pln-viewer-top { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; color: #fff; }
+  .pln-viewer-titulo { font-size: 13.5px; font-weight: 700; }
+  .pln-viewer-sub { font-size: 11.5px; color: rgba(255,255,255,.6); }
+  .pln-viewer-cerrar { background: rgba(255,255,255,.12); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .pln-viewer-img-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 10px; min-height: 0; position: relative; }
+  .pln-viewer-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px; }
+  .pln-viewer-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,.14); border: none; color: #fff; width: 38px; height: 38px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .pln-viewer-nav.izq { left: 10px; } .pln-viewer-nav.der { right: 10px; }
+  .pln-viewer-dots { display: flex; justify-content: center; gap: 6px; padding: 12px; }
+  .pln-viewer-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.35); }
+  .pln-viewer-dot.on { background: #fff; }
   .inv-tbl{width:100%;border-collapse:collapse;}
   .inv-tbl thead tr{background:var(--navy);}
   .inv-tbl th{padding:11px 10px;text-align:left;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.85);}
@@ -1416,10 +1450,8 @@
       <p class="gc-card-title" id="cal-modal-titulo">Nuevo trabajo</p>
       <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="fecha">Fecha</label><input type="date" id="cal-f-fecha"></div>
       <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="h_cliente">Cliente</label><input type="text" id="cal-f-cliente" list="dl-clientes" autocomplete="off"></div>
-      <div class="gc-form-row">
-        <div class="gc-field" style="margin-bottom:6px;"><label>Job #</label><input type="text" id="cal-f-job" placeholder="Job #" autocomplete="off"></div>
-        <div class="gc-field" style="margin-bottom:6px;"><label>Colonia / Lote</label><input type="text" id="cal-f-loc" list="dl-colonias" placeholder="Colonia + lote" autocomplete="off"></div>
-      </div>
+      <div class="gc-field" style="margin-bottom:12px;"><label>Job #</label><input type="text" id="cal-f-job" placeholder="Job #" autocomplete="off"></div>
+      <div class="gc-field" style="margin-bottom:6px;"><label>Colonia / Lote</label><input type="text" id="cal-f-loc" list="dl-colonias" placeholder="Colonia + lote" autocomplete="off"></div>
       <div style="text-align:right;margin-bottom:12px;">
         <a href="#" id="cal-f-nuevo-sitio" data-i18n="cal_nuevo_sitio" style="display:none;font-size:11px;color:var(--accent-dk);text-decoration:underline;">Es un sitio nuevo — limpiar estos datos</a>
       </div>
@@ -1443,25 +1475,60 @@
 
   <!-- ===== PLANOS ===== -->
   <div class="gc-panel" id="panel-planos">
-    <div class="gc-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:4px;">
-        <p class="gc-card-title" data-i18n="pln_planos_titulo" style="margin:0;">Planos</p>
-        <button type="button" class="gc-save-btn" data-i18n="pln_agregar_plano" id="pln-btn-nuevo" style="padding:8px 16px;font-size:13px;">+ Agregar plano</button>
-      </div>
-      <p style="font-size:11.5px;color:var(--muted);margin:6px 0 16px;">Guarda fotos de planos con el nombre del plano y el constructor, para encontrarlos rápido después.</p>
-      <input type="text" id="pln-buscar" placeholder="Buscar por nombre de plano o constructor…" autocomplete="off"
-        style="width:100%;font-family:'Inter',sans-serif;font-size:13.5px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);margin-bottom:16px;box-sizing:border-box;">
-      <div class="gc-empty" id="pln-empty" style="display:none;">No hay planos guardados todavía. Toca "+ Agregar plano" para subir el primero.</div>
-      <div id="pln-grid" class="pln-grid"></div>
+    <div class="pln-subnav">
+      <button class="pln-subtab active" data-i18n="pln_ver_planos" data-psub="ver">Ver planos</button>
+      <button class="pln-subtab" data-i18n="pln_editar_borrar" data-psub="editar">Editar / Borrar</button>
     </div>
+
+    <!-- Ver planos: tocar una tarjeta abre la foto en grande -->
+    <div class="pln-subpanel active" id="pln-sub-ver">
+      <div class="gc-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:4px;">
+          <p class="gc-card-title" data-i18n="pln_planos_titulo" style="margin:0;">Planos</p>
+          <button type="button" class="gc-save-btn" data-i18n="pln_agregar_plano" id="pln-btn-nuevo" style="padding:8px 16px;font-size:13px;">+ Agregar plano</button>
+        </div>
+        <p style="font-size:11.5px;color:var(--muted);margin:6px 0 16px;">Toca un plano para ver la foto en grande. Para editar o borrar, ve a la pestaña "Editar / Borrar".</p>
+        <input type="text" id="pln-buscar" placeholder="Buscar por nombre de plano o constructor…" autocomplete="off"
+          style="width:100%;font-family:'Inter',sans-serif;font-size:13.5px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);margin-bottom:16px;box-sizing:border-box;">
+        <div class="gc-empty" id="pln-empty" style="display:none;">No hay planos guardados todavía. Toca "+ Agregar plano" para subir el primero.</div>
+        <div id="pln-grid" class="pln-grid"></div>
+      </div>
+    </div>
+
+    <!-- Editar / Borrar: lista aparte, para no borrar por accidente al solo ver -->
+    <div class="pln-subpanel" id="pln-sub-editar">
+      <div class="gc-card">
+        <p class="gc-card-title" data-i18n="pln_editar_o_borrar_planos" style="margin-bottom:4px;">Editar o borrar planos</p>
+        <p style="font-size:11.5px;color:var(--muted);margin:6px 0 16px;">Toca el lápiz para editar un plano, o la ✕ para borrarlo.</p>
+        <input type="text" id="pln-buscar-editar" placeholder="Buscar por nombre de plano o constructor…" autocomplete="off"
+          style="width:100%;font-family:'Inter',sans-serif;font-size:13.5px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);margin-bottom:16px;box-sizing:border-box;">
+        <div class="gc-empty" id="pln-empty-editar" style="display:none;">No hay planos guardados todavía.</div>
+        <div id="pln-lista-editar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Visor de fotos del plano (a pantalla completa) -->
+  <div class="pln-viewer-overlay" id="pln-viewer" style="display:none;">
+    <div class="pln-viewer-top">
+      <div>
+        <div class="pln-viewer-titulo" id="pln-viewer-titulo"></div>
+        <div class="pln-viewer-sub" id="pln-viewer-sub"></div>
+      </div>
+      <button type="button" class="pln-viewer-cerrar" id="pln-viewer-cerrar">✕</button>
+    </div>
+    <div class="pln-viewer-img-wrap">
+      <button type="button" class="pln-viewer-nav izq" id="pln-viewer-prev" style="display:none;">‹</button>
+      <img id="pln-viewer-img" src="">
+      <button type="button" class="pln-viewer-nav der" id="pln-viewer-next" style="display:none;">›</button>
+    </div>
+    <div class="pln-viewer-dots" id="pln-viewer-dots"></div>
   </div>
 
   <!-- Modal: nuevo/editar plano -->
   <div class="cal-modal-overlay" id="pln-modal" style="display:none;">
     <div class="cal-modal-box">
       <p class="gc-card-title" id="pln-modal-titulo">Nuevo plano</p>
-      <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="pln_nombre_del_plano">Nombre del plano</label><input type="text" id="pln-f-nombre" placeholder="Ej. Plan 2140 — elevación B" autocomplete="off"></div>
-      <div class="gc-field" style="margin-bottom:14px;"><label data-i18n="pln_constructor">Constructor</label><input type="text" id="pln-f-constructor" list="dl-planos-constructores" placeholder="Nombre del constructor" autocomplete="off"></div>
       <div class="gc-field" style="margin-bottom:8px;">
         <label data-i18n="pln_fotos_del_plano">Fotos del plano</label>
         <div id="pln-f-fotos-grid" class="cal-fotos-grid"></div>
@@ -1470,7 +1537,16 @@
           Tomar foto / subir imagen
         </label>
         <input type="file" id="pln-f-fotos-input" accept="image/*" multiple style="display:none;">
-        <p style="font-size:10.5px;color:var(--muted-soft);margin-top:6px;">Se guardan comprimidas — mejor unas cuantas fotos claras del plano que muchas.</p>
+        <p style="font-size:10.5px;color:var(--muted-soft);margin-top:6px;margin-bottom:14px;">Sube la foto primero — así puedes verla mientras escribes el nombre y el constructor.</p>
+      </div>
+      <div class="gc-field" style="margin-bottom:12px;"><label data-i18n="pln_nombre_del_plano">Nombre del plano</label><input type="text" id="pln-f-nombre" placeholder="Ej. Plan 2140 — elevación B" autocomplete="off"></div>
+      <div class="gc-field" style="margin-bottom:14px;"><label data-i18n="pln_constructor">Constructor</label><input type="text" id="pln-f-constructor" list="dl-planos-constructores" placeholder="Nombre del constructor" autocomplete="off"></div>
+      <div class="gc-field" style="margin-bottom:14px;">
+        <label data-i18n="pln_etapa">Etapa</label>
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="gc-type-btn pln-fase-btn" data-fase="Trim" style="flex:1;">Trim</button>
+          <button type="button" class="gc-type-btn pln-fase-btn" data-fase="Rough In" style="flex:1;">Rough In</button>
+        </div>
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;">
         <button type="button" class="gc-action-btn" data-i18n="cancelar" id="pln-modal-cancelar">Cancelar</button>
@@ -1733,7 +1809,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v48 · 15 sep';
+  const APP_VERSION = 'v49 · 15 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -4305,6 +4381,10 @@
     pln_fotos_del_plano: {es:'Fotos del plano',en:'Plan photos'},
     pln_nuevo_plano: {es:'Nuevo plano',en:'New plan'},
     pln_editar_plano: {es:'Editar plano',en:'Edit plan'},
+    pln_ver_planos: {es:'Ver planos',en:'View plans'},
+    pln_editar_borrar: {es:'Editar / Borrar',en:'Edit / Delete'},
+    pln_etapa: {es:'Etapa',en:'Stage'},
+    pln_editar_o_borrar_planos: {es:'Editar o borrar planos',en:'Edit or delete plans'},
     t_escribe_el_nombre_del_plano: {es:'Escribe el nombre del plano',en:'Enter the plan name'},
     t_plano_guardado: {es:'Plano guardado ✓',en:'Plan saved ✓'},
     t_borrar_este_plano: {es:'¿Borrar este plano?',en:'Delete this plan?'},
@@ -5316,6 +5396,7 @@
     }
     if (huboMigracion) { try { await plnGuardar(); } catch (e) {} }
     plnRender();
+    plnRenderEditar();
   }
   async function plnGuardar() {
     const liviano = planos.map((p) => { const { fotos, ...resto } = p; return resto; });
@@ -5355,6 +5436,7 @@
 
   const PLN_ICONO_VACIO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5-9 9"/></svg>`;
 
+  // ---- Ver planos: cuadrícula, tocar abre el visor de fotos ----
   function plnRender() {
     if (!$('pln-grid')) return;
     const filtro = ($('pln-buscar').value || '').trim().toLowerCase();
@@ -5372,23 +5454,14 @@
       card.className = 'pln-card';
       card.innerHTML = `
         <div class="pln-card-foto-wrap">
-          <button type="button" class="pln-card-del" title="Borrar">✕</button>
           <div class="pln-card-foto">${p.portada ? `<img src="${p.portada}">` : PLN_ICONO_VACIO}</div>
         </div>
         <div class="pln-card-body">
           <div class="pln-card-nombre">${escapeHtml(p.nombre || '(sin nombre)')}</div>
           <div class="pln-card-constructor">${escapeHtml(p.constructor || '')}</div>
-          ${p.numFotos ? `<div class="pln-card-fotos-n">${p.numFotos} foto${p.numFotos === 1 ? '' : 's'}</div>` : ''}
+          ${p.fase ? `<span class="pln-card-fase">${escapeHtml(p.fase)}</span>` : ''}
         </div>`;
-      card.addEventListener('click', () => plnAbrirModal(p));
-      card.querySelector('.pln-card-del').addEventListener('click', async (e) => {
-        e.stopPropagation();
-        if (!(await gcConfirm(idiomaActual() === 'en' ? I18N.t_borrar_este_plano.en : '¿Borrar este plano?', { okText: idiomaActual() === 'en' ? 'Delete' : 'Borrar', danger: true }))) return;
-        planos = planos.filter((x) => x.id !== p.id);
-        await plnGuardar();
-        plnRefreshDlConstructores();
-        plnRender();
-      });
+      card.addEventListener('click', () => plnAbrirVisor(p));
       grid.appendChild(card);
     });
     if (filtrados.length === 0 && planos.length > 0) {
@@ -5396,6 +5469,90 @@
     }
   }
   $('pln-buscar').addEventListener('input', debounce(plnRender, 160));
+
+  // ---- Editar / Borrar: lista aparte, con lápiz y ✕ ----
+  function plnRenderEditar() {
+    if (!$('pln-lista-editar')) return;
+    const filtro = ($('pln-buscar-editar').value || '').trim().toLowerCase();
+    const filtrados = planos.filter((p) => !filtro
+      || (p.nombre || '').toLowerCase().includes(filtro)
+      || (p.constructor || '').toLowerCase().includes(filtro));
+
+    $('pln-empty-editar').style.display = planos.length === 0 ? 'block' : 'none';
+    const lista = $('pln-lista-editar');
+    lista.innerHTML = '';
+    filtrados.forEach((p) => {
+      const row = document.createElement('div');
+      row.className = 'pln-edit-row';
+      row.innerHTML = `
+        ${p.portada ? `<img class="pln-edit-thumb" src="${p.portada}">` : `<div class="pln-edit-thumb-vacio">${PLN_ICONO_VACIO}</div>`}
+        <div class="pln-edit-body">
+          <div class="pln-edit-nombre">${escapeHtml(p.nombre || '(sin nombre)')}</div>
+          <div class="pln-edit-constructor">${escapeHtml(p.constructor || '')}${p.fase ? ' · ' + escapeHtml(p.fase) : ''}</div>
+        </div>
+        <div class="pln-edit-actions">
+          <button type="button" class="pln-edit-btn" title="Editar">✎</button>
+          <button type="button" class="pln-edit-btn" title="Borrar">✕</button>
+        </div>`;
+      const [btnEditar, btnBorrar] = row.querySelectorAll('.pln-edit-btn');
+      btnEditar.addEventListener('click', () => plnAbrirModal(p));
+      btnBorrar.addEventListener('click', async () => {
+        if (!(await gcConfirm(idiomaActual() === 'en' ? I18N.t_borrar_este_plano.en : '¿Borrar este plano?', { okText: idiomaActual() === 'en' ? 'Delete' : 'Borrar', danger: true }))) return;
+        planos = planos.filter((x) => x.id !== p.id);
+        await plnGuardar();
+        plnRefreshDlConstructores();
+        plnRender();
+        plnRenderEditar();
+      });
+      lista.appendChild(row);
+    });
+    if (filtrados.length === 0 && planos.length > 0) {
+      lista.innerHTML = `<div class="gc-empty">Ningún plano coincide con "${escapeHtml(filtro)}".</div>`;
+    }
+  }
+  $('pln-buscar-editar').addEventListener('input', debounce(plnRenderEditar, 160));
+
+  document.querySelectorAll('.pln-subtab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.pln-subtab').forEach((t) => t.classList.remove('active'));
+      document.querySelectorAll('.pln-subpanel').forEach((p) => p.classList.remove('active'));
+      tab.classList.add('active');
+      $('pln-sub-' + tab.dataset.psub).classList.add('active');
+      if (tab.dataset.psub === 'editar') plnRenderEditar();
+    });
+  });
+
+  // ---- Visor de fotos a pantalla completa (pestaña "Ver planos") ----
+  let plnVisorFotos = [];
+  let plnVisorIdx = 0;
+  async function plnAbrirVisor(plano) {
+    $('pln-viewer-titulo').textContent = plano.nombre || '(sin nombre)';
+    $('pln-viewer-sub').textContent = [plano.constructor, plano.fase].filter(Boolean).join(' · ');
+    $('pln-viewer-img').src = plano.portada || '';
+    $('pln-viewer').style.display = 'flex';
+    plnVisorFotos = [];
+    plnVisorIdx = 0;
+    if (plano.numFotos) {
+      const fotos = await plnCargarFotosDe(plano.id);
+      if ($('pln-viewer').style.display !== 'flex') return; // se cerró mientras cargaba
+      plnVisorFotos = fotos;
+      plnVisorMostrar(0);
+    }
+  }
+  function plnVisorMostrar(idx) {
+    if (!plnVisorFotos.length) return;
+    plnVisorIdx = (idx + plnVisorFotos.length) % plnVisorFotos.length;
+    $('pln-viewer-img').src = plnVisorFotos[plnVisorIdx].dataUrl;
+    const varias = plnVisorFotos.length > 1;
+    $('pln-viewer-prev').style.display = varias ? 'flex' : 'none';
+    $('pln-viewer-next').style.display = varias ? 'flex' : 'none';
+    $('pln-viewer-dots').innerHTML = varias
+      ? plnVisorFotos.map((_, i) => `<span class="pln-viewer-dot${i === plnVisorIdx ? ' on' : ''}"></span>`).join('')
+      : '';
+  }
+  $('pln-viewer-prev').addEventListener('click', () => plnVisorMostrar(plnVisorIdx - 1));
+  $('pln-viewer-next').addEventListener('click', () => plnVisorMostrar(plnVisorIdx + 1));
+  $('pln-viewer-cerrar').addEventListener('click', () => { $('pln-viewer').style.display = 'none'; });
 
   function plnRenderFotosGrid() {
     const grid = $('pln-f-fotos-grid');
@@ -5432,15 +5589,24 @@
     $('pln-f-fotos-input').value = '';
   });
 
+  let plnFaseActual = '';
+  document.querySelectorAll('.pln-fase-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      plnFaseActual = plnFaseActual === btn.dataset.fase ? '' : btn.dataset.fase;
+      document.querySelectorAll('.pln-fase-btn').forEach((b) => b.classList.toggle('active', b.dataset.fase === plnFaseActual));
+    });
+  });
+
   function plnAbrirModal(plano) {
     plnEditandoId = plano ? plano.id : null;
     plnFotosActuales = [];
+    plnFaseActual = plano ? (plano.fase || '') : '';
+    document.querySelectorAll('.pln-fase-btn').forEach((b) => b.classList.toggle('active', b.dataset.fase === plnFaseActual));
     $('pln-modal-titulo').textContent = idiomaActual() === 'en' ? (plano ? I18N.pln_editar_plano.en : I18N.pln_nuevo_plano.en) : (plano ? 'Editar plano' : 'Nuevo plano');
     $('pln-f-nombre').value = plano ? (plano.nombre || '') : '';
     $('pln-f-constructor').value = plano ? (plano.constructor || '') : '';
     plnRenderFotosGrid();
     $('pln-modal').style.display = 'flex';
-    $('pln-f-nombre').focus();
     if (plano && plano.numFotos) {
       $('pln-f-fotos-grid').innerHTML = '<div style="grid-column:1/-1;font-size:11px;color:var(--muted);padding:6px 0;">Cargando fotos…</div>';
       plnCargarFotosDe(plano.id).then((fotos) => {
@@ -5462,6 +5628,7 @@
     const datos = {
       nombre,
       constructor: $('pln-f-constructor').value.trim(),
+      fase: plnFaseActual,
       numFotos: fotos.length,
       portada: fotos.length ? await plnMiniPortada(fotos[0].dataUrl).catch(() => null) : null
     };
@@ -5479,6 +5646,7 @@
     plnRefreshDlConstructores();
     $('pln-modal').style.display = 'none';
     plnRender();
+    plnRenderEditar();
     toast('Plano guardado ✓');
   });
 
