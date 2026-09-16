@@ -1628,6 +1628,7 @@
 <div class="gc-print-overlay" id="modal-print" style="display:none;">
   <div class="gc-print-toolbar no-print">
     <button class="gc-save-btn" data-i18n="imprimir" id="btn-imprimir-modal">Imprimir</button>
+    <button class="gc-action-btn" id="btn-enviar-desde-modal" style="background:#fff;">↗ Enviar</button>
     <button class="gc-action-btn" data-i18n="descargar" id="btn-descargar-desde-modal" style="background:#fff;">⬇ Descargar</button>
     <button class="gc-action-btn" data-i18n="cerrar" id="btn-cerrar-modal" style="background:#fff;">Cerrar</button>
   </div>
@@ -1809,7 +1810,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v49 · 15 sep';
+  const APP_VERSION = 'v51 · 16 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -3169,8 +3170,16 @@
 
   function mostrarVistaImpresion(inv) {
     invoiceEnVista = inv;
-    $('modal-print-sheet').innerHTML = construirHTMLInvoice(inv);
-    $('modal-print').style.display = 'flex';
+    const sheet = $('modal-print-sheet');
+    const overlay = $('modal-print');
+    sheet.innerHTML = '';
+    overlay.style.display = 'flex';
+    // Fuerza a Safari/iOS a redibujar antes de meter el contenido — en la app
+    // instalada a veces se queda en blanco si se cambia todo de un jalón.
+    void overlay.offsetHeight;
+    requestAnimationFrame(() => {
+      sheet.innerHTML = construirHTMLInvoice(inv);
+    });
   }
 
   // ---- Imprimir directo (sin descargar) ----
@@ -3182,24 +3191,9 @@
     setTimeout(() => { area.innerHTML = ''; }, 500);
   }
 
-  $('btn-imprimir-modal').addEventListener('click', () => {
-    if (!invoiceEnVista) return;
-    imprimirContenido(construirHTMLInvoice(invoiceEnVista), `Invoice ${invoiceEnVista.label || ''}`);
-  });
-
-  $('btn-cerrar-modal').addEventListener('click', () => {
-    $('modal-print').style.display = 'none';
-    invoiceEnVista = null;
-  });
-  $('modal-print').addEventListener('click', (e) => {
-    if (e.target.id === 'modal-print') { $('modal-print').style.display = 'none'; invoiceEnVista = null; }
-  });
-
-  $('btn-descargar-desde-modal').addEventListener('click', () => {
-    if (!invoiceEnVista) return;
-    const cuerpo = construirHTMLInvoice(invoiceEnVista)
-      .replace(/class="ps-/g, 'class="ps-'); // mantiene las mismas clases
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice - ${escapeHtml(invoiceEnVista.label || '')}</title>
+  function ghConstruirHTMLDescargaReparto() {
+    const cuerpo = construirHTMLInvoice(invoiceEnVista);
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice - ${escapeHtml(invoiceEnVista.label || '')}</title>
       <style>
         body { font-family: Arial, Helvetica, sans-serif; color: #1a1a1a; padding: 32px; max-width: 780px; margin: 0 auto; }
         h1 { font-size: 21px; margin: 0; }
@@ -3222,7 +3216,54 @@
         @media print { .tip { display: none; } }
       </style></head>
       <body><div class="tip">Presiona Ctrl+P (o Cmd+P en Mac) para imprimir.</div>${cuerpo}</body></html>`;
+  }
 
+  $('btn-imprimir-modal').addEventListener('click', () => {
+    if (!invoiceEnVista) return;
+    // Misma limitación de iOS que en Facturas: dentro de la app instalada,
+    // window.print() casi siempre sale en blanco — usa el share sheet en su
+    // lugar, que ahí sí trae Imprimir (AirPrint).
+    if (ghEsStandalone() && navigator.share) {
+      toast('Se abrirá para compartir — elige "Imprimir" en el menú.', 'info', 3500);
+      $('btn-enviar-desde-modal').click();
+      return;
+    }
+    imprimirContenido(construirHTMLInvoice(invoiceEnVista), `Invoice ${invoiceEnVista.label || ''}`);
+  });
+
+  $('btn-enviar-desde-modal').addEventListener('click', async () => {
+    if (!invoiceEnVista) return;
+    const html = ghConstruirHTMLDescargaReparto();
+    const nombreArchivo = `invoice-${(invoiceEnVista.key || 'semana')}.html`;
+    const resumen = `Invoice ${invoiceEnVista.label || ''}`;
+    try {
+      const archivo = new File([html], nombreArchivo, { type: 'text/html' });
+      if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
+        await navigator.share({ files: [archivo], title: resumen, text: resumen });
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
+    }
+    if (navigator.share) {
+      try { await navigator.share({ title: resumen, text: resumen }); }
+      catch (e) { if (!e || e.name !== 'AbortError') toast('No se pudo abrir para compartir — usa Descargar.', 'error'); }
+    } else {
+      toast('Este navegador no soporta compartir directo — usa el botón Descargar.', 'info');
+    }
+  });
+
+  $('btn-cerrar-modal').addEventListener('click', () => {
+    $('modal-print').style.display = 'none';
+    invoiceEnVista = null;
+  });
+  $('modal-print').addEventListener('click', (e) => {
+    if (e.target.id === 'modal-print') { $('modal-print').style.display = 'none'; invoiceEnVista = null; }
+  });
+
+  $('btn-descargar-desde-modal').addEventListener('click', () => {
+    if (!invoiceEnVista) return;
+    const html = ghConstruirHTMLDescargaReparto();
     const blob = new Blob([html], { type: 'text/html;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -5926,8 +5967,14 @@
 
   function invMostrarVista(inv) {
     invEnVista = inv;
-    $('inv-print-content').innerHTML = invBuildPrint(inv);
-    $('inv-ov').style.display = 'flex';
+    const sheet = $('inv-print-content');
+    const overlay = $('inv-ov');
+    sheet.innerHTML = '';
+    overlay.style.display = 'flex';
+    void overlay.offsetHeight;
+    requestAnimationFrame(() => {
+      sheet.innerHTML = invBuildPrint(inv);
+    });
   }
 
   $('inv-btn-preview').addEventListener('click', () => {
@@ -5944,8 +5991,22 @@
     invMostrarVista({numero:$('inv-num').value||'---',fecha:$('inv-fecha').value,cliente:$('inv-cliente').value,direccionEmisor:$('inv-direccion-emisor').value,notas:$('inv-notas').value,items,...tots});
   });
 
-  $('inv-btn-imprimir').addEventListener('click', () => {
+  function ghEsStandalone() {
+    return window.navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+  }
+
+  $('inv-btn-imprimir').addEventListener('click', async () => {
     if (!invEnVista) return;
+    // En una app instalada en el iPhone (modo standalone), window.print() de
+    // Safari casi siempre sale con la hoja en blanco — es una limitación
+    // conocida de iOS, no algo que se pueda arreglar desde el código de la
+    // app. En ese caso usamos el mismo botón de compartir, que en iOS sí
+    // trae la opción de Imprimir (AirPrint) dentro del menú.
+    if (ghEsStandalone() && navigator.share) {
+      toast('Se abrirá para compartir — elige "Imprimir" en el menú.', 'info', 3500);
+      $('inv-btn-enviar').click();
+      return;
+    }
     document.getElementById('print-area').innerHTML = `<div class="gc-print-sheet">${invBuildPrint(invEnVista)}</div>`;
     window.print();
     setTimeout(() => { document.getElementById('print-area').innerHTML=''; }, 600);
