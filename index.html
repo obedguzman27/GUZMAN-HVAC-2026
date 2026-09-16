@@ -1622,6 +1622,7 @@
       </div>
     </div>
   </div>
+</div>
 
 
 <!-- Print modal -->
@@ -1810,7 +1811,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v52 · 16 sep';
+  const APP_VERSION = 'v53 · 16 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -3230,14 +3231,6 @@
 
   $('btn-imprimir-modal').addEventListener('click', () => {
     if (!invoiceEnVista) return;
-    // Misma limitación de iOS que en Facturas: dentro de la app instalada,
-    // window.print() casi siempre sale en blanco — usa el share sheet en su
-    // lugar, que ahí sí trae Imprimir (AirPrint).
-    if (ghEsStandalone() && navigator.share) {
-      toast('Se abrirá para compartir — elige "Imprimir" en el menú.', 'info', 3500);
-      $('btn-enviar-desde-modal').click();
-      return;
-    }
     ghImprimirEnVentana(construirHTMLInvoice(invoiceEnVista), `Invoice ${invoiceEnVista.label || ''}`);
   });
 
@@ -6029,30 +6022,38 @@
         .ps-split-box .ps-total { font-size:19px; font-weight:700; }
         .ps-split-box .ps-note { font-size:11px; color:#555; margin-top:4px; }
       </style></head><body>${htmlCuerpo}</body></html>`;
-    const win = window.open('', '_blank');
-    if (!win) {
-      toast('El navegador bloqueó la ventana de impresión — permite ventanas emergentes, o usa Descargar.', 'error', 5000);
-      return;
-    }
-    win.document.open();
-    win.document.write(html);
-    win.document.close();
-    // Espera a que la ventana termine de armar el contenido antes de imprimir
-    // (si se llama de inmediato, sale en blanco).
-    win.onload = () => { win.focus(); win.print(); };
-    setTimeout(() => { try { win.focus(); win.print(); } catch (e) {} }, 500);
+    // Imprime desde un marco oculto dentro de la misma página: funciona en
+    // Windows y también dentro de la app instalada del iPhone (donde abrir
+    // ventanas nuevas está bloqueado). Se espera a que el contenido esté
+    // dibujado antes de mandar a imprimir, que es lo que evita la hoja en blanco.
+    const anterior = document.getElementById('gh-print-frame');
+    if (anterior) anterior.remove();
+    const frame = document.createElement('iframe');
+    frame.id = 'gh-print-frame';
+    frame.setAttribute('aria-hidden', 'true');
+    frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+    document.body.appendChild(frame);
+
+    const doc = frame.contentWindow.document;
+    doc.open();
+    doc.write(html);
+    doc.close();
+
+    const lanzar = () => {
+      try {
+        frame.contentWindow.focus();
+        frame.contentWindow.print();
+      } catch (e) {
+        toast('No se pudo abrir la impresión — usa Descargar y abre el archivo.', 'error', 5000);
+      }
+      setTimeout(() => { const f = document.getElementById('gh-print-frame'); if (f) f.remove(); }, 60000);
+    };
+    if (frame.contentWindow.document.readyState === 'complete') setTimeout(lanzar, 300);
+    else frame.onload = () => setTimeout(lanzar, 300);
   }
 
-  $('inv-btn-imprimir').addEventListener('click', async () => {
+  $('inv-btn-imprimir').addEventListener('click', () => {
     if (!invEnVista) return;
-    // En la app instalada en iPhone no se pueden abrir ventanas nuevas ni
-    // imprimir directo (limitación de iOS) — ahí el menú de compartir sí
-    // trae Imprimir (AirPrint).
-    if (ghEsStandalone() && navigator.share) {
-      toast('Se abrirá para compartir — elige "Imprimir" en el menú.', 'info', 3500);
-      $('inv-btn-enviar').click();
-      return;
-    }
     ghImprimirEnVentana(invBuildPrint(invEnVista), `Invoice ${invEnVista.numero || ''}`);
   });
 
