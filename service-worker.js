@@ -3,7 +3,7 @@
 // Los datos NO se guardan aquí (eso vive en localStorage / futuro backend),
 // solo el "cascarón" de la app (HTML, íconos).
 
-const CACHE_NAME = 'guzman-hvac-v56';
+const CACHE_NAME = 'guzman-hvac-v57';
 const ARCHIVOS_CACHE = [
   './',
   './index.html',

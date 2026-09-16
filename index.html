@@ -165,7 +165,8 @@
   .gc-stat.gas .gc-stat-val { color: var(--ember); }
 
   /* ── CARDS ──────────────────────────────── */
-  .gc-card { background: var(--card); border-radius: var(--r); box-shadow: var(--shadow-sm), inset 0 1px 0 var(--hairline); border: 1px solid var(--border-soft); padding: 24px 26px; margin-bottom: 20px; transition: box-shadow .2s var(--ease); }
+  .gc-card { background: var(--card); border-radius: var(--r); box-shadow: var(--shadow-sm), inset 0 1px 0 var(--hairline); border: 1px solid var(--border-soft); padding: 24px 26px; margin-bottom: 20px; transition: box-shadow .2s var(--ease), transform .2s var(--ease); }
+  .gc-card:hover { box-shadow: var(--shadow), inset 0 1px 0 var(--hairline); }
   .gc-card-title { font-family: 'Zilla Slab', serif; font-size: 16.5px; font-weight: 600; color: var(--ink); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
 
   /* ── FORM ───────────────────────────────── */
@@ -541,6 +542,48 @@
   .pln-viewer-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.35); }
   .pln-viewer-dot.on { background: #fff; }
 
+  /* ── RESUMEN DEL DÍA (lo primero que se ve) ─── */
+  .gh-hero {
+    background:
+      radial-gradient(900px 200px at 10% -30%, rgba(12,145,132,.35), transparent 62%),
+      radial-gradient(700px 220px at 95% 130%, rgba(194,97,27,.4), transparent 62%),
+      linear-gradient(125deg, var(--navy) 0%, var(--navy2) 60%, var(--navy3) 100%);
+    border-radius: var(--r-lg); padding: 20px 22px; margin-bottom: 20px;
+    box-shadow: var(--shadow-lg); position: relative; overflow: hidden;
+  }
+  .gh-hero::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.055) 0 1px, transparent 1px 54px),
+                      repeating-linear-gradient(0deg, rgba(255,255,255,.045) 0 1px, transparent 1px 54px);
+    -webkit-mask-image: linear-gradient(115deg, rgba(0,0,0,.85), transparent 62%);
+            mask-image: linear-gradient(115deg, rgba(0,0,0,.85), transparent 62%);
+  }
+  .gh-hero-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; position: relative; z-index: 1; }
+  .gh-hero-saludo { font-family: 'Zilla Slab', serif; font-size: 19px; font-weight: 700; color: #fff; letter-spacing: .2px; }
+  .gh-hero-fecha { font-size: 11.5px; color: rgba(255,255,255,.58); margin-top: 2px; text-transform: capitalize; }
+  .gh-hero-refresh { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); color: #fff; width: 32px; height: 32px; border-radius: 50%; font-size: 15px; cursor: pointer; transition: all .16s var(--ease); flex-shrink: 0; }
+  .gh-hero-refresh:hover { background: rgba(255,255,255,.2); transform: rotate(90deg); }
+  .gh-hero-refresh:active { transform: scale(.9) rotate(90deg); }
+  .gh-hero-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; position: relative; z-index: 1; }
+  .gh-tile {
+    background: rgba(255,255,255,.085); border: 1px solid rgba(255,255,255,.14);
+    border-radius: var(--r-sm); padding: 13px 14px; text-align: left; cursor: pointer;
+    display: flex; flex-direction: column; gap: 2px; font-family: 'Inter', sans-serif;
+    transition: background .16s var(--ease), transform .14s var(--ease), border-color .16s var(--ease);
+  }
+  .gh-tile:hover { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.3); transform: translateY(-2px); }
+  .gh-tile:active { transform: scale(.97); }
+  .gh-tile-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: rgba(255,255,255,.62); }
+  .gh-tile-val { font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 700; color: #fff; letter-spacing: -.4px; line-height: 1.25; }
+  .gh-tile-sub { font-size: 10px; color: rgba(255,255,255,.48); }
+  .gh-tile.alerta .gh-tile-val { color: #FFC08A; }
+  @media (max-width: 720px) {
+    .gh-hero { padding: 17px 16px; border-radius: var(--r); }
+    .gh-hero-tiles { grid-template-columns: 1fr 1fr; }
+    .gh-hero-tiles .gh-tile:last-child { grid-column: 1 / -1; }
+    .gh-tile-val { font-size: 18.5px; }
+  }
+
   /* ── MODO SELECCIÓN (estilo app: Seleccionar → marcar → acciones) ── */
   .sel-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
   .sel-btn { background: none; border: 1.5px solid var(--border); border-radius: 999px; padding: 7px 15px; font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 700; color: var(--muted); cursor: pointer; transition: all .15s var(--ease); }
@@ -731,6 +774,35 @@
 
     <!-- Carpeta: Movimientos -->
     <div class="mov-subpanel active" id="mov-sub-movs">
+
+      <!-- Resumen del día: lo primero que ves al abrir la app -->
+      <div class="gh-hero">
+        <div class="gh-hero-top">
+          <div>
+            <div class="gh-hero-saludo" id="gh-hero-saludo">Buen día</div>
+            <div class="gh-hero-fecha" id="gh-hero-fecha"></div>
+          </div>
+          <button type="button" class="gh-hero-refresh" id="gh-hero-refresh" title="Actualizar">⟳</button>
+        </div>
+        <div class="gh-hero-tiles">
+          <button type="button" class="gh-tile" id="gh-tile-cobrar">
+            <span class="gh-tile-lbl">Por cobrar</span>
+            <span class="gh-tile-val" id="gh-val-cobrar">—</span>
+            <span class="gh-tile-sub" id="gh-sub-cobrar">facturas pendientes</span>
+          </button>
+          <button type="button" class="gh-tile" id="gh-tile-hoy">
+            <span class="gh-tile-lbl">Hoy</span>
+            <span class="gh-tile-val" id="gh-val-hoy">—</span>
+            <span class="gh-tile-sub" id="gh-sub-hoy">trabajos agendados</span>
+          </button>
+          <button type="button" class="gh-tile" id="gh-tile-semana">
+            <span class="gh-tile-lbl">Neto semana</span>
+            <span class="gh-tile-val" id="gh-val-semana">—</span>
+            <span class="gh-tile-sub">ingresos − gastos</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Stats row - semana actual -->
       <div class="gc-stats">
         <div class="gc-stat ing"><div class="gc-stat-icon">↑</div><div><div class="gc-stat-label">Ingresos semana</div><div class="gc-stat-val" id="stat-ing">$0.00</div><div class="gc-stat-delta" id="stat-ing-delta"></div></div></div>
@@ -1871,7 +1943,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v56 · 16 sep';
+  const APP_VERSION = 'v57 · 16 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -2197,6 +2269,7 @@
       $('panel-' + tab.dataset.tab).classList.add('active');
       if (tab.dataset.tab === 'buscar') { renderAnios(); renderBusqueda(); renderResumenTaxas(); renderTotalPorSocio(); }
       if (tab.dataset.tab === 'calendario') calCargarDatos();
+      if (tab.dataset.tab === 'movimientos') ghActualizarHero();
     });
   });
 
@@ -2239,6 +2312,7 @@
     renderMovimientos();
     actualizarStats();
     refrescarSugerenciasDesc();
+    ghActualizarHero();   // resumen del día, arriba de todo
   }
 
   async function saveMov() {
@@ -2474,6 +2548,58 @@
 
   // ---- Hoja de movimientos agrupada por semana ----
 
+
+  // ---- Resumen del día (tarjeta de arriba en Registro) ----
+  async function ghActualizarHero() {
+    const h = new Date().getHours();
+    const saludo = h < 12 ? 'Buen día' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
+    const el = $('gh-hero-saludo');
+    if (!el) return;
+    el.textContent = saludo;
+    $('gh-hero-fecha').textContent = new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
+
+    // Por cobrar: facturas guardadas que no están marcadas como pagadas.
+    // Se leen directo del almacenamiento porque Facturas puede no haberse
+    // abierto todavía en esta sesión (y entonces invDocs estaría vacío).
+    let docs = invDocs;
+    if (!docs || !docs.length) {
+      const r = await window.storage.get(INV_KEY).catch(() => null);
+      try { docs = JSON.parse(r.value); } catch (e) { docs = []; }
+    }
+    const pend = (docs || []).filter((d) => !d.pagada);
+    const totalPend = pend.reduce((sum, d) => sum + (Number(d.total) || 0), 0);
+    $('gh-val-cobrar').textContent = fmt(totalPend);
+    $('gh-sub-cobrar').textContent = pend.length === 1 ? '1 factura pendiente' : `${pend.length} facturas pendientes`;
+    $('gh-tile-cobrar').classList.toggle('alerta', pend.length > 0);
+
+    // Trabajos agendados para hoy
+    let lista = citas;
+    if (!lista || !lista.length) {
+      const r2 = await window.storage.get(CITAS_KEY).catch(() => null);
+      try { lista = JSON.parse(r2.value); } catch (e) { lista = []; }
+    }
+    const hoyISO = today();
+    const deHoy = (lista || []).filter((c) => c.fecha === hoyISO);
+    $('gh-val-hoy').textContent = String(deHoy.length);
+    $('gh-sub-hoy').textContent = deHoy.length === 1 ? 'trabajo agendado' : 'trabajos agendados';
+
+    // Neto de la semana en curso
+    const semanas = calcularSemanas();
+    const keyHoy = weekInfo(hoyISO).key;
+    const sem = semanas.find((x) => x.key === keyHoy);
+    $('gh-val-semana').textContent = fmt(sem ? sem.neto : 0);
+  }
+
+  (function () {
+    const t1 = $('gh-tile-cobrar'), t2 = $('gh-tile-hoy'), t3 = $('gh-tile-semana'), rf = $('gh-hero-refresh');
+    if (t1) t1.addEventListener('click', () => {
+      document.querySelector('.gc-tab[data-tab="facturas"]').click();
+      document.querySelector('.inv-subtab[data-sub="guardadas"]').click();
+    });
+    if (t2) t2.addEventListener('click', () => document.querySelector('.gc-tab[data-tab="calendario"]').click());
+    if (t3) t3.addEventListener('click', () => document.querySelector('.mov-subtab[data-msub="invoices"]').click());
+    if (rf) rf.addEventListener('click', () => { ghActualizarHero(); toast('Resumen actualizado ✓', 'info', 1500); });
+  })();
 
   function actualizarStats() {
     const hoy = today();
@@ -2909,6 +3035,7 @@
 
   function renderReparto() {
     actualizarStats();
+    ghActualizarHero();
     // Las tarjetas de semanas activas ya no se muestran en Registro.
     // El botón "Guardar invoice" ahora está en Movimientos (por semana).
     renderInvoicesGuardados();
