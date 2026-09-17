@@ -460,6 +460,13 @@
   .mov-subpanel{display:none;}
   .mov-subpanel.active{display:block;}
   .inv-subtab:active, .nom-subtab:active, .aj-subtab:active, .mov-subtab:active { transform: scale(.97); }
+  .doc-subtab{flex:1;padding:12px 16px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--muted);background:none;border:none;cursor:pointer;transition:all .16s var(--ease);border-right:1px solid var(--border-soft);}
+  .doc-subtab:last-child{border-right:none;}
+  .doc-subtab:hover{background:#F5F7FC;color:var(--ink);}
+  .doc-subtab.active{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;}
+  .doc-subtab:active{transform:scale(.97);}
+  .doc-subpanel{display:none;}
+  .doc-subpanel.active{display:block;}
 
   /* ── Calendario de trabajos ─────────────── */
   .cal-dia { margin-bottom: 16px; border: 1px solid var(--border-soft); border-radius: var(--r-sm); overflow: hidden; }
@@ -1038,8 +1045,7 @@
   <div class="gc-panel" id="panel-respaldo">
     <div class="inv-subnav">
       <button class="aj-subtab active" data-i18n="general" data-asub="general">General</button>
-      <button class="aj-subtab" data-i18n="empleados" data-asub="empleados" id="aj-subtab-empleados">Empleados</button>
-      <button class="aj-subtab" data-i18n="papeles" data-asub="papeles" id="aj-subtab-papeles">Papeles</button>
+      <button class="aj-subtab" data-i18n="documentacion" data-asub="documentacion" id="aj-subtab-documentacion">Documentación</button>
       <button class="aj-subtab" data-i18n="avanzado" data-asub="avanzado" id="aj-subtab-avanzado">Avanzado</button>
     </div>
 
@@ -1060,6 +1066,33 @@
           <p id="status-restaurar" style="font-size:11.5px;color:var(--muted);margin-top:10px;"></p>
         </div>
       </div>
+
+      <!-- Mi cuenta -->
+      <div class="gc-card" style="margin-top:16px;" id="aj-card-cuenta">
+        <p class="gc-card-title" data-i18n="mi_cuenta">Mi cuenta</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Conectado como <strong id="aj-cuenta-nombre">—</strong> <span id="aj-cuenta-rol" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);"></span></p>
+        <button class="gc-action-btn" data-i18n="cerrar_sesion" id="btn-cerrar-sesion" style="display:none;">Cerrar sesión</button>
+      </div>
+
+      <!-- Bases de datos con nombre (solo admin) -->
+      <!-- Info de la app -->
+      <div class="gc-card" style="margin-top:16px;">
+        <p class="gc-card-title" data-i18n="acerca_de">Acerca de</p>
+        <p style="font-size:13px;color:var(--muted);line-height:1.7;">
+          <strong>Guzman HVAC</strong> — Sistema de cuentas, facturas y nómina.<br>
+          Tus datos se sincronizan en la nube y están disponibles en todos tus dispositivos con tu usuario. Aun así, puedes descargar un respaldo cuando quieras.
+          <br><span style="font-size:11px;color:var(--muted);">Versión <span id="app-version-acerca"></span></span>
+        </p>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border-soft);">
+          <button type="button" class="gc-action-btn" data-i18n="buscar_actualizacion_ahora" id="btn-forzar-actualizacion">Buscar actualización ahora</button>
+          <p id="forzar-act-status" style="font-size:12px;color:var(--muted);margin-top:8px;"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Avanzado (solo admin) -->
+    <div class="aj-subpanel" id="aj-sub-avanzado">
+      <div class="gc-note">Esta sección solo la ve el <strong>admin</strong> — configuración sensible del negocio, no del día a día.</div>
 
       <!-- Datos de la factura -->
       <div class="gc-card" style="margin-top:16px;">
@@ -1113,13 +1146,6 @@
         </div>
       </div>
 
-      <!-- Mi cuenta -->
-      <div class="gc-card" style="margin-top:16px;" id="aj-card-cuenta">
-        <p class="gc-card-title" data-i18n="mi_cuenta">Mi cuenta</p>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Conectado como <strong id="aj-cuenta-nombre">—</strong> <span id="aj-cuenta-rol" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);"></span></p>
-        <button class="gc-action-btn" data-i18n="cerrar_sesion" id="btn-cerrar-sesion" style="display:none;">Cerrar sesión</button>
-      </div>
-
       <!-- Seguridad: bloqueo con Face ID / PIN (solo en este teléfono) -->
       <div class="gc-card" style="margin-top:16px;" id="aj-card-seguridad">
         <p class="gc-card-title" data-i18n="seguridad">Seguridad</p>
@@ -1158,30 +1184,15 @@
         </div>
       </div>
 
-      <!-- Bases de datos con nombre (solo admin) -->
-      <!-- Info de la app -->
-      <div class="gc-card" style="margin-top:16px;">
-        <p class="gc-card-title" data-i18n="acerca_de">Acerca de</p>
-        <p style="font-size:13px;color:var(--muted);line-height:1.7;">
-          <strong>Guzman HVAC</strong> — Sistema de cuentas, facturas y nómina.<br>
-          Tus datos se sincronizan en la nube y están disponibles en todos tus dispositivos con tu usuario. Aun así, puedes descargar un respaldo cuando quieras.
-          <br><span style="font-size:11px;color:var(--muted);">Versión <span id="app-version-acerca"></span></span>
-        </p>
-        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border-soft);">
-          <button type="button" class="gc-action-btn" data-i18n="buscar_actualizacion_ahora" id="btn-forzar-actualizacion">Buscar actualización ahora</button>
-          <p id="forzar-act-status" style="font-size:12px;color:var(--muted);margin-top:8px;"></p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Avanzado (solo admin) -->
-    <div class="aj-subpanel" id="aj-sub-avanzado">
-      <div class="gc-note">Esta sección solo la ve el <strong>admin</strong> — configuración sensible del negocio, no del día a día.</div>
-
       <!-- Socios (reparto) -->
       <div class="gc-card" style="margin-top:8px;" id="aj-card-socios">
         <p class="gc-card-title" data-i18n="socios_reparto">Socios (reparto)</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Cada semana se reparte en partes iguales entre los socios de la lista — con uno solo, se lleva todo. Para cada uno, define si recibe tax y qué porcentaje. El <strong>primer socio</strong> de la lista es quien recibe los ajustes manuales (Movimientos → Ajuste).</p>
+        <div class="gc-field" style="max-width:260px;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--border-soft);">
+          <label>Tax de la semana (% de los ingresos)</label>
+          <input type="text" id="aj-tasa-taxas" inputmode="decimal" placeholder="10" style="max-width:110px;">
+          <p style="font-size:11px;color:var(--muted);margin-top:6px;">Se aparta de cada semana antes de repartir entre los socios. Por defecto 10%.</p>
+        </div>
         <div id="aj-socios-lista"></div>
         <button type="button" class="gc-action-btn" data-i18n="agregar_socio" id="aj-btn-add-socio" style="margin-top:4px;">+ Agregar socio</button>
         <div style="display:flex;justify-content:flex-end;margin-top:16px;">
@@ -1241,16 +1252,21 @@
     </div>
 
     <!-- Empleados -->
-    <div class="aj-subpanel" id="aj-sub-empleados">
+    <div class="aj-subpanel" id="aj-sub-documentacion">
+      <div class="inv-subnav" style="margin-bottom:16px;">
+        <button class="doc-subtab active" data-dsub="empleados">Empleados</button>
+        <button class="doc-subtab" data-dsub="papeles">Papeles importantes</button>
+      </div>
+
+      <div class="doc-subpanel active" id="doc-sub-empleados">
       <div class="emp-toolbar">
         <span class="emp-toolbar-title">Directorio de trabajadores</span>
         <button class="gc-save-btn" data-i18n="agregar_empleado" id="btn-nuevo-empleado">+ Agregar empleado</button>
       </div>
       <div class="emp-grid" id="emp-grid"></div>
-    </div>
+      </div>
 
-    <!-- Papeles -->
-    <div class="aj-subpanel" id="aj-sub-papeles">
+      <div class="doc-subpanel" id="doc-sub-papeles">
       <div class="emp-toolbar">
         <span class="emp-toolbar-title">Papeles Importantes</span>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
@@ -1271,6 +1287,7 @@
       <div id="papeles-filtros" class="papeles-filtros"></div>
       <div id="papeles-lista"></div>
       <div class="doc-web-note" id="papeles-web-note" style="display:none;">La subida de PDFs solo está disponible en la <strong>app de escritorio</strong>.</div>
+      </div>
     </div>
 
     <!-- (Categorías ahora vive dentro de Movimientos) -->
@@ -1893,7 +1910,7 @@
   const KEY_CAT_GASTO = 'catGastos';
   const KEY_CAT_INGRESO = 'catIngresos';
   const KEY_INVOICES = 'invoicesGuardados';
-  const TASA_TAXAS = 0.10;
+  let TASA_TAXAS = 0.10;   // configurable en Ajustes → Avanzado → Socios
   const BONO_CRA = 0.10;
 
   // ---- Aviso de conexión (la app depende de internet para guardar en la nube) ----
@@ -1943,7 +1960,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v57 · 16 sep';
+  const APP_VERSION = 'v58 · 16 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -2167,6 +2184,7 @@
       if (typeof c.facturaSigueSocio === 'boolean') cfgFacturaSigueSocio = c.facturaSigueSocio;
       if (typeof c.logoDataUrl === 'string') cfgLogoDataUrl = c.logoDataUrl;
       if (typeof c.ultimoCliente === 'string') cfgUltimoCliente = c.ultimoCliente;
+      if (typeof c.tasaTaxas === 'number' && c.tasaTaxas >= 0 && c.tasaTaxas < 1) TASA_TAXAS = c.tasaTaxas;
     } catch (e) {
       // Migración: si había una dirección vieja en localStorage, usarla
       try { const d = localStorage.getItem('cra-direccion'); if (d) cfgFacturaDireccion = d; } catch (e2) {}
@@ -2189,7 +2207,7 @@
       socioBonus: cfgSocioBonus, socioMitad: cfgSocioMitad, // se dejan también por compatibilidad hacia atrás
       facturaNombre: cfgFacturaNombre, facturaDireccion: cfgFacturaDireccion,
       facturaSigueSocio: cfgFacturaSigueSocio, logoDataUrl: cfgLogoDataUrl,
-      ultimoCliente: cfgUltimoCliente
+      ultimoCliente: cfgUltimoCliente, tasaTaxas: TASA_TAXAS
     };
     try { await window.storage.set(CFG_KEY, JSON.stringify(c)); } catch (e) {}
   }
@@ -4196,22 +4214,32 @@
       const sub = tab.dataset.asub;
       $('aj-sub-' + sub).classList.add('active');
       // Inicializar cada sección al abrirla
-      if (sub === 'empleados') { loadEmpleados().then(() => renderEmpleados()); }
-      if (sub === 'papeles') { renderPapeles(); }
+      if (sub === 'documentacion') { loadEmpleados().then(() => renderEmpleados()); renderPapeles(); }
       if (sub === 'categorias') { renderCategorias(); }
       if (sub === 'general') { cargarFormAjustes(); }
       if (sub === 'avanzado') { if (typeof cargarFormAjustes === 'function') cargarFormAjustes(); }
     });
   });
 
-  // Solo admin: nombres de socios, y las sub-pestañas Empleados / Papeles.
+  // ---- Sub-pestañas dentro de Documentación (Empleados / Papeles) ----
+  document.querySelectorAll('.doc-subtab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.doc-subtab').forEach((t) => t.classList.remove('active'));
+      document.querySelectorAll('.doc-subpanel').forEach((p) => p.classList.remove('active'));
+      tab.classList.add('active');
+      $('doc-sub-' + tab.dataset.dsub).classList.add('active');
+      if (tab.dataset.dsub === 'empleados') { loadEmpleados().then(() => renderEmpleados()); }
+      if (tab.dataset.dsub === 'papeles') { renderPapeles(); }
+    });
+  });
+
+  // Solo admin: nombres de socios, y la sub-pestaña Documentación.
   // Se llama al iniciar sesión (para que empleados nunca las vean) y cada
   // vez que se abre Ajustes → General.
   function ajAplicarRestriccionesRol() {
     const esAdminGral = (window.GH_ROL || 'admin') === 'admin';
     const cardSocios = $('aj-card-socios'); if (cardSocios) cardSocios.style.display = esAdminGral ? 'block' : 'none';
-    const tabEmpleados = $('aj-subtab-empleados'); if (tabEmpleados) tabEmpleados.style.display = esAdminGral ? '' : 'none';
-    const tabPapeles = $('aj-subtab-papeles'); if (tabPapeles) tabPapeles.style.display = esAdminGral ? '' : 'none';
+    const tabDoc = $('aj-subtab-documentacion'); if (tabDoc) tabDoc.style.display = esAdminGral ? '' : 'none';
     const tabAvanzado = $('aj-subtab-avanzado'); if (tabAvanzado) tabAvanzado.style.display = esAdminGral ? '' : 'none';
     // Datos de factura: visibles para todos, pero solo el admin puede editarlos
     ['aj-factura-nombre', 'aj-direccion-empresa', 'aj-factura-sigue-socio'].forEach((id) => {
@@ -4222,7 +4250,7 @@
     if (!esAdminGral) {
       // Si por alguna razón quedó activa una sub-pestaña restringida, regresar a General
       const activa = document.querySelector('.aj-subtab.active');
-      if (activa && (activa.dataset.asub === 'empleados' || activa.dataset.asub === 'papeles' || activa.dataset.asub === 'avanzado')) {
+      if (activa && (activa.dataset.asub === 'documentacion' || activa.dataset.asub === 'avanzado')) {
         document.querySelector('.aj-subtab[data-asub="general"]')?.click();
       }
     }
@@ -4235,6 +4263,7 @@
     if (typeof ajRefrescarPreviewLogo === 'function') ajRefrescarPreviewLogo();
 
     ajSociosEdit = cfgSocios.map((s) => ({ ...s }));
+    if ($('aj-tasa-taxas')) $('aj-tasa-taxas').value = String(+(TASA_TAXAS * 100).toFixed(2));
     if (typeof ajRenderSociosLista === 'function') ajRenderSociosLista();
     $('aj-factura-nombre').value = cfgFacturaNombre;
     $('aj-direccion-empresa').value = cfgFacturaDireccion;
@@ -4318,6 +4347,14 @@
       });
       if (nuevos.length === 0) { toast('Debe haber al menos un socio', 'error'); return; }
       if (nuevos.some((s) => !s.nombre)) { toast('Escribe el nombre de todos los socios', 'error'); return; }
+      // Tax de la semana (% de los ingresos que se aparta antes de repartir)
+      const tasaTxt = ($('aj-tasa-taxas').value || '').replace(',', '.').trim();
+      const tasaNum = parseFloat(tasaTxt);
+      if (tasaTxt !== '' && (isNaN(tasaNum) || tasaNum < 0 || tasaNum >= 100)) {
+        toast('El tax debe ser un número entre 0 y 99', 'error'); return;
+      }
+      if (tasaTxt !== '') TASA_TAXAS = tasaNum / 100;
+
       cfgSocios = nuevos;
       actualizarAliasSocios();
       ajSociosEdit = cfgSocios.map((s) => ({ ...s }));
@@ -4328,7 +4365,8 @@
       renderReparto();
       if (typeof renderBusqueda === 'function') renderBusqueda();
       ajRenderSociosLista();
-      toast('Socios guardados ✓', 'success');
+      renderMovimientos();
+      toast('Socios y tax guardados ✓', 'success');
     });
   }
 
@@ -4858,6 +4896,7 @@
     pln_ver_planos: {es:'Ver planos',en:'View plans'},
     pln_editar_borrar: {es:'Editar / Borrar',en:'Edit / Delete'},
     pln_etapa: {es:'Etapa',en:'Stage'},
+    documentacion: {es:'Documentación',en:'Documents'},
     pln_editar_o_borrar_planos: {es:'Editar o borrar planos',en:'Edit or delete plans'},
     t_escribe_el_nombre_del_plano: {es:'Escribe el nombre del plano',en:'Enter the plan name'},
     t_plano_guardado: {es:'Plano guardado ✓',en:'Plan saved ✓'},
