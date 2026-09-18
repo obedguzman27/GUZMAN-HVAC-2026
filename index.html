@@ -977,6 +977,45 @@
   <!-- ===== BUSCAR / ANUAL ===== -->
   <div class="gc-panel" id="panel-buscar">
 
+    <!-- Buscador (arriba: es lo primero que se usa en esta pantalla) -->
+    <div class="gc-card" style="margin-bottom:24px;">
+      <p class="gc-card-title" style="margin-bottom:14px;">Buscar</p>
+    <div class="gc-search-bar">
+      <div class="gc-field" style="min-width:140px;"><label data-i18n="ano">Año</label><select id="b-anio"><option value="todos" data-i18n="todos_los_anos">Todos los años</option></select></div>
+      <div class="gc-field" style="flex:1;"><label data-i18n="buscar_en_tiempo_real">Buscar en tiempo real</label><input type="text" id="b-texto" placeholder="Categoría, descripción o monto…"></div>
+    </div>
+    <div class="gc-search-bar" style="margin-top:10px;">
+      <div class="gc-field" style="min-width:130px;"><label data-i18n="desde_opcional">Desde (opcional)</label><input type="date" id="b-desde"></div>
+      <div class="gc-field" style="min-width:130px;"><label data-i18n="hasta_opcional">Hasta (opcional)</label><input type="date" id="b-hasta"></div>
+      <div class="gc-field" style="min-width:130px;"><label data-i18n="tipo">Tipo</label>
+        <select id="b-tipo">
+          <option value="todos" data-i18n="todos">Todos</option>
+          <option value="ingreso" data-i18n="solo_ingresos">Solo ingresos</option>
+          <option value="gasto" data-i18n="solo_gastos">Solo gastos</option>
+          <option value="ajuste" data-i18n="solo_ajustes">Solo ajustes</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:flex-end;">
+        <button type="button" class="gc-action-btn" data-i18n="limpiar_fechas" id="b-limpiar-fechas">Limpiar fechas</button>
+      </div>
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin:6px 2px 0;">Si eliges fechas, mandan sobre el filtro de "Año".</p>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;">
+        <button type="button" class="gc-action-btn b-rango" data-rango="mes" style="padding:7px 13px;font-size:12px;">Este mes</button>
+        <button type="button" class="gc-action-btn b-rango" data-rango="mes-pasado" style="padding:7px 13px;font-size:12px;">Mes pasado</button>
+        <button type="button" class="gc-action-btn b-rango" data-rango="30" style="padding:7px 13px;font-size:12px;">Últimos 30 días</button>
+        <button type="button" class="gc-action-btn b-rango" data-rango="ano" style="padding:7px 13px;font-size:12px;">Este año</button>
+      </div>
+      <div id="b-resumen-resultados" style="display:none;margin-top:14px;padding:12px 15px;background:#F5F7FC;border-radius:var(--r-sm);font-size:12.5px;color:var(--ink);"></div>
+    </div>
+
+    <!-- Resultados en el resto de la app (clientes, facturas, trabajos, planos…) -->
+    <div class="gc-card" id="b-global-card" style="margin-bottom:24px;display:none;">
+      <p class="gc-card-title" style="margin-bottom:6px;">También encontrado en la app</p>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Coincidencias fuera de Movimientos: facturas, clientes, trabajos agendados, planos y colonias.</p>
+      <div id="b-global-lista"></div>
+    </div>
+
     <!-- Total pagado por socio -->
     <div class="gc-card" style="margin-bottom:24px;" id="card-total-socios">
       <p class="gc-card-title" data-i18n="total_pagado_por_socio">Total pagado por socio</p>
@@ -1011,26 +1050,7 @@
       </div>
     </div>
 
-    <div class="gc-search-bar">
-      <div class="gc-field" style="min-width:140px;"><label data-i18n="ano">Año</label><select id="b-anio"><option value="todos" data-i18n="todos_los_anos">Todos los años</option></select></div>
-      <div class="gc-field" style="flex:1;"><label data-i18n="buscar_en_tiempo_real">Buscar en tiempo real</label><input type="text" id="b-texto" placeholder="Categoría, descripción o monto…"></div>
-    </div>
-    <div class="gc-search-bar" style="margin-top:10px;">
-      <div class="gc-field" style="min-width:130px;"><label data-i18n="desde_opcional">Desde (opcional)</label><input type="date" id="b-desde"></div>
-      <div class="gc-field" style="min-width:130px;"><label data-i18n="hasta_opcional">Hasta (opcional)</label><input type="date" id="b-hasta"></div>
-      <div class="gc-field" style="min-width:130px;"><label data-i18n="tipo">Tipo</label>
-        <select id="b-tipo">
-          <option value="todos" data-i18n="todos">Todos</option>
-          <option value="ingreso" data-i18n="solo_ingresos">Solo ingresos</option>
-          <option value="gasto" data-i18n="solo_gastos">Solo gastos</option>
-          <option value="ajuste" data-i18n="solo_ajustes">Solo ajustes</option>
-        </select>
-      </div>
-      <div style="display:flex;align-items:flex-end;">
-        <button type="button" class="gc-action-btn" data-i18n="limpiar_fechas" id="b-limpiar-fechas">Limpiar fechas</button>
-      </div>
-    </div>
-    <p style="font-size:11px;color:var(--muted);margin:6px 2px 0;">Si eliges fechas, mandan sobre el filtro de "Año".</p>
+
 
     <!-- Gráfica: en qué se va el dinero (gastos por categoría) -->
     <div class="gc-chart-card" id="gc-chart-cat-cont" style="display:none;">
@@ -1988,7 +2008,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v68 · 17 sep';
+  const APP_VERSION = 'v69 · 17 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -3527,6 +3547,90 @@
     if (actual && (actual === 'todos' || anios.includes(actual))) select.value = actual;
   }
 
+  // ---- Búsqueda global: coincidencias fuera de Movimientos ----
+  function ghBuscarGlobal(texto) {
+    const card = $('b-global-card');
+    const cont = $('b-global-lista');
+    if (!card || !cont) return;
+    if (!texto || texto.length < 2) { card.style.display = 'none'; cont.innerHTML = ''; return; }
+
+    const grupos = [];
+    const agrega = (titulo, items, alTocar) => {
+      if (items.length) grupos.push({ titulo, items: items.slice(0, 8), total: items.length, alTocar });
+    };
+
+    // Facturas guardadas
+    agrega('Facturas', (invDocs || []).filter((d) =>
+      (d.numero || '').toLowerCase().includes(texto) || (d.cliente || '').toLowerCase().includes(texto) ||
+      (d.items || []).some((it) => (it.job || '').toLowerCase().includes(texto) || (it.location || '').toLowerCase().includes(texto) || (it.work || '').toLowerCase().includes(texto))
+    ).map((d) => `${d.numero || '(sin número)'} · ${d.cliente || '—'} · ${invFmt(d.total)}`),
+      () => { document.querySelector('.gc-tab[data-tab="facturas"]').click(); document.querySelector('.inv-subtab[data-sub="guardadas"]').click(); });
+
+    // Trabajos agendados en el Calendario
+    agrega('Calendario', (citas || []).filter((c) =>
+      (c.cliente || '').toLowerCase().includes(texto) || (c.jobNum || '').toLowerCase().includes(texto) ||
+      (c.loc || '').toLowerCase().includes(texto) || (c.descripcion || '').toLowerCase().includes(texto)
+    ).map((c) => `${invFechaNum(c.fecha)} · ${[c.jobNum, c.loc, c.cliente].filter(Boolean).join(' · ') || '—'}`),
+      () => document.querySelector('.gc-tab[data-tab="calendario"]').click());
+
+    // Planos
+    agrega('Planos', (planos || []).filter((p) =>
+      (p.nombre || '').toLowerCase().includes(texto) || (p.constructor || '').toLowerCase().includes(texto)
+    ).map((p) => `${p.nombre || '(sin nombre)'}${p.constructor ? ' · ' + p.constructor : ''}`),
+      () => document.querySelector('.gc-tab[data-tab="planos"]').click());
+
+    // Clientes y colonias
+    agrega('Clientes', (invClientes || []).filter((c) => (c || '').toLowerCase().includes(texto)),
+      () => { document.querySelector('.gc-tab[data-tab="facturas"]').click(); document.querySelector('.inv-subtab[data-sub="clientes"]').click(); });
+    agrega('Colonias', (invColonias || []).filter((c) => (c || '').toLowerCase().includes(texto)),
+      () => { document.querySelector('.gc-tab[data-tab="facturas"]').click(); document.querySelector('.inv-subtab[data-sub="colonias"]').click(); });
+
+    // Trabajadores (nómina)
+    agrega('Trabajadores', (empleados || []).filter((e) =>
+      `${e.nombre || ''} ${e.apellido || ''}`.toLowerCase().includes(texto)
+    ).map((e) => `${e.nombre || ''} ${e.apellido || ''}`.trim()),
+      () => document.querySelector('.gc-tab[data-tab="nomina"]').click());
+
+    if (!grupos.length) { card.style.display = 'none'; cont.innerHTML = ''; return; }
+    card.style.display = 'block';
+    cont.innerHTML = '';
+    grupos.forEach((g) => {
+      const bloque = document.createElement('div');
+      bloque.style.cssText = 'padding:11px 0;border-top:1px solid var(--border-soft);';
+      bloque.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);">${g.titulo} (${g.total})</span>
+          <button type="button" class="gc-action-btn" style="padding:4px 11px;font-size:11px;">Ir →</button>
+        </div>
+        ${g.items.map((t) => `<div style="font-size:12.5px;color:var(--ink);padding:2px 0;">${escapeHtml(t)}</div>`).join('')}
+        ${g.total > g.items.length ? `<div style="font-size:11px;color:var(--muted-soft);padding-top:3px;">y ${g.total - g.items.length} más…</div>` : ''}`;
+      bloque.querySelector('button').addEventListener('click', g.alTocar);
+      cont.appendChild(bloque);
+    });
+  }
+
+  // ---- Atajos de rango de fechas ----
+  document.querySelectorAll('.b-rango').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const hoy = new Date();
+      const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      let desde, hasta;
+      switch (btn.dataset.rango) {
+        case 'mes':
+          desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1); hasta = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0); break;
+        case 'mes-pasado':
+          desde = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1); hasta = new Date(hoy.getFullYear(), hoy.getMonth(), 0); break;
+        case '30':
+          desde = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 29); hasta = hoy; break;
+        default:
+          desde = new Date(hoy.getFullYear(), 0, 1); hasta = new Date(hoy.getFullYear(), 11, 31);
+      }
+      $('b-desde').value = iso(desde);
+      $('b-hasta').value = iso(hasta);
+      renderBusqueda();
+    });
+  });
+
   function renderBusqueda() {
     const texto = $('b-texto').value.trim().toLowerCase();
     const anio = $('b-anio').value || 'todos';
@@ -3567,6 +3671,25 @@
       tbody.appendChild(tr);
     });
     $('total-buscar').textContent = fmt(total);
+
+    // Resumen de lo encontrado (ingresos / gastos / neto de lo filtrado)
+    const cajaRes = $('b-resumen-resultados');
+    if (cajaRes) {
+      if (!filtrados.length) {
+        cajaRes.style.display = texto || usaRango || tipoFiltro !== 'todos' ? 'block' : 'none';
+        cajaRes.innerHTML = 'Sin resultados con estos filtros.';
+      } else {
+        const ing = filtrados.filter((m) => m.tipo === 'ingreso').reduce((a, m) => a + (Number(m.monto) || 0), 0);
+        const gas = filtrados.filter((m) => m.tipo === 'gasto').reduce((a, m) => a + (Number(m.monto) || 0), 0);
+        cajaRes.style.display = 'block';
+        cajaRes.innerHTML = `<strong>${filtrados.length}</strong> movimiento(s) · `
+          + `ingresos <strong style="color:var(--teal-dk);">${fmt(ing)}</strong> · `
+          + `gastos <strong style="color:var(--ember);">${fmt(gas)}</strong> · `
+          + `neto <strong>${fmt(ing - gas)}</strong>`;
+      }
+    }
+
+    ghBuscarGlobal(texto);
 
     // Resumen por categoría
     const resumen = new Map();
