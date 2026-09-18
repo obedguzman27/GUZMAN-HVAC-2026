@@ -1,5 +1,5 @@
 // ============================================================
-// Guzman HVAC — Conexión con Supabase (usuario y contraseña + roles)
+// GH Manager — Conexión con Supabase (usuario y contraseña + roles)
 // ============================================================
 // Define window.storage ANTES de que el resto de la app cargue,
 // así que la app usa esto como su almacenamiento principal.
@@ -103,11 +103,14 @@
             </linearGradient>
           </defs>
           <rect x="8" y="8" width="144" height="144" rx="40" fill="url(#gh-login-grad)"/>
-          <path d="M 109.73 108.77 A 40 40 0 1 1 118.04 69.64" fill="none" stroke="#fff" stroke-width="15.5" stroke-linecap="round"/>
-          <path d="M 109.73 108.77 L 80 100" fill="none" stroke="#fff" stroke-width="15.5" stroke-linecap="round"/>
-          <path d="M 80 100 L 100 92 L 92 112 Z" fill="#1CB8A8"/>
+          <rect x="8" y="8" width="144" height="144" rx="40" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="2"/>
+          <path d="M 83.5 89.55 A 25 25 0 1 1 83.5 72.45" fill="none" stroke="#fff" stroke-width="11.5" stroke-linecap="round"/>
+          <path d="M 83.5 89.55 L 67 89.55" fill="none" stroke="#fff" stroke-width="11.5" stroke-linecap="round"/>
+          <path d="M 100 56 L 100 106" fill="none" stroke="#fff" stroke-width="11.5" stroke-linecap="round"/>
+          <path d="M 126 56 L 126 106" fill="none" stroke="#fff" stroke-width="11.5" stroke-linecap="round"/>
+          <path d="M 100 81 L 126 81" fill="none" stroke="#1CB8A8" stroke-width="11.5" stroke-linecap="round"/>
         </svg>
-        <div style="font-family:'Zilla Slab',serif; font-weight:700; font-size:20px; color:#0E1830; margin-bottom:4px;">Guzman HVAC</div>
+        <div style="font-family:'Zilla Slab',serif; font-weight:700; font-size:20px; color:#0E1830; margin-bottom:4px;">GH Manager</div>
         <div id="gh-login-subtitulo" style="font-size:12.5px; color:#5A6A88; margin-bottom:6px;">Inicia sesión</div>
         <div style="font-size:11px; color:#9AA6BE; margin-bottom:16px;">El usuario NO es tu correo — solo un nombre corto (ej. "juan")</div>
         <input id="gh-usuario-input" type="text" placeholder="Usuario (no es tu correo)" autocomplete="username"

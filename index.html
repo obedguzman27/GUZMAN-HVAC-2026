@@ -1979,7 +1979,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v66 · 17 sep';
+  const APP_VERSION = 'v67 · 17 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -2177,7 +2177,7 @@
   let cfgFacturaDireccion = '';
   let cfgFacturaSigueSocio = true; // (obsoleto) antes el nombre seguía al Socio 2
   let cfgSociosMigrados = false;   // ya se separó la empresa de la lista de socios
-  let cfgLogoDataUrl = ''; // logo personalizado (opcional); vacío = logo de Guzman HVAC por defecto
+  let cfgLogoDataUrl = ''; // logo para las FACTURAS (aparte del logo de la app)
   let cfgUltimoCliente = ''; // último "Bill To" usado en Facturas — se mantiene hasta que lo cambien
   let cfgUltimoClienteDir = ''; // última dirección del cliente — se recuerda igual que el nombre
 
@@ -2260,7 +2260,7 @@
     };
     try { await window.storage.set(CFG_KEY, JSON.stringify(c)); } catch (e) {}
   }
-  // Muestra el logo personalizado en el encabezado si hay uno; si no, el de Guzman HVAC.
+  // El encabezado siempre usa el logo de la app (GH Manager).
   function aplicarLogo() {
     // El encabezado SIEMPRE lleva el logo de la app (GH Manager). El logo
     // que se sube en Ajustes es solo para las facturas y recibos, porque
@@ -4924,7 +4924,7 @@
     t_invoice_guardado_y_archivado_en_registro: {es:'Invoice guardado y archivado en Registro ✓',en:'Invoice saved and filed under Log ✓'},
     t_invoice_reabierto_edita_los_movimientos_: {es:'Invoice reabierto — edita los movimientos y vuelve a guardarlo',en:'Invoice reopened — edit the transactions and save it again'},
     t_logo_actualizado: {es:'Logo actualizado ✓',en:'Logo updated ✓'},
-    t_logo_de_guzman_hvac_restaurado: {es:'Logo de Guzman HVAC restaurado',en:'Guzman HVAC logo restored'},
+    t_logo_de_guzman_hvac_restaurado: {es:'Logo de la factura quitado',en:'Invoice logo removed'},
     t_movimiento_eliminado: {es:'Movimiento eliminado',en:'Transaction deleted'},
     t_movimiento_repetido_con_la_fecha_de_hoy_: {es:'Movimiento repetido con la fecha de hoy — revisa el monto y guarda',en:'Transaction repeated with today\'s date — check the amount and save'},
     t_no_hay_movimientos_para_guardar: {es:'No hay movimientos para guardar',en:'No transactions to save'},
@@ -5259,7 +5259,7 @@
     });
   })();
 
-  // ---- Logo personalizado (opcional, reemplaza el de Guzman HVAC en el encabezado) ----
+  // ---- Logo para las facturas (lo que ve el cliente; no cambia el de la app) ----
   function ajRefrescarPreviewLogo() {
     const prev = $('aj-logo-preview');
     const btnQuitar = $('aj-logo-quitar');
@@ -5311,7 +5311,7 @@
       await guardarConfig();
       aplicarLogo();
       ajRefrescarPreviewLogo();
-      toast('Logo de GH Manager restaurado', 'info');
+      toast('Logo de la factura quitado', 'info');
     });
   }
 
@@ -6013,7 +6013,7 @@
   }
   function calExportarICS(lista) {
     if (!lista.length) { toast('No hay trabajos para exportar', 'info'); return; }
-    let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Guzman HVAC//Calendario//ES\r\nCALSCALE:GREGORIAN\r\n';
+    let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//GH Manager//Calendario//ES\r\nCALSCALE:GREGORIAN\r\n';
     lista.forEach((c) => {
       const uid = (c.id || ('cita_' + Date.now())) + '@guzmanhvac.app';
       const prefijo = c.jobNum ? `[${c.jobNum}] ` : '';
