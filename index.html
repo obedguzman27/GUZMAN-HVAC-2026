@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Guzman HVAC</title>
+  <title>GH Manager</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -13,7 +13,7 @@
   <meta name="theme-color" content="#0E1830">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Guzman HVAC">
+  <meta name="apple-mobile-web-app-title" content="GH Manager">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="icon" href="icon-192.png">
 </head>
@@ -757,18 +757,17 @@
             <stop offset="1" stop-color="#0E1830"/>
           </linearGradient>
         </defs>
-        <!-- Cuadro redondeado (squircle) con gradiente -->
         <rect x="8" y="8" width="144" height="144" rx="40" fill="url(#gh-logo-grad)"/>
         <rect x="8" y="8" width="144" height="144" rx="40" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="2"/>
-        <!-- Letra G: anillo grueso con apertura + barra transversal (motivo: aspa de ventilador) -->
-        <path d="M 109.73 108.77 A 40 40 0 1 1 118.04 69.64" fill="none" stroke="#fff" stroke-width="15.5" stroke-linecap="round"/>
-        <path d="M 109.73 108.77 L 80 100" fill="none" stroke="#fff" stroke-width="15.5" stroke-linecap="round"/>
-        <!-- Acento: pequeña aspa/chispa -->
-        <path d="M 80 100 L 100 92 L 92 112 Z" fill="#1CB8A8"/>
+        <path d="M 83.5 89.55 A 25 25 0 1 1 83.5 72.45" fill="none" stroke="#fff" stroke-width="11.5" stroke-linecap="round"/>
+        <path d="M 83.5 89.55 L 67 89.55" fill="none" stroke="#fff" stroke-width="11.5" stroke-linecap="round"/>
+        <path d="M 100 56 L 100 106" fill="none" stroke="#fff" stroke-width="11.5" stroke-linecap="round"/>
+        <path d="M 126 56 L 126 106" fill="none" stroke="#fff" stroke-width="11.5" stroke-linecap="round"/>
+        <path d="M 100 81 L 126 81" fill="none" stroke="#1CB8A8" stroke-width="11.5" stroke-linecap="round"/>
       </svg>
       <img id="gc-logo-custom" alt="Logo" style="display:none;width:46px;height:46px;border-radius:12px;object-fit:cover;flex-shrink:0;">
       <div class="gc-brand-text">
-        <span class="gc-company">Guzman HVAC</span>
+        <span class="gc-company">GH Manager</span>
         <span id="app-version-badge" style="font-size:10px;color:rgba(255,255,255,0.55);font-weight:600;letter-spacing:.3px;"></span>
       </div>
     </div>
@@ -1096,7 +1095,7 @@
       <div class="gc-card" style="margin-top:16px;">
         <p class="gc-card-title" data-i18n="acerca_de">Acerca de</p>
         <p style="font-size:13px;color:var(--muted);line-height:1.7;">
-          <strong>Guzman HVAC</strong> — Sistema de cuentas, facturas y nómina.<br>
+          <strong>GH Manager</strong> — Sistema de cuentas, facturas y nómina.<br>
           Tus datos se sincronizan en la nube y están disponibles en todos tus dispositivos con tu usuario. Aun así, puedes descargar un respaldo cuando quieras.
           <br><span style="font-size:11px;color:var(--muted);">Versión <span id="app-version-acerca"></span></span>
         </p>
@@ -1123,8 +1122,8 @@
           <input type="text" id="aj-direccion-empresa" placeholder="Calle, ciudad, estado, ZIP" autocomplete="off">
         </div>
         <div style="margin-top:20px;padding-top:18px;border-top:1px solid var(--border-soft);">
-          <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);display:block;margin-bottom:8px;">Logo de la empresa (opcional)</label>
-          <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px;">Reemplaza el logo del encabezado por el tuyo. Vale para toda la app.</p>
+          <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);display:block;margin-bottom:8px;">Logo para las facturas</label>
+          <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px;">Este logo sale en las facturas y recibos que ve el cliente. Es <strong>aparte</strong> del logo de la app (GH Manager), que no cambia. Si no subes ninguno, la factura sale solo con el nombre.</p>
           <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
             <img id="aj-logo-preview" alt="" style="display:none;width:46px;height:46px;border-radius:12px;object-fit:cover;border:1px solid var(--border);">
             <input type="file" id="aj-logo-input" accept="image/*" style="max-width:220px;">
@@ -1862,7 +1861,7 @@
     barra.id = 'aviso-update';
     barra.style.cssText = 'position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:99999;background:#0E1830;color:#fff;padding:12px 18px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.35);display:flex;align-items:center;gap:14px;font-family:Inter,sans-serif;font-size:13.5px;max-width:92%;';
     const span = document.createElement('span');
-    span.textContent = 'Hay una versión nueva de Guzman HVAC' + (versionNueva ? ` (${versionNueva})` : '');
+    span.textContent = 'Hay una versión nueva de GH Manager' + (versionNueva ? ` (${versionNueva})` : '');
     barra.appendChild(span);
     const btn = document.createElement('button');
     btn.textContent = 'Actualizar';
@@ -1980,7 +1979,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v65 · 17 sep';
+  const APP_VERSION = 'v66 · 17 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -2263,11 +2262,13 @@
   }
   // Muestra el logo personalizado en el encabezado si hay uno; si no, el de Guzman HVAC.
   function aplicarLogo() {
+    // El encabezado SIEMPRE lleva el logo de la app (GH Manager). El logo
+    // que se sube en Ajustes es solo para las facturas y recibos, porque
+    // esos los ve el cliente — son dos logos distintos a propósito.
     const badge = document.querySelector('.gc-logo-badge');
     const img = document.getElementById('gc-logo-custom');
-    if (!badge || !img) return;
-    if (cfgLogoDataUrl) { badge.style.display = 'none'; img.style.display = ''; img.src = cfgLogoDataUrl; }
-    else { badge.style.display = ''; img.style.display = 'none'; img.src = ''; }
+    if (badge) badge.style.display = '';
+    if (img) { img.style.display = 'none'; img.src = ''; }
   }
   // Actualiza los textos fijos del HTML que muestran los nombres de los socios
   function aplicarNombresEstaticos() {
@@ -3894,7 +3895,7 @@
     area.innerHTML = `<div class="gc-print-sheet">${cuerpoHTML}</div>`;
     document.title = 'Registro';
     window.print();
-    setTimeout(() => { area.innerHTML = ''; document.title = 'Guzman HVAC'; }, 600);
+    setTimeout(() => { area.innerHTML = ''; document.title = 'GH Manager'; }, 600);
   });
 
   // ---- Respaldo completo (para guardar en OneDrive) ----
@@ -3923,7 +3924,7 @@
     try { recibosData = JSON.parse(rRecibos.value); } catch (e) {}
 
     const respaldo = {
-      app: 'Guzman HVAC',
+      app: 'GH Manager',
       version: 3,
       generadoEn: new Date().toISOString(),
       // Cuentas y reparto
@@ -5114,11 +5115,14 @@
       <svg width="60" height="60" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
         <defs><linearGradient id="applock-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C2611B"/><stop offset="1" stop-color="#0E1830"/></linearGradient></defs>
         <rect x="8" y="8" width="144" height="144" rx="40" fill="url(#applock-grad)"/>
-        <path d="M 109.73 108.77 A 40 40 0 1 1 118.04 69.64" fill="none" stroke="#fff" stroke-width="15.5" stroke-linecap="round"/>
-        <path d="M 109.73 108.77 L 80 100" fill="none" stroke="#fff" stroke-width="15.5" stroke-linecap="round"/>
-        <path d="M 80 100 L 100 92 L 92 112 Z" fill="#1CB8A8"/>
+        <rect x="8" y="8" width="144" height="144" rx="40" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="2"/>
+        <path d="M 83.5 89.55 A 25 25 0 1 1 83.5 72.45" fill="none" stroke="#fff" stroke-width="11.5" stroke-linecap="round"/>
+        <path d="M 83.5 89.55 L 67 89.55" fill="none" stroke="#fff" stroke-width="11.5" stroke-linecap="round"/>
+        <path d="M 100 56 L 100 106" fill="none" stroke="#fff" stroke-width="11.5" stroke-linecap="round"/>
+        <path d="M 126 56 L 126 106" fill="none" stroke="#fff" stroke-width="11.5" stroke-linecap="round"/>
+        <path d="M 100 81 L 126 81" fill="none" stroke="#1CB8A8" stroke-width="11.5" stroke-linecap="round"/>
       </svg>
-      <div style="font-size:16.5px;font-weight:700;">Guzman HVAC bloqueada</div>
+      <div style="font-size:16.5px;font-weight:700;">GH Manager bloqueada</div>
       <div id="gh-applock-msg" style="font-size:12.5px;color:rgba(255,255,255,.72);min-height:18px;max-width:280px;"></div>
       ${credId ? `<button id="gh-applock-btn-faceid" style="background:#0C9184;color:#fff;border:none;padding:14px 28px;border-radius:999px;font-weight:700;font-size:14.5px;cursor:pointer;">Desbloquear con Face ID</button>` : ''}
       <div id="gh-applock-pin-zona" style="${credId ? 'display:none;' : ''}width:100%;max-width:260px;">
@@ -5228,7 +5232,7 @@
         const cred = await navigator.credentials.create({
           publicKey: {
             challenge: crypto.getRandomValues(new Uint8Array(24)),
-            rp: { name: 'Guzman HVAC' },
+            rp: { name: 'GH Manager' },
             user: { id: crypto.getRandomValues(new Uint8Array(16)), name: (window.GH_NOMBRE || 'usuario'), displayName: (window.GH_NOMBRE || 'Usuario') },
             pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
             authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
@@ -5302,12 +5306,12 @@
   }
   if ($('aj-logo-quitar')) {
     $('aj-logo-quitar').addEventListener('click', async () => {
-      if (!await gcConfirm('¿Quitar el logo personalizado y volver al de Guzman HVAC?', { okText: 'Quitar' })) return;
+      if (!await gcConfirm('¿Quitar el logo de la factura?', { okText: 'Quitar' })) return;
       cfgLogoDataUrl = '';
       await guardarConfig();
       aplicarLogo();
       ajRefrescarPreviewLogo();
-      toast('Logo de Guzman HVAC restaurado', 'info');
+      toast('Logo de GH Manager restaurado', 'info');
     });
   }
 
@@ -6619,13 +6623,12 @@
       <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;">${escapeHtml(it.work||'')}</td>
       <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;text-align:right;font-weight:700;">${invFmt(it.amount)}</td>
     </tr>`).join('');
-    const logoSvg = `<svg width="42" height="42" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
-      <defs><linearGradient id="pdf-logo-grad-inv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C2611B"/><stop offset="1" stop-color="#0E1830"/></linearGradient></defs>
-      <rect x="8" y="8" width="144" height="144" rx="40" fill="url(#pdf-logo-grad-inv)"/>
-      <path d="M 109.73 108.77 A 40 40 0 1 1 118.04 69.64" fill="none" stroke="#fff" stroke-width="15.5" stroke-linecap="round"/>
-      <path d="M 109.73 108.77 L 80 100" fill="none" stroke="#fff" stroke-width="15.5" stroke-linecap="round"/>
-      <path d="M 80 100 L 100 92 L 92 112 Z" fill="#1CB8A8"/>
-    </svg>`;
+    // El logo de la FACTURA es el que se sube en Ajustes → Name of Company.
+    // Es aparte del logo de la app (GH Manager): la factura la ve el cliente,
+    // así que ahí va el logo del negocio, no el de la app.
+    const logoSvg = cfgLogoDataUrl
+      ? `<img src="${cfgLogoDataUrl}" alt="" style="width:52px;height:52px;object-fit:contain;flex-shrink:0;">`
+      : '';
     return `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
         <div style="display:flex;align-items:center;gap:13px;">

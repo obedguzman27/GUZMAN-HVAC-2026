@@ -1,9 +1,9 @@
-// Service worker de Guzman HVAC — guarda una copia local de la app
+// Service worker de GH Manager — guarda una copia local de la app
 // para que abra rápido y funcione aunque no haya internet.
 // Los datos NO se guardan aquí (eso vive en localStorage / futuro backend),
 // solo el "cascarón" de la app (HTML, íconos).
 
-const CACHE_NAME = 'guzman-hvac-v65';
+const CACHE_NAME = 'gh-manager-v66';
 const ARCHIVOS_CACHE = [
   './',
   './index.html',
@@ -41,7 +41,7 @@ self.addEventListener('activate', (evento) => {
 
 // Estrategia: copia guardada primero (la app abre AL INSTANTE, incluso con
 // señal débil), y en segundo plano busca una versión nueva para la próxima
-// vez — el aviso "Hay una versión nueva de Guzman HVAC" ya le dice al usuario
+// vez — el aviso "Hay una versión nueva de GH Manager" ya le dice al usuario
 // cuándo actualizar (y a qué versión), así que no hace falta esperar la red
 // en cada apertura.
 // Solo aplica al "cascarón" de la app (mismo origen: HTML, JS, íconos).
