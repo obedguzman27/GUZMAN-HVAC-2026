@@ -1094,22 +1094,32 @@
     <div class="aj-subpanel" id="aj-sub-avanzado">
       <div class="gc-note">Esta sección solo la ve el <strong>admin</strong> — configuración sensible del negocio, no del día a día.</div>
 
-      <!-- Datos de la factura -->
+      <!-- Name of Company -->
       <div class="gc-card" style="margin-top:16px;">
-        <p class="gc-card-title" data-i18n="datos_de_la_factura_y_recibos">Datos de la factura y recibos</p>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">El nombre y la dirección aparecen en las facturas y recibos. Se guardan en la nube — ya <strong>no se borran</strong> al cerrar sesión, sin importar qué usuario entre.</p>
+        <p class="gc-card-title">Name of Company</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Estos datos salen en <strong>todas</strong> las facturas, los invoices de Registro y los recibos de nómina. Se guardan en la nube.</p>
         <p id="aj-factura-solo-admin-nota" style="display:none;font-size:12px;color:var(--muted);background:#F5F7FC;border-radius:8px;padding:8px 12px;margin-bottom:12px;">Solo el admin puede cambiar estos datos.</p>
         <label id="aj-factura-sigue-socio-label" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px;color:var(--ink);cursor:pointer;">
-          <input type="checkbox" id="aj-factura-sigue-socio" style="width:16px;height:16px;">Usar el nombre del <strong>Socio 2</strong> en las facturas y nómina (se actualiza solo al cambiar o intercambiar los socios)
+          <input type="checkbox" id="aj-factura-sigue-socio" style="width:16px;height:16px;">Usar el nombre del <strong>Socio 2</strong> (se actualiza solo al cambiar los socios)
         </label>
-        <div class="gc-field" style="margin-bottom:12px;" id="aj-factura-nombre-wrap"><label data-i18n="nombre_en_la_factura_recibos">Nombre en la factura / recibos</label>
-          <input type="text" id="aj-factura-nombre" autocomplete="off">
+        <div class="gc-field" style="margin-bottom:12px;" id="aj-factura-nombre-wrap"><label>Nombre de la empresa</label>
+          <input type="text" id="aj-factura-nombre" placeholder="GUZMAN HVAC" autocomplete="off">
         </div>
-        <div class="gc-field"><label data-i18n="direccion_aparece_en_la_factura">Dirección (aparece en la factura)</label>
-          <input type="text" id="aj-direccion-empresa" autocomplete="off">
+        <div class="gc-field"><label>Dirección de la empresa</label>
+          <input type="text" id="aj-direccion-empresa" placeholder="Calle, ciudad, estado, ZIP" autocomplete="off">
         </div>
-        <div style="display:flex;justify-content:flex-end;margin-top:12px;">
-          <button class="gc-save-btn" data-i18n="guardar_datos_de_factura" id="aj-btn-guardar-factura">Guardar datos de factura</button>
+        <div style="margin-top:20px;padding-top:18px;border-top:1px solid var(--border-soft);">
+          <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);display:block;margin-bottom:8px;">Logo de la empresa (opcional)</label>
+          <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px;">Reemplaza el logo del encabezado por el tuyo. Vale para toda la app.</p>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            <img id="aj-logo-preview" alt="" style="display:none;width:46px;height:46px;border-radius:12px;object-fit:cover;border:1px solid var(--border);">
+            <input type="file" id="aj-logo-input" accept="image/*" style="max-width:220px;">
+            <button type="button" class="gc-action-btn" data-i18n="quitar_logo" id="aj-logo-quitar" style="display:none;">Quitar logo</button>
+          </div>
+          <p id="aj-logo-status" style="font-size:11.5px;color:var(--muted);margin-top:8px;"></p>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+          <button class="gc-save-btn" id="aj-btn-guardar-factura">Guardar datos de la empresa</button>
         </div>
       </div>
 
@@ -1133,16 +1143,6 @@
           <button type="button" class="aj-accent-sw" data-accent="teal" title="Teal" style="width:38px;height:38px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;background:linear-gradient(135deg,#0E8F82,#0B6F65);"></button>
           <button type="button" class="aj-accent-sw" data-accent="indigo" title="Índigo" style="width:38px;height:38px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;background:linear-gradient(135deg,#4F6FA8,#3A5486);"></button>
           <button type="button" class="aj-accent-sw" data-accent="verde" title="Verde" style="width:38px;height:38px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;background:linear-gradient(135deg,#4E9350,#397239);"></button>
-        </div>
-        <div style="margin-top:20px;padding-top:18px;border-top:1px solid var(--border-soft);">
-          <label style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);display:block;margin-bottom:8px;">Logo de la empresa (opcional)</label>
-          <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px;">Reemplaza el logo de Guzman HVAC en el encabezado por el tuyo. Válido para toda la app (todas las bases de datos).</p>
-          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-            <img id="aj-logo-preview" alt="" style="display:none;width:46px;height:46px;border-radius:12px;object-fit:cover;border:1px solid var(--border);">
-            <input type="file" id="aj-logo-input" accept="image/*" style="max-width:220px;">
-            <button type="button" class="gc-action-btn" data-i18n="quitar_logo" id="aj-logo-quitar" style="display:none;">Quitar logo</button>
-          </div>
-          <p id="aj-logo-status" style="font-size:11.5px;color:var(--muted);margin-top:8px;"></p>
         </div>
       </div>
 
@@ -1446,9 +1446,15 @@
           <datalist id="dl-clientes"></datalist>
         </div>
       </div>
-      <div class="gc-field"><label data-i18n="direccion_opcional_aparece_en_la_factura">Dirección (opcional — aparece en la factura)</label>
-        <input type="text" id="inv-direccion-emisor" autocomplete="off">
+      <div class="gc-form-row">
+        <div class="gc-field"><label>Dirección de la empresa (sale arriba en la factura)</label>
+          <input type="text" id="inv-direccion-emisor" autocomplete="off">
+        </div>
+        <div class="gc-field"><label>Dirección del cliente (Bill To)</label>
+          <input type="text" id="inv-cliente-direccion" placeholder="Dirección de quien paga" autocomplete="off">
+        </div>
       </div>
+      <p style="font-size:11px;color:var(--muted);margin-top:8px;">Estos datos se recuerdan para la siguiente factura — solo cámbialos si son distintos.</p>
     </div>
     <div class="gc-card">
       <p class="gc-card-title" data-i18n="trabajos">Trabajos</p>
@@ -1960,7 +1966,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v58 · 16 sep';
+  const APP_VERSION = 'v59 · 16 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -2159,6 +2165,7 @@
   let cfgFacturaSigueSocio = true; // el nombre de factura/nómina sigue al Socio 2 (mitad)
   let cfgLogoDataUrl = ''; // logo personalizado (opcional); vacío = logo de Guzman HVAC por defecto
   let cfgUltimoCliente = ''; // último "Bill To" usado en Facturas — se mantiene hasta que lo cambien
+  let cfgUltimoClienteDir = ''; // última dirección del cliente — se recuerda igual que el nombre
 
   async function cargarConfig() {
     try {
@@ -2184,6 +2191,7 @@
       if (typeof c.facturaSigueSocio === 'boolean') cfgFacturaSigueSocio = c.facturaSigueSocio;
       if (typeof c.logoDataUrl === 'string') cfgLogoDataUrl = c.logoDataUrl;
       if (typeof c.ultimoCliente === 'string') cfgUltimoCliente = c.ultimoCliente;
+      if (typeof c.ultimoClienteDir === 'string') cfgUltimoClienteDir = c.ultimoClienteDir;
       if (typeof c.tasaTaxas === 'number' && c.tasaTaxas >= 0 && c.tasaTaxas < 1) TASA_TAXAS = c.tasaTaxas;
     } catch (e) {
       // Migración: si había una dirección vieja en localStorage, usarla
@@ -2200,6 +2208,10 @@
     // "Bill To" recuerda la última compañía usada, hasta que la cambien a propósito
     const campoCliente = $('inv-cliente');
     if (campoCliente && !campoCliente.value) campoCliente.value = cfgUltimoCliente;
+    const campoCliDir = document.getElementById('inv-cliente-direccion');
+    if (campoCliDir && !campoCliDir.value) campoCliDir.value = cfgUltimoClienteDir;
+    const campoDirEmp = document.getElementById('inv-direccion-emisor');
+    if (campoDirEmp && !campoDirEmp.value) campoDirEmp.value = cfgFacturaDireccion;
   }
   async function guardarConfig() {
     const c = {
@@ -2207,7 +2219,7 @@
       socioBonus: cfgSocioBonus, socioMitad: cfgSocioMitad, // se dejan también por compatibilidad hacia atrás
       facturaNombre: cfgFacturaNombre, facturaDireccion: cfgFacturaDireccion,
       facturaSigueSocio: cfgFacturaSigueSocio, logoDataUrl: cfgLogoDataUrl,
-      ultimoCliente: cfgUltimoCliente, tasaTaxas: TASA_TAXAS
+      ultimoCliente: cfgUltimoCliente, ultimoClienteDir: cfgUltimoClienteDir, tasaTaxas: TASA_TAXAS
     };
     try { await window.storage.set(CFG_KEY, JSON.stringify(c)); } catch (e) {}
   }
@@ -3580,13 +3592,18 @@
   function construirHTMLInvoice(inv) {
     const filasGasto = (inv.gastoItems || []).length
       ? inv.gastoItems.map((m) => `
-          <tr><td>${m.fecha || ''}</td><td>${escapeHtml(m.cat || '')}</td><td>${escapeHtml(m.desc || '')}</td><td class="num">${fmt(m.monto)}</td></tr>
+          <tr><td>${invFechaNum(m.fecha)}</td><td>${escapeHtml(m.cat || '')}</td><td>${escapeHtml(m.desc || '')}</td><td class="num">${fmt(m.monto)}</td></tr>
         `).join('')
       : `<tr><td colspan="4" style="color:#777; font-style:italic;">Sin gastos capturados esta semana</td></tr>`;
 
+    const guardadoNum = inv.guardadoEn
+      ? (() => { const d = new Date(inv.guardadoEn);
+          return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`; })()
+      : '';
     return `
       <h1>${cfgFacturaNombre}</h1>
-      <div class="ps-badge">${escapeHtml(inv.label || '')}${inv.guardadoEn ? ' · guardado el ' + new Date(inv.guardadoEn).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }) : ''}</div>
+      ${cfgFacturaDireccion ? `<div class="ps-addr">${escapeHtml(cfgFacturaDireccion)}</div>` : ''}
+      <div class="ps-badge">${escapeHtml(inv.label || '')}${guardadoNum ? ' · guardado el ' + guardadoNum : ''}</div>
 
       <h2>Detalle de gastos</h2>
       <table>
@@ -4418,7 +4435,8 @@
     // Reflejar la dirección en el formulario de factura si existe
     const invDir = $('inv-direccion-emisor');
     if (invDir) invDir.value = cfgFacturaDireccion;
-    toast('Datos de factura guardados ✓', 'success');
+    aplicarNombresEstaticos();
+    toast('Datos de la empresa guardados ✓', 'success');
   });
 
   // ---- Bases de datos con nombre + administración (solo admin) ----
@@ -5565,6 +5583,13 @@
   const invFmt = n => '$'+(Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   // Días en inglés para la columna DAY de la factura (el invoice siempre se ve en inglés)
   const INV_DIAS_SEMANA = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  // Fecha en números para los documentos (MM/DD/YYYY), nunca en letras
+  function invFechaNum(fechaISO) {
+    if (!fechaISO) return '';
+    const p = String(fechaISO).slice(0, 10).split('-');
+    if (p.length !== 3) return fechaISO;
+    return `${p[1]}/${p[2]}/${p[0]}`;
+  }
   function invDiaDeFecha(fechaISO) {
     if (!fechaISO) return '';
     const [y, m, d] = fechaISO.split('-').map(Number);
@@ -6467,13 +6492,17 @@
       id: idExistente || Date.now().toString(),
       numero: num, fecha: $('inv-fecha').value, cliente: $('inv-cliente').value.trim(),
       direccionEmisor: $('inv-direccion-emisor').value.trim(),
+      clienteDireccion: $('inv-cliente-direccion').value.trim(),
       notas: $('inv-notas').value.trim(), items, ...tots, creadoEn: new Date().toISOString(),
       pagada: existente ? !!existente.pagada : false // nueva = pendiente de cobro; si ya existía, se conserva su estado
     };
     const idx = invDocs.findIndex(i => i.id===inv.id);
     if (idx>=0) invDocs[idx]=inv; else invDocs.push(inv);
     if (inv.direccionEmisor && inv.direccionEmisor !== cfgFacturaDireccion) { cfgFacturaDireccion = inv.direccionEmisor; guardarConfig(); }
-    if (inv.cliente && inv.cliente !== cfgUltimoCliente) { cfgUltimoCliente = inv.cliente; guardarConfig(); }
+    let cambio = false;
+    if (inv.cliente && inv.cliente !== cfgUltimoCliente) { cfgUltimoCliente = inv.cliente; cambio = true; }
+    if (inv.clienteDireccion !== undefined && inv.clienteDireccion !== cfgUltimoClienteDir) { cfgUltimoClienteDir = inv.clienteDireccion; cambio = true; }
+    if (cambio) guardarConfig();
     await invSaveInv();
     toast(idx>=0 ? 'Factura actualizada ✓' : 'Factura guardada ✓');
     invLimpiar();
@@ -6524,11 +6553,11 @@
         <div style="text-align:right;">
           <div style="font-size:25px;font-weight:700;color:#0E1830;letter-spacing:2px;">INVOICE</div>
           <div style="font-size:13.5px;font-weight:600;color:#555;margin-top:4px;">${escapeHtml(inv.numero||'')}</div>
-          <div style="font-size:11.5px;color:#93A0B8;margin-top:2px;">${inv.fecha||''}</div>
+          <div style="font-size:11.5px;color:#93A0B8;margin-top:2px;">${invFechaNum(inv.fecha)}</div>
         </div>
       </div>
       <div style="height:3px;background:linear-gradient(90deg,#C2611B,#0E1830 65%);border-radius:2px;margin-bottom:24px;"></div>
-      ${inv.cliente?`<div style="margin-bottom:22px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#A3ACBD;margin-bottom:5px;">Bill To</div><div style="font-size:15px;font-weight:700;color:#0E1830;">${escapeHtml(inv.cliente)}</div></div>`:''}
+      ${(inv.cliente || inv.clienteDireccion)?`<div style="margin-bottom:22px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#A3ACBD;margin-bottom:5px;">Bill To</div>${inv.cliente?`<div style="font-size:15px;font-weight:700;color:#0E1830;">${escapeHtml(inv.cliente)}</div>`:''}${inv.clienteDireccion?`<div style="font-size:12px;color:#5C6B85;margin-top:2px;">${escapeHtml(inv.clienteDireccion)}</div>`:''}</div>`:''}
       <table style="width:100%;border-collapse:collapse;margin-bottom:18px;font-size:12.5px;">
         <thead><tr style="background:#0E1830;">
           <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.62);text-transform:uppercase;letter-spacing:.5px;width:30px;">#</th>
@@ -6575,7 +6604,7 @@
       if(job||loc||work||amt) items.push({job,location:loc,work,amount:amt,dia});
     });
     const tots=invCalcTotales();
-    invMostrarVista({numero:$('inv-num').value||'---',fecha:$('inv-fecha').value,cliente:$('inv-cliente').value,direccionEmisor:$('inv-direccion-emisor').value,notas:$('inv-notas').value,items,...tots});
+    invMostrarVista({numero:$('inv-num').value||'---',fecha:$('inv-fecha').value,cliente:$('inv-cliente').value,clienteDireccion:$('inv-cliente-direccion').value,direccionEmisor:$('inv-direccion-emisor').value,notas:$('inv-notas').value,items,...tots});
   });
 
   function ghEsStandalone() {
@@ -7283,7 +7312,7 @@
     const filasDias = dias.map((f, i) => `
       <tr>
         <td style="padding:8px 6px;border-bottom:1px solid #e5e5e5;font-size:12.5px;">${i + 1}</td>
-        <td style="padding:8px 6px;border-bottom:1px solid #e5e5e5;font-size:12.5px;">${escapeHtml(nomFechaCompleta(f))}</td>
+        <td style="padding:8px 6px;border-bottom:1px solid #e5e5e5;font-size:12.5px;">${invFechaNum(f)}</td>
         <td style="padding:8px 6px;border-bottom:1px solid #e5e5e5;text-align:right;font-size:12.5px;">${sueldoDia > 0 ? nomFmt(sueldoDia) : '—'}</td>
       </tr>`).join('');
 
@@ -7291,11 +7320,12 @@
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;border-bottom:3px solid #0E1830;padding-bottom:18px;">
         <div>
           <div style="font-size:22px;font-weight:700;color:#0E1830;font-family:Georgia,serif;">${escapeHtml(cfgFacturaNombre)}</div>
+          ${cfgFacturaDireccion ? `<div style="font-size:11.5px;color:#707A8C;margin-top:2px;">${escapeHtml(cfgFacturaDireccion)}</div>` : ''}
           <div style="font-size:12px;color:#666;margin-top:3px;">Recibo de pago a trabajador</div>
         </div>
         <div style="text-align:right;">
           <div style="font-size:20px;font-weight:700;color:#0E1830;letter-spacing:1px;">RECIBO</div>
-          <div style="font-size:12px;color:#888;margin-top:3px;">${(n.creadoEn || '').slice(0, 10)}</div>
+          <div style="font-size:12px;color:#888;margin-top:3px;">${invFechaNum((n.creadoEn || '').slice(0, 10))}</div>
         </div>
       </div>
 
@@ -7792,13 +7822,14 @@
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;border-bottom:3px solid #0E1830;padding-bottom:18px;">
         <div>
           <div style="font-size:22px;font-weight:700;color:#0E1830;font-family:Georgia,serif;">${escapeHtml(cfgFacturaNombre)}</div>
+          ${cfgFacturaDireccion ? `<div style="font-size:11.5px;color:#707A8C;margin-top:2px;">${escapeHtml(cfgFacturaDireccion)}</div>` : ''}
           <div style="font-size:12px;color:#666;margin-top:3px;">Recibo de nómina semanal</div>
         </div>
         <div style="text-align:right;">
           <div style="font-size:20px;font-weight:700;color:#0E1830;letter-spacing:1px;">NÓMINA</div>
           <div style="font-size:13px;font-weight:600;color:#0E1830;margin-top:6px;">Semana</div>
-          <div style="font-size:12px;color:#666;">${nomFechaCortaTexto(rango.inicio)}</div>
-          <div style="font-size:12px;color:#666;">al ${nomFechaCortaTexto(rango.fin)}</div>
+          <div style="font-size:12px;color:#666;">${invFechaNum(rango.inicio)}</div>
+          <div style="font-size:12px;color:#666;">al ${invFechaNum(rango.fin)}</div>
         </div>
       </div>
 
