@@ -1099,9 +1099,6 @@
         <p class="gc-card-title">Name of Company</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Estos datos salen en <strong>todas</strong> las facturas, los invoices de Registro y los recibos de nómina. Se guardan en la nube.</p>
         <p id="aj-factura-solo-admin-nota" style="display:none;font-size:12px;color:var(--muted);background:#F5F7FC;border-radius:8px;padding:8px 12px;margin-bottom:12px;">Solo el admin puede cambiar estos datos.</p>
-        <label id="aj-factura-sigue-socio-label" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px;color:var(--ink);cursor:pointer;">
-          <input type="checkbox" id="aj-factura-sigue-socio" style="width:16px;height:16px;">Usar el nombre del <strong>Socio 2</strong> (se actualiza solo al cambiar los socios)
-        </label>
         <div class="gc-field" style="margin-bottom:12px;" id="aj-factura-nombre-wrap"><label>Nombre de la empresa</label>
           <input type="text" id="aj-factura-nombre" placeholder="GUZMAN HVAC" autocomplete="off">
         </div>
@@ -1187,7 +1184,7 @@
       <!-- Socios (reparto) -->
       <div class="gc-card" style="margin-top:8px;" id="aj-card-socios">
         <p class="gc-card-title" data-i18n="socios_reparto">Socios (reparto)</p>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Cada semana se reparte en partes iguales entre los socios de la lista — con uno solo, se lleva todo. Para cada uno, define si recibe tax y qué porcentaje. El <strong>primer socio</strong> de la lista es quien recibe los ajustes manuales (Movimientos → Ajuste).</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;"><strong>Los socios son opcionales.</strong> Si no agregas ninguno, la empresa se lleva todo lo de la semana. Cada socio que agregues se lleva su parte igual (la semana se divide entre la empresa y los socios) más su porcentaje de tax. Los ajustes manuales (Movimientos → Ajuste) siempre son de la empresa.</p>
         <div class="gc-field" style="max-width:260px;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--border-soft);">
           <label>Tax de la semana (% de los ingresos)</label>
           <input type="text" id="aj-tasa-taxas" inputmode="decimal" placeholder="10" style="max-width:110px;">
@@ -1966,7 +1963,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v59 · 16 sep';
+  const APP_VERSION = 'v60 · 16 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -2162,7 +2159,8 @@
   }
   let cfgFacturaNombre = 'GUZMAN HVAC';
   let cfgFacturaDireccion = '';
-  let cfgFacturaSigueSocio = true; // el nombre de factura/nómina sigue al Socio 2 (mitad)
+  let cfgFacturaSigueSocio = true; // (obsoleto) antes el nombre seguía al Socio 2
+  let cfgSociosMigrados = false;   // ya se separó la empresa de la lista de socios
   let cfgLogoDataUrl = ''; // logo personalizado (opcional); vacío = logo de Guzman HVAC por defecto
   let cfgUltimoCliente = ''; // último "Bill To" usado en Facturas — se mantiene hasta que lo cambien
   let cfgUltimoClienteDir = ''; // última dirección del cliente — se recuerda igual que el nombre
@@ -2189,6 +2187,7 @@
       if (c.facturaNombre) cfgFacturaNombre = c.facturaNombre;
       if (typeof c.facturaDireccion === 'string') cfgFacturaDireccion = c.facturaDireccion;
       if (typeof c.facturaSigueSocio === 'boolean') cfgFacturaSigueSocio = c.facturaSigueSocio;
+      if (typeof c.sociosMigrados === 'boolean') cfgSociosMigrados = c.sociosMigrados;
       if (typeof c.logoDataUrl === 'string') cfgLogoDataUrl = c.logoDataUrl;
       if (typeof c.ultimoCliente === 'string') cfgUltimoCliente = c.ultimoCliente;
       if (typeof c.ultimoClienteDir === 'string') cfgUltimoClienteDir = c.ultimoClienteDir;
@@ -2198,7 +2197,19 @@
       try { const d = localStorage.getItem('cra-direccion'); if (d) cfgFacturaDireccion = d; } catch (e2) {}
     }
     // Si el nombre de factura sigue al socio, mantenerlo sincronizado
-    if (cfgFacturaSigueSocio) cfgFacturaNombre = cfgSocioMitad;
+    // Antes la empresa era "el Socio 2" de la lista. Ahora la empresa va
+    // aparte (Name of Company) y la lista son SOLO los socios, que además
+    // son opcionales. Esta migración corre una sola vez.
+    if (!cfgSociosMigrados) {
+      if (cfgFacturaSigueSocio && cfgSocios.length >= 2) {
+        cfgFacturaNombre = (cfgSocios[1] && cfgSocios[1].nombre) || cfgFacturaNombre;
+        cfgSocios = cfgSocios.filter((_, i) => i !== 1);   // quitar a la empresa de la lista
+      }
+      cfgFacturaSigueSocio = false;
+      cfgSociosMigrados = true;
+      guardarConfig();
+    }
+    actualizarAliasSocios();
     aplicarNombresEstaticos();
     aplicarLogo();
     // Si el formulario de Ajustes ya se había pintado con valores por defecto
@@ -2218,7 +2229,7 @@
       socios: cfgSocios,
       socioBonus: cfgSocioBonus, socioMitad: cfgSocioMitad, // se dejan también por compatibilidad hacia atrás
       facturaNombre: cfgFacturaNombre, facturaDireccion: cfgFacturaDireccion,
-      facturaSigueSocio: cfgFacturaSigueSocio, logoDataUrl: cfgLogoDataUrl,
+      facturaSigueSocio: cfgFacturaSigueSocio, sociosMigrados: cfgSociosMigrados, logoDataUrl: cfgLogoDataUrl,
       ultimoCliente: cfgUltimoCliente, ultimoClienteDir: cfgUltimoClienteDir, tasaTaxas: TASA_TAXAS
     };
     try { await window.storage.set(CFG_KEY, JSON.stringify(c)); } catch (e) {}
@@ -3036,14 +3047,21 @@
       // más). Si solo hay uno, "su parte" es el 100% — sale solo, sin caso
       // especial. El ajuste manual siempre es del primer socio; el bono de
       // cada quien es su propio porcentaje sobre (su parte + su ajuste).
-      const lista = cfgSocios && cfgSocios.length ? cfgSocios : [{ id: 'socio-1', nombre: cfgSocioBonus || 'Socio 1', bonoPct: 0 }];
+      // La EMPRESA siempre entra en el reparto y va primero (recibe los
+      // ajustes manuales). Los socios son opcionales: sin ninguno, la
+      // empresa se lleva todo; con socios, la semana se divide en partes
+      // iguales entre la empresa y ellos, y cada socio suma su porcentaje.
+      const lista = [
+        { id: 'empresa', nombre: cfgFacturaNombre || 'Empresa', bonoPct: 0, esEmpresa: true },
+        ...((cfgSocios || []).filter((x) => x && x.nombre))
+      ];
       const base = neto / lista.length;
       const pagos = lista.map((s, i) => {
         const ajusteSocio = i === 0 ? ajuste : 0;
         const baseConAjuste = base + ajusteSocio;
         const pct = Number(s.bonoPct) || 0;
         const bono = baseConAjuste > 0 ? baseConAjuste * (pct / 100) : 0;
-        return { id: s.id, nombre: s.nombre, bonoPct: pct, base, ajuste: ajusteSocio, bono, total: baseConAjuste + bono };
+        return { id: s.id, nombre: s.nombre, bonoPct: pct, base, ajuste: ajusteSocio, bono, total: baseConAjuste + bono, esEmpresa: !!s.esEmpresa };
       });
       const bonoCra = pagos.reduce((sum, p) => sum + p.bono, 0); // bono total que sale de las taxas
       const taxGuzman = taxas - bonoCra;
@@ -4259,7 +4277,7 @@
     const tabDoc = $('aj-subtab-documentacion'); if (tabDoc) tabDoc.style.display = esAdminGral ? '' : 'none';
     const tabAvanzado = $('aj-subtab-avanzado'); if (tabAvanzado) tabAvanzado.style.display = esAdminGral ? '' : 'none';
     // Datos de factura: visibles para todos, pero solo el admin puede editarlos
-    ['aj-factura-nombre', 'aj-direccion-empresa', 'aj-factura-sigue-socio'].forEach((id) => {
+    ['aj-factura-nombre', 'aj-direccion-empresa'].forEach((id) => {
       const el = $(id); if (el) el.disabled = !esAdminGral;
     });
     const btnGuardarFactura = $('aj-btn-guardar-factura'); if (btnGuardarFactura) btnGuardarFactura.style.display = esAdminGral ? '' : 'none';
@@ -4285,7 +4303,6 @@
     $('aj-factura-nombre').value = cfgFacturaNombre;
     $('aj-direccion-empresa').value = cfgFacturaDireccion;
     // Casilla: nombre de factura sigue al socio principal
-    $('aj-factura-sigue-socio').checked = cfgFacturaSigueSocio;
     aplicarFacturaSigueSocio(cfgFacturaSigueSocio);
     ajMostrarPanelesAdmin();
   }
@@ -4318,21 +4335,30 @@
   function ajRenderSociosLista() {
     const cont = $('aj-socios-lista');
     if (!cont) return;
-    cont.innerHTML = ajSociosEdit.map((s, i) => `
+    const cabecera = `
+      <div style="display:flex;gap:10px;align-items:center;padding:12px 14px;margin-bottom:6px;background:var(--accent-bg);border-radius:var(--r-sm);">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);">Empresa (recibe los ajustes)</div>
+          <div style="font-size:13.5px;font-weight:700;color:var(--ink);">${escapeHtml(cfgFacturaNombre || 'Empresa')}</div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);text-align:right;">Se cambia arriba,<br>en Name of Company</div>
+      </div>`;
+    const filas = ajSociosEdit.map((s, i) => `
       <div class="aj-socio-row" data-idx="${i}" style="display:flex;gap:10px;align-items:end;padding:12px 0;${i > 0 ? 'border-top:1px solid var(--border-soft);' : ''}">
         <div class="gc-field" style="flex:2;min-width:0;">
-          <label>${i === 0 ? 'Socio 1 (recibe ajustes)' : 'Socio ' + (i + 1)}</label>
-          <input type="text" class="aj-socio-nombre" data-idx="${i}" value="${escapeHtml(s.nombre)}">
+          <label>Socio ${i + 1}</label>
+          <input type="text" class="aj-socio-nombre" data-idx="${i}" placeholder="Nombre del socio" value="${escapeHtml(s.nombre)}">
         </div>
         <div class="gc-field" style="flex:0 0 90px;min-width:0;">
           <label data-i18n="tax">Tax %</label>
           <input type="text" inputmode="decimal" class="aj-socio-bonopct" data-idx="${i}" value="${s.bonoPct}">
         </div>
-        <button type="button" class="gc-del aj-socio-del" data-idx="${i}"${ajSociosEdit.length <= 1 ? ' disabled style="opacity:.3;cursor:not-allowed;"' : ''} title="Quitar socio">✕</button>
+        <button type="button" class="gc-del aj-socio-del" data-idx="${i}" title="Quitar socio">✕</button>
       </div>`).join('');
+    const vacio = `<p style="font-size:12.5px;color:var(--muted);padding:10px 0;">Sin socios — la empresa se lleva el 100% de cada semana.</p>`;
+    cont.innerHTML = cabecera + (ajSociosEdit.length ? filas : vacio);
     cont.querySelectorAll('.aj-socio-del').forEach((btn) => {
       btn.addEventListener('click', () => {
-        if (ajSociosEdit.length <= 1) return;
         ajSociosEdit.splice(Number(btn.dataset.idx), 1);
         ajRenderSociosLista();
       });
@@ -4350,7 +4376,6 @@
     $('aj-factura-nombre-wrap').style.display = activo ? 'none' : 'block';
     if (activo) $('aj-factura-nombre').value = cfgSocioMitad;
   }
-  $('aj-factura-sigue-socio').addEventListener('change', () => aplicarFacturaSigueSocio($('aj-factura-sigue-socio').checked));
 
   // Guardar socios (nombres + % de bono de cada uno)
   if ($('aj-btn-guardar-socios')) {
@@ -4362,7 +4387,6 @@
         const bonoPct = Math.max(0, Math.min(100, parseFloat((fila.querySelector('.aj-socio-bonopct').value || '0').replace(',', '.')) || 0));
         return { id: (ajSociosEdit[idx] && ajSociosEdit[idx].id) || ('socio-' + Date.now() + '-' + idx), nombre, bonoPct };
       });
-      if (nuevos.length === 0) { toast('Debe haber al menos un socio', 'error'); return; }
       if (nuevos.some((s) => !s.nombre)) { toast('Escribe el nombre de todos los socios', 'error'); return; }
       // Tax de la semana (% de los ingresos que se aparta antes de repartir)
       const tasaTxt = ($('aj-tasa-taxas').value || '').replace(',', '.').trim();
@@ -4428,8 +4452,7 @@
   }
 
   $('aj-btn-guardar-factura').addEventListener('click', async () => {
-    cfgFacturaSigueSocio = $('aj-factura-sigue-socio').checked;
-    cfgFacturaNombre = cfgFacturaSigueSocio ? cfgSocioMitad : ($('aj-factura-nombre').value.trim() || cfgFacturaNombre);
+    cfgFacturaNombre = $('aj-factura-nombre').value.trim() || cfgFacturaNombre;
     cfgFacturaDireccion = $('aj-direccion-empresa').value.trim();
     await guardarConfig();
     // Reflejar la dirección en el formulario de factura si existe
