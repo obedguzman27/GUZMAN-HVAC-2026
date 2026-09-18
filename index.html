@@ -1963,7 +1963,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v61 · 16 sep';
+  const APP_VERSION = 'v62 · 17 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -2200,6 +2200,16 @@
     // Antes la empresa era "el Socio 2" de la lista. Ahora la empresa va
     // aparte (Name of Company) y la lista son SOLO los socios, que además
     // son opcionales. Esta migración corre una sola vez.
+    // La empresa nunca debe estar dentro de la lista de socios (pasaba en
+    // versiones anteriores, y hacía que el reparto saliera duplicado).
+    (function limpiarEmpresaDeSocios() {
+      const clave = (cfgFacturaNombre || '').trim().toLowerCase();
+      if (!clave || !Array.isArray(cfgSocios)) return;
+      const antes = cfgSocios.length;
+      cfgSocios = cfgSocios.filter((x) => x && x.nombre && x.nombre.trim().toLowerCase() !== clave);
+      if (cfgSocios.length !== antes) guardarConfig();
+    })();
+
     if (!cfgSociosMigrados) {
       if (cfgFacturaSigueSocio && cfgSocios.length >= 2) {
         cfgFacturaNombre = (cfgSocios[1] && cfgSocios[1].nombre) || cfgFacturaNombre;
@@ -3051,9 +3061,14 @@
       // ajustes manuales). Los socios son opcionales: sin ninguno, la
       // empresa se lleva todo; con socios, la semana se divide en partes
       // iguales entre la empresa y ellos, y cada socio suma su porcentaje.
+      const nombreEmpresa = (cfgFacturaNombre || 'Empresa').trim();
+      const claveEmpresa = nombreEmpresa.toLowerCase();
       const lista = [
-        { id: 'empresa', nombre: cfgFacturaNombre || 'Empresa', bonoPct: 0, esEmpresa: true },
-        ...((cfgSocios || []).filter((x) => x && x.nombre))
+        { id: 'empresa', nombre: nombreEmpresa, bonoPct: 0, esEmpresa: true },
+        // Si la empresa quedó también dentro de la lista de socios (de una
+        // versión anterior), no debe contarse dos veces ni salir repetida
+        // en el reparto del invoice.
+        ...((cfgSocios || []).filter((x) => x && x.nombre && x.nombre.trim().toLowerCase() !== claveEmpresa))
       ];
       const base = neto / lista.length;
       const pagos = lista.map((s, i) => {
@@ -3647,7 +3662,22 @@
 
       <h2>Reparto</h2>
       <div class="ps-split">
-        ${(Array.isArray(inv.pagos) && inv.pagos.length ? inv.pagos : (() => {
+        ${(Array.isArray(inv.pagos) && inv.pagos.length ? (() => {
+          // Invoices guardados cuando la empresa estaba también en la lista de
+          // socios traen el mismo nombre dos veces con la mitad cada uno. Se
+          // juntan en una sola línea con el monto completo.
+          const porNombre = new Map();
+          inv.pagos.forEach((p) => {
+            const k = String(p.nombre || '').trim().toLowerCase();
+            if (!porNombre.has(k)) { porNombre.set(k, { ...p }); return; }
+            const a = porNombre.get(k);
+            a.base = (Number(a.base) || 0) + (Number(p.base) || 0);
+            a.ajuste = (Number(a.ajuste) || 0) + (Number(p.ajuste) || 0);
+            a.bono = (Number(a.bono) || 0) + (Number(p.bono) || 0);
+            a.total = (Number(a.total) || 0) + (Number(p.total) || 0);
+          });
+          return [...porNombre.values()];
+        })() : (() => {
           // Invoices guardados antes de que existiera la lista de pagos: se
           // reconstruye. La empresa SIEMPRE sale (una sola vez); el socio
           // solo si esa semana de verdad le tocó algo — así, cuando hay un
@@ -3658,7 +3688,9 @@
             ajuste: inv.ajusteGuzman || 0, bono: 0, bonoPct: null,
             total: inv.pagoGuzman != null ? inv.pagoGuzman : inv.neto
           }];
-          const nombreSocio = (cfgSocios && cfgSocios[0] && cfgSocios[0].nombre) || '';
+          const claveEmp = (cfgFacturaNombre || '').trim().toLowerCase();
+          const socioReal = (cfgSocios || []).find((x) => x && x.nombre && x.nombre.trim().toLowerCase() !== claveEmp);
+          const nombreSocio = (socioReal && socioReal.nombre) || '';
           if (nombreSocio && Number(inv.pagoCra) > 0) {
             arr.push({ nombre: nombreSocio, base: inv.mitad, ajuste: 0, bono: inv.bonoCra || 0, bonoPct: null, total: inv.pagoCra });
           }
