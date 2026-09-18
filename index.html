@@ -1611,12 +1611,13 @@
   <div class="inv-subpanel" id="inv-sub-trabajos">
     <div class="gc-card">
       <p class="gc-card-title" data-i18n="descripciones_de_trabajo">Descripciones de Trabajo</p>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Estas descripciones aparecen como sugerencias en el campo <strong>Work Performed</strong>. También puedes escribir lo que quieras directo en el campo.</p>
-      <div style="display:flex;gap:10px;margin-bottom:18px;">
-        <input type="text" id="trab-nueva" style="flex:1;font-family:'Inter',sans-serif;font-size:13.5px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Estas descripciones aparecen como sugerencias en el campo <strong>Work Performed</strong>. Si le pones precio, al elegir el trabajo en una factura el monto se llena solo — y ahí lo puedes cambiar sin que se modifique este precio.</p>
+      <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
+        <input type="text" id="trab-nueva" placeholder="Descripción del trabajo" style="flex:1;min-width:200px;font-family:'Inter',sans-serif;font-size:13.5px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
+        <input type="text" id="trab-precio" inputmode="decimal" placeholder="Precio" style="width:120px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:13.5px;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--ink);">
         <button class="gc-save-btn" data-i18n="agregar" id="trab-btn-add">+ Agregar</button>
       </div>
-      <div id="trab-list" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+      <div id="trab-list"></div>
       <div class="gc-empty" id="trab-empty" style="display:none;">No hay descripciones. Agrega la primera arriba.</div>
     </div>
     <datalist id="dl-trabajos"></datalist>
@@ -2026,7 +2027,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v71 · 17 sep';
+  const APP_VERSION = 'v72 · 17 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -6666,10 +6667,10 @@
   }
   function invRefreshDlTrabajos() {
     const dl = document.getElementById('dl-trabajos');
-    if (dl) dl.innerHTML = invTrabajos.map(t=>`<option value="${escapeHtml(t)}">`).join('');
+    if (dl) dl.innerHTML = invTrabajos.map(t=>`<option value="${escapeHtml(trbNombre(t))}">`).join('');
     // también actualizar datalists en filas existentes
     document.querySelectorAll('.dl-trabajos-row').forEach(d => {
-      d.innerHTML = invTrabajos.map(t=>`<option value="${escapeHtml(t)}">`).join('');
+      d.innerHTML = invTrabajos.map(t=>`<option value="${escapeHtml(trbNombre(t))}">`).join('');
     });
   }
 
@@ -6710,12 +6711,26 @@
     locTd.appendChild(locDl); locTd.appendChild(locIn); tr.appendChild(locTd);
     const wrkTd=mkTd();
     const wrkDl=document.createElement('datalist'); wrkDl.className='dl-trabajos-row'; wrkDl.id='dl-trab-'+invFilaC;
-    wrkDl.innerHTML = invTrabajos.map(t=>`<option value="${escapeHtml(t)}">`).join('');
+    wrkDl.innerHTML = invTrabajos.map(t=>`<option value="${escapeHtml(trbNombre(t))}">`).join('');
     const wrkIn=mkIn('inv-work','Descripción del trabajo (escribe o selecciona)',item.work);
     wrkIn.setAttribute('list','dl-trab-'+invFilaC); wrkIn.autocomplete='off';
     wrkTd.appendChild(wrkDl); wrkTd.appendChild(wrkIn); tr.appendChild(wrkTd);
     const amtTd=mkTd(); amtTd.className='r'; const amtIn=mkIn('inv-amt','0.00',item.amount||''); amtIn.inputMode='decimal'; amtTd.appendChild(amtIn); tr.appendChild(amtTd);
     const delTd=mkTd(); const delBtn=document.createElement('button'); delBtn.className='gc-del'; delBtn.type='button'; delBtn.textContent='✕'; delTd.appendChild(delBtn); tr.appendChild(delTd);
+
+    // Al elegir/escribir un trabajo que tiene precio guardado, se llena el
+    // monto solo. Se respeta lo que ya hayas escrito: si el monto tiene algo,
+    // no lo pisa. Y cambiarlo aquí NO modifica el precio guardado del trabajo.
+    wrkIn.addEventListener('change', () => {
+      const t = trbBuscar(wrkIn.value);
+      const precio = t ? trbPrecio(t) : 0;
+      if (!precio) return;
+      const actual = (amtIn.value || '').trim();
+      if (actual === '' || parseFloat(actual.replace(',', '.')) === 0) {
+        amtIn.value = precio.toFixed(2);
+        invCalcTotales();
+      }
+    });
 
     amtIn.addEventListener('input', invCalcTotales);
     delBtn.addEventListener('click', () => { tr.remove(); invRenumerar(); invCalcTotales(); });
@@ -7216,17 +7231,42 @@
     });
   }
 
+  // Los trabajos antes eran solo texto. Ahora pueden llevar un precio por
+  // defecto: {nombre, precio}. Estas dos funciones permiten trabajar con
+  // los dos formatos, para no perder lo que ya estaba guardado.
+  function trbNombre(t) { return typeof t === 'string' ? t : (t && t.nombre) || ''; }
+  function trbPrecio(t) { return typeof t === 'string' ? 0 : (Number(t && t.precio) || 0); }
+  function trbBuscar(nombre) {
+    const clave = String(nombre || '').trim().toLowerCase();
+    if (!clave) return null;
+    return (invTrabajos || []).find((t) => trbNombre(t).trim().toLowerCase() === clave) || null;
+  }
+
   function invRenderTrabajos() {
     const list=$('trab-list'); list.innerHTML='';
     $('trab-empty').style.display = invTrabajos.length===0?'block':'none';
+    list.style.display='block';
     invTrabajos.forEach((t,i)=>{
-      const chip=document.createElement('div'); chip.className='inv-chip';
-      chip.innerHTML=`<span>${escapeHtml(t)}</span><button type="button" data-i="${i}">✕</button>`;
-      chip.querySelector('button').addEventListener('click', async () => {
+      const fila=document.createElement('div');
+      fila.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--border-soft);';
+      fila.innerHTML=`
+        <span style="flex:1;min-width:0;font-size:13.5px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(trbNombre(t))}</span>
+        <span style="font-size:11px;color:var(--muted);">Precio</span>
+        <input type="text" inputmode="decimal" class="trb-precio" data-i="${i}" value="${trbPrecio(t) || ''}" placeholder="0.00"
+          style="width:96px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:13px;padding:7px 9px;border:1.5px solid var(--border);border-radius:8px;background:#fff;color:var(--ink);">
+        <button type="button" class="gc-del trb-del" data-i="${i}" title="Quitar">✕</button>`;
+      fila.querySelector('.trb-del').addEventListener('click', async () => {
         invTrabajos.splice(i,1); await invSaveTrb(); invRenderTrabajos();
         toast('Descripción eliminada','info');
       });
-      list.appendChild(chip);
+      const inp = fila.querySelector('.trb-precio');
+      inp.addEventListener('change', async () => {
+        const p = parseFloat((inp.value || '').replace(',', '.')) || 0;
+        invTrabajos[i] = { nombre: trbNombre(invTrabajos[i]), precio: p };
+        await invSaveTrb();
+        toast(p ? `Precio guardado: ${invFmt(p)}` : 'Precio quitado', 'success', 2000);
+      });
+      list.appendChild(fila);
     });
   }
 
@@ -7242,9 +7282,12 @@
   $('trab-btn-add').addEventListener('click', async () => {
     const val=$('trab-nueva').value.trim();
     if (!val) return;
-    if (invTrabajos.includes(val)){toast('Ya existe','info');return;}
-    invTrabajos.push(val); await invSaveTrb();
-    $('trab-nueva').value=''; invRenderTrabajos(); toast('Descripción agregada ✓');
+    if (trbBuscar(val)){toast('Ya existe','info');return;}
+    const precio = parseFloat((($('trab-precio') && $('trab-precio').value) || '').replace(',', '.')) || 0;
+    invTrabajos.push({ nombre: val, precio }); await invSaveTrb();
+    $('trab-nueva').value='';
+    if ($('trab-precio')) $('trab-precio').value='';
+    invRenderTrabajos(); toast('Descripción agregada ✓');
   });
   $('trab-nueva').addEventListener('keydown', e => { if(e.key==='Enter') $('trab-btn-add').click(); });
 
