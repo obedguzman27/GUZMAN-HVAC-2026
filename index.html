@@ -1000,11 +1000,27 @@
       </div>
     </div>
     <p style="font-size:11px;color:var(--muted);margin:6px 2px 0;">Si eliges fechas, mandan sobre el filtro de "Año".</p>
+      <div class="gc-search-bar" style="margin-top:10px;">
+        <div class="gc-field" style="min-width:120px;"><label>Monto desde</label><input type="text" id="b-min" inputmode="decimal" placeholder="0"></div>
+        <div class="gc-field" style="min-width:120px;"><label>Monto hasta</label><input type="text" id="b-max" inputmode="decimal" placeholder="sin límite"></div>
+        <div class="gc-field" style="min-width:150px;"><label>Ordenar por</label>
+          <select id="b-orden">
+            <option value="fecha-desc">Fecha (más nueva)</option>
+            <option value="fecha-asc">Fecha (más vieja)</option>
+            <option value="monto-desc">Monto (mayor)</option>
+            <option value="monto-asc">Monto (menor)</option>
+            <option value="cat">Categoría (A-Z)</option>
+          </select>
+        </div>
+      </div>
       <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;">
         <button type="button" class="gc-action-btn b-rango" data-rango="mes" style="padding:7px 13px;font-size:12px;">Este mes</button>
         <button type="button" class="gc-action-btn b-rango" data-rango="mes-pasado" style="padding:7px 13px;font-size:12px;">Mes pasado</button>
         <button type="button" class="gc-action-btn b-rango" data-rango="30" style="padding:7px 13px;font-size:12px;">Últimos 30 días</button>
         <button type="button" class="gc-action-btn b-rango" data-rango="ano" style="padding:7px 13px;font-size:12px;">Este año</button>
+        <span style="flex:1;"></span>
+        <button type="button" class="gc-action-btn" id="b-exportar" style="padding:7px 13px;font-size:12px;">⬇ Exportar resultados</button>
+        <button type="button" class="gc-action-btn" id="b-limpiar-todo" style="padding:7px 13px;font-size:12px;">Limpiar todo</button>
       </div>
       <div id="b-resumen-resultados" style="display:none;margin-top:14px;padding:12px 15px;background:#F5F7FC;border-radius:var(--r-sm);font-size:12.5px;color:var(--ink);"></div>
     </div>
@@ -1014,6 +1030,37 @@
       <p class="gc-card-title" style="margin-bottom:6px;">También encontrado en la app</p>
       <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Coincidencias fuera de Movimientos: facturas, clientes, trabajos agendados, planos y colonias.</p>
       <div id="b-global-lista"></div>
+    </div>
+
+    <!-- Gráfica: en qué se va el dinero (gastos por categoría) -->
+    <div class="gc-chart-card" id="gc-chart-cat-cont" style="display:none;">
+      <div class="gc-chart-head">
+        <p class="gc-card-title" data-i18n="en_que_se_va_el_dinero_gastos_por_catego" style="margin-bottom:0;">En qué se va el dinero — gastos por categoría</p>
+      </div>
+      <div class="gc-donut-row">
+        <div class="gc-chart-svg-wrap" id="gc-donut-svg" style="max-width:180px;flex-shrink:0;"></div>
+        <div class="gc-donut-legend" id="gc-donut-legend"></div>
+      </div>
+    </div>
+
+    <div class="gc-two-col" id="b-resultados">
+      <div>
+        <div class="gc-sheet-head"><p class="gc-sheet-title">Resumen por categoría</p></div>
+        <table class="gc-ledger">
+          <thead><tr><th data-i18n="categoria">Categoría</th><th data-i18n="tipo">Tipo</th><th data-i18n="h_movs">Movs.</th><th class="num" data-i18n="h_total">Total</th></tr></thead>
+          <tbody id="tbody-resumen-cat"></tbody>
+        </table>
+        <div class="gc-empty" id="empty-resumen-cat" style="display:none;">Sin resultados.</div>
+      </div>
+      <div>
+        <div class="gc-sheet-head"><p class="gc-sheet-title">Detalle</p></div>
+        <table class="gc-ledger">
+          <thead><tr><th data-i18n="fecha">Fecha</th><th data-i18n="tipo">Tipo</th><th data-i18n="categoria">Categoría</th><th data-i18n="descripcion">Descripción</th><th class="num" data-i18n="h_monto">Monto</th></tr></thead>
+          <tbody id="tbody-buscar"></tbody>
+          <tfoot><tr><td colspan="4" style="text-align:right;font-weight:600;padding:10px;">Total</td><td class="num gc-num" id="total-buscar" style="font-weight:700;padding:10px;font-family:'IBM Plex Mono',monospace;">$0.00</td></tr></tfoot>
+        </table>
+        <div class="gc-empty" id="empty-buscar" style="display:none;">Sin movimientos que coincidan.</div>
+      </div>
     </div>
 
     <!-- Total pagado por socio -->
@@ -1052,36 +1099,7 @@
 
 
 
-    <!-- Gráfica: en qué se va el dinero (gastos por categoría) -->
-    <div class="gc-chart-card" id="gc-chart-cat-cont" style="display:none;">
-      <div class="gc-chart-head">
-        <p class="gc-card-title" data-i18n="en_que_se_va_el_dinero_gastos_por_catego" style="margin-bottom:0;">En qué se va el dinero — gastos por categoría</p>
-      </div>
-      <div class="gc-donut-row">
-        <div class="gc-chart-svg-wrap" id="gc-donut-svg" style="max-width:180px;flex-shrink:0;"></div>
-        <div class="gc-donut-legend" id="gc-donut-legend"></div>
-      </div>
-    </div>
 
-    <div class="gc-two-col">
-      <div>
-        <div class="gc-sheet-head"><p class="gc-sheet-title">Resumen por categoría</p></div>
-        <table class="gc-ledger">
-          <thead><tr><th data-i18n="categoria">Categoría</th><th data-i18n="tipo">Tipo</th><th data-i18n="h_movs">Movs.</th><th class="num" data-i18n="h_total">Total</th></tr></thead>
-          <tbody id="tbody-resumen-cat"></tbody>
-        </table>
-        <div class="gc-empty" id="empty-resumen-cat" style="display:none;">Sin resultados.</div>
-      </div>
-      <div>
-        <div class="gc-sheet-head"><p class="gc-sheet-title">Detalle</p></div>
-        <table class="gc-ledger">
-          <thead><tr><th data-i18n="fecha">Fecha</th><th data-i18n="tipo">Tipo</th><th data-i18n="categoria">Categoría</th><th data-i18n="descripcion">Descripción</th><th class="num" data-i18n="h_monto">Monto</th></tr></thead>
-          <tbody id="tbody-buscar"></tbody>
-          <tfoot><tr><td colspan="4" style="text-align:right;font-weight:600;padding:10px;">Total</td><td class="num gc-num" id="total-buscar" style="font-weight:700;padding:10px;font-family:'IBM Plex Mono',monospace;">$0.00</td></tr></tfoot>
-        </table>
-        <div class="gc-empty" id="empty-buscar" style="display:none;">Sin movimientos que coincidan.</div>
-      </div>
-    </div>
   </div>
 
   <!-- (Categorías, Empleados y Papeles ahora viven dentro de Ajustes) -->
@@ -2008,7 +2026,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v69 · 17 sep';
+  const APP_VERSION = 'v71 · 17 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -3547,6 +3565,38 @@
     if (actual && (actual === 'todos' || anios.includes(actual))) select.value = actual;
   }
 
+  // Resalta en amarillo la parte que coincide con lo buscado
+  function ghResaltar(txt, buscar) {
+    if (!buscar || !txt) return escapeHtml(txt || '');
+    const t = String(txt);
+    const i = t.toLowerCase().indexOf(buscar);
+    if (i < 0) return escapeHtml(t);
+    return escapeHtml(t.slice(0, i))
+      + '<mark style="background:#FBF0D4;color:var(--gold);padding:0 2px;border-radius:3px;">' + escapeHtml(t.slice(i, i + buscar.length)) + '</mark>'
+      + escapeHtml(t.slice(i + buscar.length));
+  }
+
+  let ghUltimaBusqueda = [];   // lo que se está mostrando ahora, para poder exportarlo
+
+  // Al buscar, sube la vista a los resultados para no tener que bajar a mano.
+  // Solo se mueve cuando de verdad hace falta (si los resultados ya se ven,
+  // se queda quieto) y no interrumpe mientras se sigue escribiendo.
+  let ghScrollTimer = null;
+  function ghSubirAResultados() {
+    const dest = $('b-resultados');
+    if (!dest) return;
+    clearTimeout(ghScrollTimer);
+    ghScrollTimer = setTimeout(() => {
+      const r = dest.getBoundingClientRect();
+      const esMovil = window.matchMedia('(max-width: 720px)').matches;
+      const margen = esMovil ? 70 : 90;   // deja espacio para el encabezado fijo
+      // Si el bloque de resultados no se ve completo en pantalla, súbelo.
+      if (r.top > window.innerHeight * 0.55 || r.top < 0) {
+        window.scrollTo({ top: window.scrollY + r.top - margen, behavior: 'smooth' });
+      }
+    }, 420);
+  }
+
   // ---- Búsqueda global: coincidencias fuera de Movimientos ----
   function ghBuscarGlobal(texto) {
     const card = $('b-global-card');
@@ -3639,18 +3689,34 @@
     const tipoFiltro = $('b-tipo') ? $('b-tipo').value : 'todos';
     const usaRango = !!(desde || hasta); // si hay fechas, mandan sobre "Año"
 
+    const min = parseFloat(($('b-min') ? $('b-min').value : '').replace(',', '.'));
+    const max = parseFloat(($('b-max') ? $('b-max').value : '').replace(',', '.'));
+    const orden = $('b-orden') ? $('b-orden').value : 'fecha-desc';
+
     const filtrados = todosMov().filter((m) => {
       const fecha = m.fecha || '';
+      const monto = Number(m.monto) || 0;
       const okFecha = usaRango
         ? (!desde || fecha >= desde) && (!hasta || fecha <= hasta)
         : (anio === 'todos' || fecha.slice(0, 4) === anio);
       const okTipo = tipoFiltro === 'todos' || m.tipo === tipoFiltro;
+      const okMonto = (isNaN(min) || monto >= min) && (isNaN(max) || monto <= max);
       const okTexto = !texto
         || (m.cat || '').toLowerCase().includes(texto)
         || (m.desc || '').toLowerCase().includes(texto)
         || String(m.monto || '').includes(texto);
-      return okFecha && okTipo && okTexto;
-    }).sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
+      return okFecha && okTipo && okMonto && okTexto;
+    }).sort((a, b) => {
+      const fa = a.fecha || '', fb = b.fecha || '';
+      const ma = Number(a.monto) || 0, mb = Number(b.monto) || 0;
+      switch (orden) {
+        case 'fecha-asc': return fa.localeCompare(fb);
+        case 'monto-desc': return mb - ma;
+        case 'monto-asc': return ma - mb;
+        case 'cat': return (a.cat || '').localeCompare(b.cat || '');
+        default: return fb.localeCompare(fa);   // fecha más nueva primero
+      }
+    });
 
     // Detalle
     const tbody = $('tbody-buscar');
@@ -3662,10 +3728,10 @@
       const tr = document.createElement('tr');
       const tipoTxt = m.tipo === 'ingreso' ? 'Ingreso' : m.tipo === 'ajuste' ? 'Ajuste' : 'Gasto';
       tr.innerHTML = `
-        <td>${m.fecha || ''}</td>
+        <td>${invFechaNum(m.fecha)}</td>
         <td><span class="gc-tipo-tag ${m.tipo}">${tipoTxt}</span></td>
-        <td>${escapeHtml(m.cat || '')}</td>
-        <td>${escapeHtml(m.desc || '')}</td>
+        <td>${ghResaltar(m.cat || '', texto)}</td>
+        <td>${ghResaltar(m.desc || '', texto)}</td>
         <td class="gc-num">${fmt(m.monto)}</td>
       `;
       tbody.appendChild(tr);
@@ -3689,7 +3755,9 @@
       }
     }
 
+    ghUltimaBusqueda = filtrados;
     ghBuscarGlobal(texto);
+    if (texto.length >= 2 && filtrados.length) ghSubirAResultados();
 
     // Resumen por categoría
     const resumen = new Map();
@@ -3762,11 +3830,42 @@
   if ($('b-desde')) $('b-desde').addEventListener('change', renderBusqueda);
   if ($('b-hasta')) $('b-hasta').addEventListener('change', renderBusqueda);
   if ($('b-tipo')) $('b-tipo').addEventListener('change', renderBusqueda);
+  if ($('b-min')) $('b-min').addEventListener('input', debounce(renderBusqueda, 200));
+  if ($('b-max')) $('b-max').addEventListener('input', debounce(renderBusqueda, 200));
+  if ($('b-orden')) $('b-orden').addEventListener('change', renderBusqueda);
   if ($('b-limpiar-fechas')) {
     $('b-limpiar-fechas').addEventListener('click', () => {
       $('b-desde').value = '';
       $('b-hasta').value = '';
       renderBusqueda();
+    });
+  }
+  if ($('b-limpiar-todo')) {
+    $('b-limpiar-todo').addEventListener('click', () => {
+      ['b-texto', 'b-desde', 'b-hasta', 'b-min', 'b-max'].forEach((id) => { if ($(id)) $(id).value = ''; });
+      if ($('b-tipo')) $('b-tipo').value = 'todos';
+      if ($('b-anio')) $('b-anio').value = 'todos';
+      if ($('b-orden')) $('b-orden').value = 'fecha-desc';
+      renderBusqueda();
+      toast('Filtros limpiados', 'info', 1500);
+    });
+  }
+  if ($('b-exportar')) {
+    $('b-exportar').addEventListener('click', () => {
+      if (!ghUltimaBusqueda.length) { toast('No hay resultados para exportar', 'info'); return; }
+      const filas = [['Fecha', 'Tipo', 'Categoría', 'Descripción', 'Monto', 'Deducible']];
+      ghUltimaBusqueda.forEach((m) => filas.push([
+        m.fecha || '',
+        m.tipo === 'ingreso' ? 'Ingreso' : m.tipo === 'ajuste' ? 'Ajuste' : 'Gasto',
+        m.cat || '', m.desc || '', String(Number(m.monto) || 0),
+        m.tipo === 'gasto' ? (m.deducible ? 'Sí' : 'No') : ''
+      ]));
+      const csv = filas.map((f) => f.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }));
+      a.download = `busqueda-${today()}.csv`;
+      a.click(); URL.revokeObjectURL(a.href);
+      toast(`${ghUltimaBusqueda.length} resultado(s) exportado(s) ✓`);
     });
   }
   document.getElementById('taxas-anio-filtro').addEventListener('change', () => { renderResumenTaxas(); renderTotalPorSocio(); });
