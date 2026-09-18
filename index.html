@@ -370,7 +370,7 @@
   .gc-print-sheet tfoot td { padding: 7px 4px; font-weight: 600; }
   .gc-print-sheet tfoot tr.ps-tax td { border-top: 1px solid #1a1a1a; }
   .gc-print-sheet tfoot tr.ps-total td { border-top: 2px solid #1a1a1a; font-size: 14px; }
-  .gc-print-sheet .ps-split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 10px; }
+  .gc-print-sheet .ps-split { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 24px; margin-top: 10px; }
   .gc-print-sheet .ps-split-box { border: 1.5px solid #1a1a1a; padding: 14px; border-radius: 8px; }
   .gc-print-sheet .ps-split-box .ps-name { font-weight: 700; font-size: 13px; margin-bottom: 6px; }
   .gc-print-sheet .ps-split-box .ps-total { font-size: 19px; font-weight: 700; }
@@ -1963,7 +1963,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v60 · 16 sep';
+  const APP_VERSION = 'v61 · 16 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -2109,7 +2109,7 @@
         tfoot tr.ps-tax td { border-top:1px solid #1a1a1a; }
         tfoot tr.ps-total td { border-top:2px solid #1a1a1a; font-size:14px; }
         .ps-addr { font-size:12px; color:#555; margin:4px 0; } .ps-badge { font-size:11px; color:#555; margin-bottom:18px; }
-        .ps-split { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:10px; }
+        .ps-split { display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:24px; margin-top:10px; }
         .ps-split-box { border:1.5px solid #1a1a1a; padding:14px; }
         .ps-split-box .ps-name { font-weight:700; font-size:13px; margin-bottom:6px; }
         .ps-split-box .ps-total { font-size:19px; font-weight:700; }
@@ -2155,7 +2155,7 @@
   let cfgSocioMitad = 'GUZMAN HVAC';
   function actualizarAliasSocios() {
     cfgSocioBonus = (cfgSocios[0] && cfgSocios[0].nombre) || 'Socio 1';
-    cfgSocioMitad = (cfgSocios[1] && cfgSocios[1].nombre) || cfgSocioBonus;
+    cfgSocioMitad = cfgFacturaNombre || (cfgSocios[0] && cfgSocios[0].nombre) || 'Empresa';
   }
   let cfgFacturaNombre = 'GUZMAN HVAC';
   let cfgFacturaDireccion = '';
@@ -3647,10 +3647,23 @@
 
       <h2>Reparto</h2>
       <div class="ps-split">
-        ${(Array.isArray(inv.pagos) && inv.pagos.length ? inv.pagos : [
-          { nombre: cfgSocioBonus, base: inv.mitad, ajuste: inv.ajusteGuzman || 0, bono: inv.bonoCra || 0, bonoPct: null, total: inv.pagoCra },
-          { nombre: cfgSocioMitad, base: inv.mitad, ajuste: 0, bono: 0, bonoPct: null, total: inv.pagoGuzman }
-        ]).map((p) => `
+        ${(Array.isArray(inv.pagos) && inv.pagos.length ? inv.pagos : (() => {
+          // Invoices guardados antes de que existiera la lista de pagos: se
+          // reconstruye. La empresa SIEMPRE sale (una sola vez); el socio
+          // solo si esa semana de verdad le tocó algo — así, cuando hay un
+          // único dueño, no se repite el mismo nombre dos veces.
+          const arr = [{
+            nombre: cfgFacturaNombre || 'Empresa',
+            base: inv.mitad != null ? inv.mitad : inv.neto,
+            ajuste: inv.ajusteGuzman || 0, bono: 0, bonoPct: null,
+            total: inv.pagoGuzman != null ? inv.pagoGuzman : inv.neto
+          }];
+          const nombreSocio = (cfgSocios && cfgSocios[0] && cfgSocios[0].nombre) || '';
+          if (nombreSocio && Number(inv.pagoCra) > 0) {
+            arr.push({ nombre: nombreSocio, base: inv.mitad, ajuste: 0, bono: inv.bonoCra || 0, bonoPct: null, total: inv.pagoCra });
+          }
+          return arr;
+        })()).map((p) => `
           <div class="ps-split-box">
             <div class="ps-name">${escapeHtml(p.nombre)}</div>
             <div class="ps-total">${fmt(p.total)}</div>
@@ -6652,7 +6665,7 @@
         tfoot td { padding:7px 4px; font-weight:600; }
         tfoot tr.ps-tax td { border-top:1px solid #1a1a1a; }
         tfoot tr.ps-total td { border-top:2px solid #1a1a1a; font-size:14px; }
-        .ps-split { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:10px; }
+        .ps-split { display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:24px; margin-top:10px; }
         .ps-split-box { border:1.5px solid #1a1a1a; padding:14px; }
         .ps-split-box .ps-name { font-weight:700; font-size:13px; margin-bottom:6px; }
         .ps-split-box .ps-total { font-size:19px; font-weight:700; }
