@@ -1210,11 +1210,12 @@
       <div class="gc-card" style="margin-top:16px;" id="aj-card-seguridad">
         <p class="gc-card-title" data-i18n="seguridad">Seguridad</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Pide Face ID (o un PIN) para abrir la app en este teléfono. No cambia tu usuario ni contraseña — es una capa extra que solo vive en este dispositivo.</p>
-        <label style="display:flex;align-items:center;gap:10px;margin-bottom:14px;cursor:pointer;">
+        <label style="display:flex;align-items:center;gap:10px;margin-bottom:4px;cursor:pointer;">
           <input type="checkbox" id="aj-applock-toggle" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;">
           <span style="font-size:13.5px;color:var(--ink);">Pedir Face ID / PIN al abrir la app</span>
         </label>
-        <div id="aj-applock-config" style="display:none;padding-top:14px;border-top:1px solid var(--border-soft);">
+        <p style="font-size:11.5px;color:var(--muted);margin-bottom:6px;">Para poder prenderlo, primero activa Face ID o guarda un PIN aquí abajo.</p>
+        <div id="aj-applock-config" style="padding-top:14px;border-top:1px solid var(--border-soft);">
           <button type="button" class="gc-action-btn" data-i18n="activar_face_id_en_este_telefono" id="aj-applock-btn-faceid">Activar Face ID en este teléfono</button>
           <p id="aj-applock-faceid-estado" style="font-size:12px;color:var(--muted);margin-top:8px;margin-bottom:16px;"></p>
           <div class="gc-field" style="max-width:220px;margin-bottom:10px;">
@@ -2027,7 +2028,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v73 · 17 sep';
+  const APP_VERSION = 'v74 · 18 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -5443,19 +5444,22 @@
     }
 
     toggle.checked = applockHabilitado();
-    config.style.display = toggle.checked ? 'block' : 'none';
+    // La configuración (Face ID / PIN) va SIEMPRE visible: es el paso previo
+    // para poder prender el interruptor. Si se escondiera hasta prenderlo,
+    // no habría forma de activarlo nunca.
     actualizarEstadoFaceId();
 
     toggle.addEventListener('change', () => {
       let tieneCred = null, tienePin = null;
       try { tieneCred = localStorage.getItem(APPLOCK_CRED_KEY); tienePin = localStorage.getItem(APPLOCK_PIN_HASH_KEY); } catch (e) {}
       if (toggle.checked && !tieneCred && !tienePin) {
-        toast('Primero activa Face ID o guarda un PIN, para no quedar fuera de la app.', 'info', 3800);
+        toast('Primero activa Face ID o guarda un PIN aquí abajo, para no quedar fuera de la app.', 'info', 4500);
         toggle.checked = false;
+        const btn = $('aj-applock-btn-faceid');
+        if (btn) { btn.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
         return;
       }
       try { localStorage.setItem(APPLOCK_KEY, toggle.checked ? '1' : '0'); } catch (e) {}
-      config.style.display = toggle.checked ? 'block' : 'none';
       toast(toggle.checked ? 'Bloqueo activado en este teléfono ✓' : 'Bloqueo desactivado', 'success');
     });
 
