@@ -270,6 +270,25 @@
     location.reload();
   };
 
+  // Cambiar la contraseña del usuario que ya inició sesión. Verifica primero
+  // la contraseña actual (Supabase no la pide para cambiarla, pero así nadie
+  // que agarre el teléfono desbloqueado puede cambiarla sin saber la vieja).
+  // Devuelve { ok:true } o { ok:false, error:'mensaje' }.
+  window.GH_CAMBIAR_CONTRASENA = async (actual, nueva) => {
+    try {
+      const { data: { user } } = await client.auth.getUser();
+      if (!user || !user.email) return { ok: false, error: 'No hay sesión activa.' };
+      // Comprobar la contraseña actual reintentando el inicio de sesión.
+      const check = await client.auth.signInWithPassword({ email: user.email, password: actual });
+      if (check.error) return { ok: false, error: 'La contraseña actual no es correcta.' };
+      const { error } = await client.auth.updateUser({ password: nueva });
+      if (error) return { ok: false, error: error.message || 'No se pudo cambiar la contraseña.' };
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, error: (e && e.message) || 'Ocurrió un error.' };
+    }
+  };
+
   // ---------- window.storage respaldado por Supabase ----------
   // Sistema de CUENTAS: cada cuenta tiene su propia información. La cuenta
   // "principal" usa las claves tal cual (los datos que ya existían). Otras

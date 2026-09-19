@@ -1134,6 +1134,25 @@
       <div class="gc-card" style="margin-top:16px;" id="aj-card-cuenta">
         <p class="gc-card-title" data-i18n="mi_cuenta">Mi cuenta</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Conectado como <strong id="aj-cuenta-nombre">—</strong> <span id="aj-cuenta-rol" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);"></span></p>
+
+        <div id="aj-cambiar-clave-wrap" style="display:none;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border-soft);">
+          <button type="button" class="gc-action-btn" id="btn-abrir-cambiar-clave" style="margin-bottom:0;">Cambiar contraseña</button>
+          <div id="aj-cambiar-clave-form" style="display:none;margin-top:14px;max-width:340px;">
+            <div class="gc-field" style="margin-bottom:10px;"><label>Contraseña actual</label>
+              <input type="password" id="aj-clave-actual" autocomplete="current-password"></div>
+            <div class="gc-field" style="margin-bottom:6px;"><label>Contraseña nueva</label>
+              <input type="password" id="aj-clave-nueva" autocomplete="new-password"></div>
+            <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Al menos 6 caracteres, con letras y números.</p>
+            <div class="gc-field" style="margin-bottom:12px;"><label>Repite la contraseña nueva</label>
+              <input type="password" id="aj-clave-nueva2" autocomplete="new-password"></div>
+            <div id="aj-clave-msg" style="font-size:12.5px;min-height:16px;margin-bottom:10px;"></div>
+            <div style="display:flex;gap:10px;">
+              <button type="button" class="gc-save-btn" id="btn-guardar-clave" style="padding:9px 18px;font-size:13px;">Guardar</button>
+              <button type="button" class="gc-action-btn" id="btn-cancelar-clave" style="padding:9px 18px;font-size:13px;">Cancelar</button>
+            </div>
+          </div>
+        </div>
+
         <button class="gc-action-btn" data-i18n="cerrar_sesion" id="btn-cerrar-sesion" style="display:none;">Cerrar sesión</button>
       </div>
 
@@ -2028,7 +2047,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v77 · 18 sep';
+  const APP_VERSION = 'v78 · 18 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -5597,6 +5616,46 @@
         if (!await gcConfirm('¿Cerrar tu sesión?', { okText: 'Cerrar sesión' })) return;
         if (typeof window.GH_CERRAR_SESION === 'function') window.GH_CERRAR_SESION();
       });
+
+      // ---- Cambiar contraseña ----
+      if (typeof window.GH_CAMBIAR_CONTRASENA === 'function') {
+        const wrap = $('aj-cambiar-clave-wrap');
+        const form = $('aj-cambiar-clave-form');
+        const abrir = $('btn-abrir-cambiar-clave');
+        const msg = $('aj-clave-msg');
+        if (wrap) wrap.style.display = 'block';
+        const limpiar = () => {
+          ['aj-clave-actual', 'aj-clave-nueva', 'aj-clave-nueva2'].forEach((id) => { if ($(id)) $(id).value = ''; });
+          if (msg) { msg.textContent = ''; msg.style.color = 'var(--ember)'; }
+        };
+        if (abrir) abrir.addEventListener('click', () => {
+          form.style.display = form.style.display === 'none' ? 'block' : 'none';
+          if (form.style.display === 'block') { limpiar(); $('aj-clave-actual').focus(); }
+        });
+        if ($('btn-cancelar-clave')) $('btn-cancelar-clave').addEventListener('click', () => { form.style.display = 'none'; limpiar(); });
+        if ($('btn-guardar-clave')) $('btn-guardar-clave').addEventListener('click', async () => {
+          const actual = $('aj-clave-actual').value;
+          const nueva = $('aj-clave-nueva').value;
+          const nueva2 = $('aj-clave-nueva2').value;
+          msg.style.color = 'var(--ember)';
+          if (!actual || !nueva || !nueva2) { msg.textContent = 'Llena los tres campos.'; return; }
+          if (nueva.length < 6) { msg.textContent = 'La nueva debe tener al menos 6 caracteres.'; return; }
+          if (!(/[a-zA-Z]/.test(nueva) && /[0-9]/.test(nueva))) { msg.textContent = 'La nueva debe tener letras y números.'; return; }
+          if (nueva !== nueva2) { msg.textContent = 'Las dos contraseñas nuevas no coinciden.'; return; }
+          if (nueva === actual) { msg.textContent = 'La nueva no puede ser igual a la actual.'; return; }
+          const btnG = $('btn-guardar-clave');
+          btnG.disabled = true; msg.style.color = 'var(--muted)'; msg.textContent = 'Guardando…';
+          const r = await window.GH_CAMBIAR_CONTRASENA(actual, nueva);
+          btnG.disabled = false;
+          if (r && r.ok) {
+            form.style.display = 'none'; limpiar();
+            toast('Contraseña cambiada ✓', 'success', 3000);
+          } else {
+            msg.style.color = 'var(--ember)';
+            msg.textContent = (r && r.error) || 'No se pudo cambiar.';
+          }
+        });
+      }
     });
   })();
 
