@@ -2027,7 +2027,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v72 · 17 sep';
+  const APP_VERSION = 'v73 · 17 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -5367,23 +5367,27 @@
 
     const msg = (t) => { const m = document.getElementById('gh-applock-msg'); if (m) m.textContent = t; };
 
-    async function intentarFaceId() {
+    function intentarFaceId() {
       if (!credId) return;
       msg('');
-      try {
-        await navigator.credentials.get({
-          publicKey: {
-            challenge: crypto.getRandomValues(new Uint8Array(24)),
-            allowCredentials: [{ id: Uint8Array.from(atob(credId), (c) => c.charCodeAt(0)), type: 'public-key' }],
-            userVerification: 'required',
-            timeout: 30000
-          }
-        });
+      // Igual que al registrarlo: sin ninguna espera antes de esta llamada,
+      // o el iPhone la rechaza por no venir directo del toque.
+      navigator.credentials.get({
+        publicKey: {
+          challenge: crypto.getRandomValues(new Uint8Array(24)),
+          allowCredentials: [{ id: Uint8Array.from(atob(credId), (c) => c.charCodeAt(0)), type: 'public-key' }],
+          userVerification: 'required',
+          timeout: 60000
+        }
+      }).then(() => {
         overlay.remove();
         onDesbloqueado();
-      } catch (e) {
-        msg('No se pudo verificar — intenta de nuevo o usa tu PIN.');
-      }
+      }).catch((e) => {
+        const n = (e && e.name) || '';
+        msg(n === 'NotAllowedError'
+          ? 'Face ID se canceló. Toca el botón otra vez o usa tu PIN.'
+          : 'No se pudo verificar (' + (n || 'error') + '). Usa tu PIN.');
+      });
     }
     const btnFace = document.getElementById('gh-applock-btn-faceid');
     if (btnFace) btnFace.addEventListener('click', intentarFaceId);
@@ -5455,29 +5459,53 @@
       toast(toggle.checked ? 'Bloqueo activado en este teléfono ✓' : 'Bloqueo desactivado', 'success');
     });
 
+    // Safari (iPhone) exige que Face ID se pida en el MISMO instante del
+    // toque: si antes de llamarlo se hace cualquier espera (await), iOS
+    // considera que ya no viene de un gesto del usuario y lo rechaza sin
+    // explicación. Por eso la comprobación de disponibilidad se hace al
+    // cargar la pantalla, y el botón llama a Face ID de inmediato.
+    let ghFaceIdDisponible = null;
+    if (window.PublicKeyCredential && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
+      PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+        .then((ok) => { ghFaceIdDisponible = ok; })
+        .catch(() => { ghFaceIdDisponible = false; });
+    }
+
     const btnFaceId = $('aj-applock-btn-faceid');
-    if (btnFaceId) btnFaceId.addEventListener('click', async () => {
+    if (btnFaceId) btnFaceId.addEventListener('click', () => {
+      if (!window.isSecureContext) {
+        toast('Face ID necesita que la app se abra con https:// (candado). Con http:// el iPhone no lo permite.', 'error', 6000);
+        return;
+      }
       if (!window.PublicKeyCredential) { toast('Este navegador no soporta Face ID/Touch ID para apps web.', 'error', 4000); return; }
-      try {
-        const disponible = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-        if (!disponible) { toast('Este dispositivo no tiene Face ID/Touch ID disponible.', 'error', 4000); return; }
-        const cred = await navigator.credentials.create({
-          publicKey: {
-            challenge: crypto.getRandomValues(new Uint8Array(24)),
-            rp: { name: 'GH Manager' },
-            user: { id: crypto.getRandomValues(new Uint8Array(16)), name: (window.GH_NOMBRE || 'usuario'), displayName: (window.GH_NOMBRE || 'Usuario') },
-            pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
-            authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
-            timeout: 30000
-          }
-        });
+      if (ghFaceIdDisponible === false) { toast('Este dispositivo no tiene Face ID/Touch ID disponible para apps web.', 'error', 4000); return; }
+
+      // OJO: sin await antes de esta línea (ver nota de arriba).
+      navigator.credentials.create({
+        publicKey: {
+          challenge: crypto.getRandomValues(new Uint8Array(24)),
+          rp: { name: 'GH Manager' },
+          user: { id: crypto.getRandomValues(new Uint8Array(16)), name: (window.GH_NOMBRE || 'usuario'), displayName: (window.GH_NOMBRE || 'Usuario') },
+          pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+          authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'preferred' },
+          timeout: 60000
+        }
+      }).then((cred) => {
         const credIdB64 = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
         try { localStorage.setItem(APPLOCK_CRED_KEY, credIdB64); } catch (e) {}
         actualizarEstadoFaceId();
         toast('Face ID activado en este teléfono ✓', 'success');
-      } catch (e) {
-        toast('No se pudo activar Face ID — intenta de nuevo.', 'error', 3500);
-      }
+      }).catch((e) => {
+        // Mostrar el motivo real ayuda a saber qué pasó en vez de adivinar.
+        const nombre = (e && e.name) || '';
+        let msg;
+        if (nombre === 'NotAllowedError') msg = 'Face ID se canceló o el iPhone no lo permitió. Intenta otra vez tocando el botón directo.';
+        else if (nombre === 'NotSupportedError') msg = 'Este iPhone no soporta Face ID para apps web.';
+        else if (nombre === 'SecurityError') msg = 'Face ID necesita https:// (candado) y un dominio válido.';
+        else if (nombre === 'InvalidStateError') msg = 'Ya hay un Face ID registrado para esta app en este iPhone.';
+        else msg = 'No se pudo activar Face ID (' + (nombre || (e && e.message) || 'error') + ').';
+        toast(msg, 'error', 6000);
+      });
     });
 
     const btnGuardarPin = $('aj-applock-btn-guardar-pin');
