@@ -30,9 +30,18 @@
   const DOMINIO_INTERNO = '@guzmanhvac.app';
   const MINUTOS_SESION = 30;
 
+  // La sesión se guarda en localStorage para que NO haya que volver a
+  // escribir usuario y contraseña cada vez que se cierra la app. Lo que
+  // protege la entrada es el bloqueo con Face ID / PIN (Ajustes → Avanzado
+  // → Seguridad). Antes se usaba sessionStorage, que se borra al cerrar la
+  // app: por eso pedía la contraseña en cada apertura.
   const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: { storage: window.sessionStorage, persistSession: true, autoRefreshToken: true }
+    auth: { storage: window.localStorage, persistSession: true, autoRefreshToken: true }
   });
+
+  function bloqueoAppActivo() {
+    try { return localStorage.getItem('gh-applock-enabled') === '1'; } catch (e) { return false; }
+  }
 
   let resolverSesion, sesionLista;
   function nuevaEsperaSesion() { sesionLista = new Promise((r) => { resolverSesion = r; }); }
@@ -41,6 +50,10 @@
   let temporizadorSesion = null;
   function programarExpiracion() {
     if (temporizadorSesion) clearTimeout(temporizadorSesion);
+    // Con el bloqueo de Face ID / PIN activado no hace falta cerrar la
+    // sesión por inactividad: el bloqueo ya protege la app, y cerrarla
+    // obligaría a escribir la contraseña otra vez sin ganar seguridad.
+    if (bloqueoAppActivo()) return;
     temporizadorSesion = setTimeout(async () => {
       try { await client.auth.signOut(); } catch (e) {}
       nuevaEsperaSesion();
