@@ -89,7 +89,11 @@
   }
 
   function aplicarPerfilGlobal(perfil) {
-    window.GH_ROL = perfil && perfil.rol ? perfil.rol : 'admin';
+    // Seguridad: ante la duda, el MÍNIMO acceso, no el máximo. Si por
+    // cualquier error no se pudo leer el rol, se asume "visor" (solo lectura),
+    // nunca "admin". Antes caía a "admin" por defecto, lo que permitía ganar
+    // permisos de administrador provocando un error de lectura a propósito.
+    window.GH_ROL = perfil && perfil.rol ? perfil.rol : 'visor';
     window.GH_NOMBRE = perfil && perfil.nombre ? perfil.nombre : '';
   }
 
