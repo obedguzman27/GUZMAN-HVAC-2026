@@ -2047,7 +2047,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v79 · 18 sep';
+  const APP_VERSION = 'v80 · 18 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -7002,8 +7002,7 @@
           <tr><td style="padding:11px 12px;font-size:15px;font-weight:700;color:#fff;background:#0E1830;border-radius:8px 0 0 8px;">TOTAL</td><td style="padding:11px 12px;text-align:right;font-size:15px;font-weight:700;color:#fff;background:#0E1830;border-radius:0 8px 8px 0;">${invFmt(inv.total)}</td></tr>
         </table>
       </div>
-      ${inv.notas?`<div style="margin-top:24px;padding:13px 17px;background:#FBEAD8;border-left:3px solid #C2611B;border-radius:8px;font-size:12.5px;color:#5C3B1B;line-height:1.6;"><strong style="color:#0E1830;">Notes:</strong> ${escapeHtml(inv.notas)}</div>`:''}
-      <div style="margin-top:30px;padding-top:14px;border-top:1px solid #E6EAF2;text-align:center;font-size:11px;color:#A3ACBD;">Thank you for your business · ${escapeHtml(cfgFacturaNombre)}</div>`;
+      ${inv.notas?`<div style="margin-top:24px;padding:13px 17px;background:#FBEAD8;border-left:3px solid #C2611B;border-radius:8px;font-size:12.5px;color:#5C3B1B;line-height:1.6;"><strong style="color:#0E1830;">Notes:</strong> ${escapeHtml(inv.notas)}</div>`:''}`;
   }
 
   function invMostrarVista(inv) {
