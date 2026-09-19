@@ -2047,7 +2047,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v78 · 18 sep';
+  const APP_VERSION = 'v79 · 18 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -8581,10 +8581,51 @@
       <div class="gc-card" style="margin-top:16px;">
         <p class="gc-card-title" data-i18n="mi_cuenta">Mi cuenta</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Conectado como <strong>${escapeHtmlVisor(window.GH_NOMBRE || 'usuario')}</strong> (visor)</p>
+        <button type="button" class="gc-action-btn" id="visor-btn-cambiar-clave" style="margin-bottom:12px;">Cambiar contraseña</button>
+        <div id="visor-cambiar-clave-form" style="display:none;margin-bottom:16px;max-width:340px;">
+          <div class="gc-field" style="margin-bottom:10px;"><label>Contraseña actual</label><input type="password" id="visor-clave-actual" autocomplete="current-password"></div>
+          <div class="gc-field" style="margin-bottom:6px;"><label>Contraseña nueva</label><input type="password" id="visor-clave-nueva" autocomplete="new-password"></div>
+          <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Al menos 6 caracteres, con letras y números.</p>
+          <div class="gc-field" style="margin-bottom:12px;"><label>Repite la nueva</label><input type="password" id="visor-clave-nueva2" autocomplete="new-password"></div>
+          <div id="visor-clave-msg" style="font-size:12.5px;min-height:16px;margin-bottom:10px;"></div>
+          <div style="display:flex;gap:10px;"><button type="button" class="gc-save-btn" id="visor-btn-guardar-clave" style="padding:9px 18px;font-size:13px;">Guardar</button><button type="button" class="gc-action-btn" id="visor-btn-cancelar-clave" style="padding:9px 18px;font-size:13px;">Cancelar</button></div>
+        </div>
         <button type="button" class="gc-action-btn" data-i18n="cerrar_sesion" id="visor-btn-cerrar-sesion">Cerrar sesión</button>
       </div>
     `;
     body.appendChild(panelAjustes);
+
+    // ---- Cambiar contraseña (modo visor) ----
+    if (typeof window.GH_CAMBIAR_CONTRASENA === 'function') {
+      const vForm = panelAjustes.querySelector('#visor-cambiar-clave-form');
+      const vMsg = panelAjustes.querySelector('#visor-clave-msg');
+      const vLimpiar = () => {
+        ['visor-clave-actual', 'visor-clave-nueva', 'visor-clave-nueva2'].forEach((id) => { const el = panelAjustes.querySelector('#' + id); if (el) el.value = ''; });
+        if (vMsg) { vMsg.textContent = ''; vMsg.style.color = 'var(--ember)'; }
+      };
+      panelAjustes.querySelector('#visor-btn-cambiar-clave').addEventListener('click', () => {
+        vForm.style.display = vForm.style.display === 'none' ? 'block' : 'none';
+        if (vForm.style.display === 'block') { vLimpiar(); panelAjustes.querySelector('#visor-clave-actual').focus(); }
+      });
+      panelAjustes.querySelector('#visor-btn-cancelar-clave').addEventListener('click', () => { vForm.style.display = 'none'; vLimpiar(); });
+      panelAjustes.querySelector('#visor-btn-guardar-clave').addEventListener('click', async () => {
+        const actual = panelAjustes.querySelector('#visor-clave-actual').value;
+        const nueva = panelAjustes.querySelector('#visor-clave-nueva').value;
+        const nueva2 = panelAjustes.querySelector('#visor-clave-nueva2').value;
+        vMsg.style.color = 'var(--ember)';
+        if (!actual || !nueva || !nueva2) { vMsg.textContent = 'Llena los tres campos.'; return; }
+        if (nueva.length < 6) { vMsg.textContent = 'La nueva debe tener al menos 6 caracteres.'; return; }
+        if (!(/[a-zA-Z]/.test(nueva) && /[0-9]/.test(nueva))) { vMsg.textContent = 'La nueva debe tener letras y números.'; return; }
+        if (nueva !== nueva2) { vMsg.textContent = 'Las dos contraseñas nuevas no coinciden.'; return; }
+        if (nueva === actual) { vMsg.textContent = 'La nueva no puede ser igual a la actual.'; return; }
+        const bg = panelAjustes.querySelector('#visor-btn-guardar-clave');
+        bg.disabled = true; vMsg.style.color = 'var(--muted)'; vMsg.textContent = 'Guardando…';
+        const r = await window.GH_CAMBIAR_CONTRASENA(actual, nueva);
+        bg.disabled = false;
+        if (r && r.ok) { vForm.style.display = 'none'; vLimpiar(); toast('Contraseña cambiada ✓', 'success', 3000); }
+        else { vMsg.style.color = 'var(--ember)'; vMsg.textContent = (r && r.error) || 'No se pudo cambiar.'; }
+      });
+    }
 
     // Color de acento (mismo sistema de guardado que el resto de la app: por cuenta, en la nube)
     function aplicarAcentoVisor(nombre) {
