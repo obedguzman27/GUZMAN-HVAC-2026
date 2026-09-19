@@ -79,7 +79,12 @@
   :root[data-accent="indigo"] { --accent: var(--blue); --accent-dk: #3A5486; --accent-bg: var(--blue-bg); }
   :root[data-accent="verde"] { --accent: #4E9350; --accent-dk: #397239; --accent-bg: #E3F0E3; }
   #gc-app {
-    width: 100%; min-height: 100vh; background: var(--bg);
+    width: 100%; min-height: 100vh;
+    background:
+      radial-gradient(1200px 600px at 100% -5%, rgba(12,145,132,.05), transparent 55%),
+      radial-gradient(1000px 500px at 0% 105%, rgba(194,97,27,.05), transparent 55%),
+      var(--bg);
+    background-attachment: fixed;
     color: var(--ink); font-family: 'Inter', sans-serif;
   }
 
@@ -193,7 +198,7 @@
   .gc-form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 14px; }
   .gc-form-row.wide { grid-template-columns: 1fr; }
   .gc-field label { display: block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-bottom: 6px; }
-  .gc-field input, .gc-field select, .gc-field textarea { width: 100%; font-family: 'Inter', sans-serif; font-size: 13.5px; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: var(--r-sm); background: #fff; color: var(--ink); transition: border-color .16s var(--ease), background .16s var(--ease), box-shadow .16s var(--ease); }
+  .gc-field input, .gc-field select, .gc-field textarea { width: 100%; font-family: 'Inter', sans-serif; font-size: 13.5px; padding: 11px 13px; border: 1.5px solid var(--border); border-radius: var(--r-sm); background: #FCFDFE; color: var(--ink); transition: border-color .16s var(--ease), background .16s var(--ease), box-shadow .16s var(--ease); box-shadow: inset 0 1px 2px rgba(14,24,48,.03); }
   .gc-field input:hover, .gc-field select:hover, .gc-field textarea:hover { border-color: #C3CEE2; }
   .gc-field input:focus, .gc-field select:focus, .gc-field textarea:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3.5px var(--accent-bg); }
   .gc-field input::placeholder, .gc-field textarea::placeholder { color: #A9B4C8; }
@@ -228,9 +233,9 @@
 
   /* ── TIPO TAGS ──────────────────────────── */
   .gc-tipo-tag { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: .4px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.05); }
-  .gc-tipo-tag.ingreso { background: var(--teal-bg); color: var(--teal-dk); }
-  .gc-tipo-tag.gasto { background: var(--ember-bg); color: var(--ember); }
-  .gc-tipo-tag.ajuste { background: var(--blue-bg); color: var(--blue); }
+  .gc-tipo-tag.ingreso { background: var(--teal-bg); color: var(--teal-dk); box-shadow: inset 0 0 0 1px rgba(12,145,132,.15); }
+  .gc-tipo-tag.gasto { background: var(--ember-bg); color: var(--ember); box-shadow: inset 0 0 0 1px rgba(198,85,30,.15); }
+  .gc-tipo-tag.ajuste { background: var(--blue-bg); color: var(--blue); box-shadow: inset 0 0 0 1px rgba(74,107,168,.15); }
 
   /* ── WEEK CARDS (Registro semanal) ─────── */
   .gc-week-card { background: var(--card); border: 1px solid var(--border-soft); border-radius: var(--r); box-shadow: var(--shadow-sm); margin-bottom: 20px; overflow: hidden; transition: box-shadow .18s var(--ease); }
@@ -372,9 +377,9 @@
   .papeles-filtros .gc-action-btn.sel { background: var(--navy); color: #fff; border-color: var(--navy); }
 
   /* ── PRINT MODAL ────────────────────────── */
-  .gc-print-overlay { position: fixed; inset: 0; background: rgba(19,28,46,.62); z-index: 1000; display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; backdrop-filter: blur(4px); }
+  .gc-print-overlay { position: fixed; inset: 0; background: rgba(14,24,48,.66); z-index: 1000; display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; backdrop-filter: blur(6px); animation: gc-ov-in .15s var(--ease); }
   .gc-print-toolbar { display: flex; gap: 10px; margin-bottom: 16px; }
-  .gc-print-sheet { background: #fff; color: #1a1a1a; width: 100%; max-width: 780px; padding: 40px 44px; font-family: Arial, Helvetica, sans-serif; box-shadow: 0 12px 40px rgba(0,0,0,.3); border-radius: 10px; }
+  .gc-print-sheet { background: #fff; color: #1a1a1a; width: 100%; max-width: 780px; padding: 40px 44px; font-family: Arial, Helvetica, sans-serif; box-shadow: 0 20px 60px rgba(0,0,0,.35); border-radius: 12px; margin: 8px 0; animation: gc-modal-in .22s var(--ease); }
   .gc-print-sheet h1 { font-size: 21px; margin: 0; }
   .gc-print-sheet .ps-addr { font-size: 12px; color: #555; margin: 4px 0; }
   .gc-print-sheet .ps-badge { font-size: 11px; color: #555; letter-spacing: .5px; margin-bottom: 20px; }
@@ -510,8 +515,8 @@
   .cal-job-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 6px; border-radius: 8px; transition: background .15s var(--ease), transform .12s var(--ease); }
   .cal-job-btn:hover { background: #F0F3FA; }
   .cal-job-btn:active { transform: scale(.88); }
-  .cal-modal-overlay { position: fixed; inset: 0; z-index: 9000; background: rgba(14,24,48,.6); display: flex; align-items: center; justify-content: center; padding: 20px; }
-  .cal-modal-box { background: #fff; border-radius: var(--r); padding: 26px; width: 100%; max-width: 420px; max-height: 88vh; overflow-y: auto; box-shadow: var(--shadow-lg); }
+  .cal-modal-overlay { position: fixed; inset: 0; z-index: 9000; background: rgba(14,24,48,.6); display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); animation: gc-ov-in .15s var(--ease); }
+  .cal-modal-box { background: #fff; border-radius: var(--r); padding: 26px; width: 100%; max-width: 420px; max-height: 88vh; overflow-y: auto; box-shadow: var(--shadow-lg); animation: gc-modal-in .2s var(--ease); }
   .cal-fotos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 8px; margin-bottom: 10px; }
   .cal-foto-thumb { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; border: 1px solid var(--border-soft); background: #F0F3FA; }
   .cal-foto-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -699,7 +704,7 @@
   .inv-chip button{background:none;border:none;cursor:pointer;color:var(--muted);font-size:15px;padding:0 2px;line-height:1;transition:color .14s,transform .14s var(--ease);}
   .inv-chip button:hover{color:var(--ember);}
   .inv-chip button:active{transform:scale(.8);}
-  .inv-print-sheet{background:#fff;color:#1a1a1a;width:100%;max-width:800px;padding:44px 50px;font-family:Arial,Helvetica,sans-serif;box-shadow:0 12px 40px rgba(0,0,0,.3);border-radius:10px;}
+  .inv-print-sheet{background:#fff;color:#1a1a1a;width:100%;max-width:800px;padding:44px 50px;font-family:Arial,Helvetica,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.35);border-radius:12px;margin:8px 0;animation:gc-modal-in .22s var(--ease);}
 
   /* ── WEEK CARD COMPACT / COLLAPSE ───────── */
   .gc-week-card-collapsible { cursor: pointer; }
@@ -2047,7 +2052,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v80 · 18 sep';
+  const APP_VERSION = 'v81 · 18 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
