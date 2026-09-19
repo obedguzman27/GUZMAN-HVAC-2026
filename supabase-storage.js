@@ -133,7 +133,8 @@
         <input id="gh-usuario-input" type="text" placeholder="Usuario (no es tu correo)" autocomplete="username"
           style="width:100%; padding:12px 14px; border:1.5px solid #D0D8E8; border-radius:9px; font-size:15px; margin-bottom:10px; box-sizing:border-box;">
         <input id="gh-clave-input" type="password" placeholder="Contraseña" autocomplete="current-password"
-          style="width:100%; padding:12px 14px; border:1.5px solid #D0D8E8; border-radius:9px; font-size:15px; margin-bottom:14px; box-sizing:border-box;">
+          style="width:100%; padding:12px 14px; border:1.5px solid #D0D8E8; border-radius:9px; font-size:15px; margin-bottom:4px; box-sizing:border-box;">
+        <div id="gh-clave-pista" style="display:none; font-size:11px; color:#8A93A6; margin-bottom:10px; text-align:left;">Debe tener al menos 6 caracteres, con letras y números.</div>
         <div id="gh-login-error" style="color:#C8511A; font-size:12.5px; min-height:16px; margin-bottom:10px;">${mensajeError || ''}</div>
         <button id="gh-login-btn" style="width:100%; padding:12px; background:#0E1830; color:#fff; border:none; border-radius:9px; font-weight:600; font-size:14px; cursor:pointer; margin-bottom:10px;">Entrar</button>
         <button id="gh-modo-btn" style="width:100%; padding:10px; background:none; color:#5A6A88; border:none; font-size:12.5px; cursor:pointer; text-decoration:underline;">¿No tienes cuenta? Crear cuenta</button>
@@ -152,14 +153,17 @@
 
     modoBtn.addEventListener('click', () => {
       modoRegistro = !modoRegistro;
+      const pista = document.getElementById('gh-clave-pista');
       if (modoRegistro) {
         subtitulo.textContent = 'Crea tu cuenta';
         btn.textContent = 'Crear cuenta';
         modoBtn.textContent = '¿Ya tienes cuenta? Entrar';
+        if (pista) pista.style.display = 'block';
       } else {
         subtitulo.textContent = 'Inicia sesión';
         btn.textContent = 'Entrar';
         modoBtn.textContent = '¿No tienes cuenta? Crear cuenta';
+        if (pista) pista.style.display = 'none';
       }
     });
 
@@ -169,6 +173,12 @@
       const errorDiv = document.getElementById('gh-login-error');
       if (!usuario || !clave) { errorDiv.textContent = 'Escribe tu usuario y contraseña.'; return; }
       if (clave.length < 6) { errorDiv.textContent = 'La contraseña debe tener al menos 6 caracteres.'; return; }
+      // Al CREAR cuenta se exige que la contraseña tenga letras Y números.
+      // Al entrar NO se exige, para no dejar fuera a quien ya tiene una vieja.
+      if (modoRegistro && !(/[a-zA-Z]/.test(clave) && /[0-9]/.test(clave))) {
+        errorDiv.textContent = 'La contraseña debe tener letras y números.';
+        return;
+      }
       btn.disabled = true; btn.textContent = modoRegistro ? 'Creando...' : 'Entrando...';
       const email = usuarioAEmail(usuario);
 
