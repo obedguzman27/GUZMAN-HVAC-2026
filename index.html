@@ -2052,7 +2052,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v81 · 18 sep';
+  const APP_VERSION = 'v83 · 19 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -3996,13 +3996,10 @@
     });
   }
 
-  // ---- Imprimir directo (sin descargar) ----
+  // (Ya no se usa directamente — se dejó por compatibilidad. Redirige al
+  //  método que sí funciona en el iPhone instalado.)
   function imprimirContenido(htmlCuerpo, titulo) {
-    const area = document.getElementById('print-area');
-    area.innerHTML = `<div class="gc-print-sheet">${htmlCuerpo}</div>`;
-    document.title = titulo || cfgFacturaNombre;
-    window.print();
-    setTimeout(() => { area.innerHTML = ''; }, 500);
+    ghImprimirEnVentana(htmlCuerpo, titulo);
   }
 
   function ghConstruirHTMLDescargaReparto() {
@@ -4147,12 +4144,8 @@
         </table>
       </div>`;
 
-    // Imprimir directo (no descargar)
-    const area = document.getElementById('print-area');
-    area.innerHTML = `<div class="gc-print-sheet">${cuerpoHTML}</div>`;
-    document.title = 'Registro';
-    window.print();
-    setTimeout(() => { area.innerHTML = ''; document.title = 'GH Manager'; }, 600);
+    // Imprimir directo (no descargar) — usa el método que funciona en iPhone
+    ghImprimirEnVentana(cuerpoHTML, 'Registro de movimientos');
   });
 
   // ---- Respaldo completo (para guardar en OneDrive) ----
@@ -4294,7 +4287,28 @@
     }));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hojaEmp), 'Empleados');
 
-    XLSX.writeFile(wb, `reporte-guzman-hvac-${today()}.xlsx`);
+    // Descargar el Excel. En el iPhone instalado, la descarga directa a veces
+    // no hace nada (Safari la bloquea), así que ahí se comparte el archivo por
+    // el menú de iOS (donde puedes elegir Guardar en Archivos, Mail, etc.).
+    const nombreArchivo = `reporte-guzman-hvac-${today()}.xlsx`;
+    if (!movs.length && !invs.length && !nomina.length && !emps.length) {
+      toast('No hay datos en ese rango para exportar', 'info', 3500);
+      return;
+    }
+    try {
+      if (ghEsStandalone() && navigator.canShare) {
+        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const archivo = new File([wbout], nombreArchivo, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        if (navigator.canShare({ files: [archivo] })) {
+          await navigator.share({ files: [archivo], title: 'Reporte GH Manager' });
+          return;
+        }
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') return; // el usuario cerró el menú
+    }
+    // Vía normal (navegador de escritorio o si compartir no está disponible)
+    XLSX.writeFile(wb, nombreArchivo);
     toast('Excel descargado ✓', 'success');
   });
 
@@ -4350,7 +4364,7 @@
           <tbody>${activos.map(filaEmp).join('') || '<tr><td colspan="3" style="padding:8px;color:#63708C;">Sin empleados activos.</td></tr>'}</tbody>
         </table>
       </div>`;
-    imprimirContenido(html, `Reporte - ${cfgFacturaNombre} - ${today()}`);
+    ghImprimirEnVentana(html, `Reporte - ${cfgFacturaNombre} - ${today()}`);
   });
 
   $('input-restaurar-respaldo').addEventListener('change', (e) => {
@@ -5796,7 +5810,7 @@
   $('btn-imprimir-empleado').addEventListener('click', () => {
     const emp = empleados.find(e => e.id === empIdActual);
     if (!emp) return;
-    imprimirContenido(construirFichaEmpleado(emp), `Ficha - ${empNombreCompleto(emp)}`);
+    ghImprimirEnVentana(construirFichaEmpleado(emp), `Ficha - ${empNombreCompleto(emp)}`);
   });
 
   $('btn-descargar-empleado').addEventListener('click', () => {
@@ -7829,9 +7843,7 @@
   }
   $('nom-btn-imprimir-recibo').addEventListener('click', () => {
     if (!nomReciboEnVista) return;
-    document.getElementById('print-area').innerHTML = `<div class="gc-print-sheet">${nomBuildRecibo(nomReciboEnVista)}</div>`;
-    window.print();
-    setTimeout(() => { document.getElementById('print-area').innerHTML = ''; }, 600);
+    ghImprimirEnVentana(nomBuildRecibo(nomReciboEnVista), `Recibo - ${nomReciboEnVista.trabajador || ''}`);
   });
   $('nom-btn-descargar-recibo').addEventListener('click', () => {
     if (!nomReciboEnVista) return;
@@ -7894,9 +7906,7 @@
       btn.addEventListener('click', () => {
         const n = nomDocs.find((x) => x.id === btn.dataset.id);
         if (!n) return;
-        document.getElementById('print-area').innerHTML = `<div class="gc-print-sheet">${nomBuildRecibo(n)}</div>`;
-        window.print();
-        setTimeout(() => { document.getElementById('print-area').innerHTML = ''; }, 600);
+        ghImprimirEnVentana(nomBuildRecibo(n), `Recibo - ${n.trabajador || ''}`);
       });
     });
     tbody.querySelectorAll('.nom-edit-btn').forEach((btn) => {
@@ -8244,10 +8254,7 @@
     });
     cont.querySelectorAll('.nom-sem-imp').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const html = nomBuildReciboSemanal(btn.dataset.wk);
-        document.getElementById('print-area').innerHTML = `<div class="gc-print-sheet">${html}</div>`;
-        window.print();
-        setTimeout(() => { document.getElementById('print-area').innerHTML = ''; }, 600);
+        ghImprimirEnVentana(nomBuildReciboSemanal(btn.dataset.wk), 'Recibo semanal');
       });
     });
     cont.querySelectorAll('.nom-sem-editar-trab').forEach((btn) => {
@@ -8368,9 +8375,7 @@
     cont.querySelectorAll('.nom-reg-ver').forEach((b) => b.addEventListener('click', () => { const n = nomDocs.find((x) => x.id === b.dataset.id); if (n) nomMostrarRecibo(n); }));
     cont.querySelectorAll('.nom-reg-imp').forEach((b) => b.addEventListener('click', () => {
       const n = nomDocs.find((x) => x.id === b.dataset.id); if (!n) return;
-      document.getElementById('print-area').innerHTML = `<div class="gc-print-sheet">${nomBuildRecibo(n)}</div>`;
-      window.print();
-      setTimeout(() => { document.getElementById('print-area').innerHTML = ''; }, 600);
+      ghImprimirEnVentana(nomBuildRecibo(n), `Recibo - ${n.trabajador || ''}`);
     }));
     cont.querySelectorAll('.nom-reg-edit').forEach((b) => b.addEventListener('click', () => { const n = nomDocs.find((x) => x.id === b.dataset.id); if (n) nomEditar(n); }));
     cont.querySelectorAll('.nom-reg-del').forEach((b) => b.addEventListener('click', async () => {
