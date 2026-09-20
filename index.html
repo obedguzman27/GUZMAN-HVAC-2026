@@ -679,7 +679,11 @@
   .inv-tbl td{padding:0;border-bottom:1px solid var(--border-soft);vertical-align:middle;}
   .inv-tbl tbody tr:hover{background:#F8FAFD;}
   .inv-tbl input,.inv-tbl select{width:100%;padding:10px;border:none;background:transparent;font-family:'Inter',sans-serif;font-size:13px;color:var(--ink);}
-  .inv-tbl input:focus,.inv-tbl select:focus{outline:none;background:#EAF6F4;}
+  .inv-tbl input:focus,.inv-tbl select:focus{outline:none;background:var(--accent-bg);}
+  /* Campo de fecha (DATE) dentro de la tabla de la factura */
+  .inv-tbl input.inv-dia{font-family:'IBM Plex Mono',monospace;font-size:12.5px;cursor:pointer;min-width:118px;}
+  .inv-tbl input.inv-dia::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.55;}
+  .inv-tbl input.inv-dia:hover::-webkit-calendar-picker-indicator{opacity:1;}
   .inv-amt{text-align:right;font-family:'IBM Plex Mono',monospace;}
   .inv-num-c{padding:10px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);text-align:center;width:36px;}
   .inv-totals{width:260px;margin-left:auto;}
@@ -1524,7 +1528,7 @@
     <div class="gc-card">
       <p class="gc-card-title" data-i18n="informacion">Información</p>
       <div class="gc-form-row">
-        <div class="gc-field"><label data-i18n="invoice">Invoice #</label><input type="text" id="inv-num" placeholder="INV-2026-001"></div>
+        <div class="gc-field"><label data-i18n="invoice">Invoice #</label><input type="text" id="inv-num" inputmode="numeric" placeholder="1"></div>
         <div class="gc-field"><label data-i18n="fecha">Fecha</label><input type="date" id="inv-fecha"></div>
         <div class="gc-field"><label data-i18n="bill_to_nombre_compania">Bill To — Nombre / Compañía</label>
           <input type="text" id="inv-cliente" list="dl-clientes" placeholder="Airtron o escribe otro cliente" autocomplete="off">
@@ -1542,11 +1546,16 @@
       <p style="font-size:11px;color:var(--muted);margin-top:8px;">Estos datos se recuerdan para la siguiente factura — solo cámbialos si son distintos.</p>
     </div>
     <div class="gc-card">
-      <p class="gc-card-title" data-i18n="trabajos">Trabajos</p>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <p class="gc-card-title" data-i18n="trabajos" style="margin:0;">Trabajos</p>
+        <button type="button" class="inv-add" id="inv-btn-cargar-semana" style="border-color:var(--accent);color:var(--accent-dk);">
+          📅 Cargar trabajos de esta semana
+        </button>
+      </div>
       <div style="overflow-x:auto;margin-bottom:12px;">
         <table class="inv-tbl"><thead><tr>
-          <th style="width:36px;">#</th><th style="width:112px;">DAY</th>
-          <th style="width:220px;">JOB LOCATION</th><th>WORK PERFORMED</th>
+          <th style="width:36px;">#</th><th style="width:132px;">DATE</th>
+          <th style="width:220px;">SUBDIVISION</th><th>WORK PERFORMED</th>
           <th class="r" style="width:78px;">TONS</th>
           <th class="r" style="width:130px;">AMOUNT DUE</th><th style="width:40px;"></th>
         </tr></thead><tbody id="inv-tbody"></tbody></table>
@@ -1554,9 +1563,6 @@
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <button class="inv-add" id="inv-btn-add">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Agregar línea
-        </button>
-        <button type="button" class="inv-add" id="inv-btn-cargar-semana" style="border-color:var(--accent);color:var(--accent-dk);">
-          📅 Cargar trabajos de esta semana
         </button>
       </div>
     </div>
@@ -2054,7 +2060,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v86 · 19 sep';
+  const APP_VERSION = 'v88 · 19 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -6017,6 +6023,13 @@
   // Días en inglés para la columna DAY de la factura (el invoice siempre se ve en inglés)
   const INV_DIAS_SEMANA = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
   // Fecha en números para los documentos (MM/DD/YYYY), nunca en letras
+  // Fecha con guiones para la columna DATE de la factura: 09-19-2026
+  function invFechaGuion(fechaISO) {
+    if (!fechaISO) return '';
+    const p = String(fechaISO).slice(0, 10).split('-');
+    if (p.length !== 3) return fechaISO;
+    return `${p[1]}-${p[2]}-${p[0]}`;
+  }
   function invFechaNum(fechaISO) {
     if (!fechaISO) return '';
     const p = String(fechaISO).slice(0, 10).split('-');
@@ -6324,7 +6337,7 @@
           const sel = ids.map((id) => citas.find((c) => c.id === id)).filter(Boolean);
           if (!sel.length) return;
           sel.forEach((c) => {
-            const tr = invCrearFila({ location: c.loc || '', work: c.descripcion || '', dia: invDiaDeFecha(c.fecha) });
+            const tr = invCrearFila({ location: c.loc || '', work: c.descripcion || '', dia: c.fecha || '' });
             $('inv-tbody').appendChild(tr);
           });
           invRenumerar(); invCalcTotales();
@@ -6808,10 +6821,14 @@
 
     const numTd = mkTd(); numTd.className='inv-num-c'; numTd.textContent=invFilaC; tr.appendChild(numTd);
 
+    // DATE: calendario real. Se guarda la fecha completa y en la factura
+    // se imprime como MM-DD-YYYY (ej. 09-19-2026).
     const diaTd = mkTd();
-    const diaSel = document.createElement('select');
+    const diaSel = document.createElement('input');
+    diaSel.type = 'date';
     diaSel.className = 'inv-dia';
-    diaSel.innerHTML = '<option value="">—</option>' + INV_DIAS_SEMANA.map((d) => `<option value="${d}"${item.dia === d ? ' selected' : ''}>${d}</option>`).join('');
+    // Acepta lo guardado como fecha (nuevo) o como nombre de día (facturas viejas)
+    diaSel.value = (item.dia && /^\d{4}-\d{2}-\d{2}$/.test(item.dia)) ? item.dia : '';
     diaTd.appendChild(diaSel); tr.appendChild(diaTd);
 
     const locTd=mkTd();
@@ -6918,7 +6935,7 @@
       return;
     }
     citasSemana.forEach((c) => {
-      const tr = invCrearFila({ location: c.loc || '', work: c.descripcion || '', dia: invDiaDeFecha(c.fecha) });
+      const tr = invCrearFila({ location: c.loc || '', work: c.descripcion || '', dia: c.fecha || '' });
       $('inv-tbody').appendChild(tr);
     });
     invRenumerar();
@@ -6950,8 +6967,14 @@
   $('inv-tax').addEventListener('input', invCalcTotales);
 
   function invAutoNum() {
-    const n = (invDocs.length+1).toString().padStart(3,'0');
-    return `INV-${new Date().getFullYear()}-${n}`;
+    // Solo número, consecutivo. Toma el número más alto ya usado y suma uno,
+    // así no se repite aunque se borre alguna factura de en medio.
+    let mayor = 0;
+    (invDocs || []).forEach((d) => {
+      const n = parseInt(String(d.numero || '').replace(/\D/g, ''), 10);
+      if (!isNaN(n) && n > mayor) mayor = n;
+    });
+    return String(mayor + 1);
   }
 
   function invLimpiar() {
@@ -7023,7 +7046,7 @@
   function invBuildPrint(inv) {
     const rows = (inv.items||[]).map((it,i) => `<tr style="background:${i%2?'#F7F9FC':'#fff'};">
       <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;color:#8A93A6;font-size:11.5px;">${i+1}</td>
-      <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;font-size:11.5px;color:#5C6B85;">${escapeHtml(it.dia||'')}</td>
+      <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;font-size:11.5px;color:#5C6B85;white-space:nowrap;">${/^\d{4}-\d{2}-\d{2}$/.test(it.dia || '') ? invFechaGuion(it.dia) : escapeHtml(it.dia || '')}</td>
       <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;">${escapeHtml(it.location||'')}</td>
       <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;">${escapeHtml(it.work||'')}</td>
       <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;text-align:right;">${escapeHtml(it.tons||'')}</td>
@@ -7055,8 +7078,8 @@
       <table style="width:100%;border-collapse:collapse;margin-bottom:18px;font-size:12.5px;">
         <thead><tr style="background:#0E1830;">
           <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.62);text-transform:uppercase;letter-spacing:.5px;width:30px;">#</th>
-          <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.5px;width:82px;">Day</th>
-          <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.92);text-transform:uppercase;letter-spacing:.5px;width:200px;">Job Location</th>
+          <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.5px;width:94px;">Date</th>
+          <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.92);text-transform:uppercase;letter-spacing:.5px;width:200px;">Subdivision</th>
           <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.92);text-transform:uppercase;letter-spacing:.5px;">Work Performed</th>
           <th style="padding:11px 8px;text-align:right;font-size:10px;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.5px;width:64px;">Tons</th>
           <th style="padding:11px 8px;text-align:right;font-size:10px;color:rgba(255,255,255,.92);text-transform:uppercase;letter-spacing:.5px;width:120px;">Amount Due</th>
