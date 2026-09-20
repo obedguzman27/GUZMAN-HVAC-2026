@@ -1567,6 +1567,7 @@
       </div>
       <div class="gc-card" style="padding:18px 20px;min-width:250px;">
         <div class="inv-totals">
+          <div class="inv-tot sub" id="inv-t-tons-row" style="display:none;"><span>Total toneladas</span><span class="inv-tot-v" id="inv-t-tons">0</span></div>
           <div class="inv-tot sub"><span>Subtotal</span><span class="inv-tot-v" id="inv-t-sub">$0.00</span></div>
           <div class="inv-tot tax"><span>Tax <input type="number" id="inv-tax" value="0" min="0" max="100" step="0.5" style="width:48px;padding:2px 6px;font-size:12px;border:1.5px solid var(--border);border-radius:6px;text-align:right;"> %</span><span class="inv-tot-v" id="inv-t-tax">$0.00</span></div>
           <div class="inv-tot grand"><span>TOTAL</span><span class="inv-tot-v" id="inv-t-total">$0.00</span></div>
@@ -2053,7 +2054,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v84 · 19 sep';
+  const APP_VERSION = 'v85 · 19 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -6869,7 +6870,7 @@
       recalcularMonto(true);
     });
     // Al escribir las toneladas, recalcula
-    tonIn.addEventListener('input', () => { montoEditadoAMano = false; recalcularMonto(true); });
+    tonIn.addEventListener('input', () => { montoEditadoAMano = false; recalcularMonto(true); invCalcTotales(); });
 
     amtIn.addEventListener('input', invCalcTotales);
     delBtn.addEventListener('click', () => { tr.remove(); invRenumerar(); invCalcTotales(); });
@@ -6919,6 +6920,13 @@
   function invCalcTotales() {
     let sub = 0;
     $('inv-tbody').querySelectorAll('.inv-amt').forEach(i => { sub += parseFloat((i.value||'0').replace(',','.'))||0; });
+    // Suma de toneladas de todas las líneas (solo se muestra si hay alguna)
+    let tons = 0;
+    $('inv-tbody').querySelectorAll('.inv-tons').forEach(i => { tons += parseFloat((i.value||'0').replace(',','.'))||0; });
+    if ($('inv-t-tons-row')) {
+      $('inv-t-tons-row').style.display = tons > 0 ? '' : 'none';
+      $('inv-t-tons').textContent = (Math.round(tons * 100) / 100).toString();
+    }
     const pct = parseFloat($('inv-tax').value)||0;
     const tax = sub*pct/100;
     $('inv-t-sub').textContent = invFmt(sub);
@@ -7044,6 +7052,10 @@
       </table>
       <div style="display:flex;justify-content:flex-end;">
         <table style="font-size:13px;width:240px;border-collapse:collapse;">
+          ${(() => {
+            const tot = (inv.items || []).reduce((a, it) => a + (parseFloat(String(it.tons || '').replace(',', '.')) || 0), 0);
+            return tot > 0 ? `<tr><td style="padding:5px 4px;color:#707A8C;">Total tons</td><td style="padding:5px 4px;text-align:right;font-weight:600;color:#333;">${Math.round(tot * 100) / 100}</td></tr>` : '';
+          })()}
           <tr><td style="padding:5px 4px;color:#707A8C;">Subtotal</td><td style="padding:5px 4px;text-align:right;font-weight:600;color:#333;">${invFmt(inv.subtotal)}</td></tr>
           ${inv.taxPct?`<tr><td style="padding:5px 4px;color:#96721F;">Tax (${inv.taxPct}%)</td><td style="padding:5px 4px;text-align:right;font-weight:600;color:#96721F;">${invFmt(inv.tax)}</td></tr>`:''}
           <tr><td colspan="2" style="padding:6px 4px 0;"><div style="height:2px;background:#0E1830;border-radius:2px;"></div></td></tr>
