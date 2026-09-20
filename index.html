@@ -1545,8 +1545,9 @@
       <p class="gc-card-title" data-i18n="trabajos">Trabajos</p>
       <div style="overflow-x:auto;margin-bottom:12px;">
         <table class="inv-tbl"><thead><tr>
-          <th style="width:36px;">#</th><th style="width:112px;">DAY</th><th style="width:110px;">JOB #</th>
+          <th style="width:36px;">#</th><th style="width:112px;">DAY</th>
           <th style="width:220px;">JOB LOCATION</th><th>WORK PERFORMED</th>
+          <th class="r" style="width:78px;">TONS</th>
           <th class="r" style="width:130px;">AMOUNT DUE</th><th style="width:40px;"></th>
         </tr></thead><tbody id="inv-tbody"></tbody></table>
       </div>
@@ -1612,7 +1613,7 @@
       <div class="gc-empty" id="cobros-empty" style="display:none;">No hay cobros aún. Guarda una factura para verlos aquí.</div>
       <div style="overflow-x:auto;">
         <table class="inv-list-t" id="cobros-tbl" style="display:none;">
-          <thead><tr><th>Job #</th><th data-i18n="h_colonia_lote">Colonia / Lote</th><th data-i18n="h_trabajo">Trabajo</th><th data-i18n="h_factura">Factura</th><th data-i18n="h_cliente">Cliente</th><th class="r" data-i18n="h_monto">Monto</th></tr></thead>
+          <thead><tr><th class="r">Tons</th><th data-i18n="h_colonia_lote">Colonia / Lote</th><th data-i18n="h_trabajo">Trabajo</th><th data-i18n="h_factura">Factura</th><th data-i18n="h_cliente">Cliente</th><th class="r" data-i18n="h_monto">Monto</th></tr></thead>
           <tbody id="cobros-tbody"></tbody>
         </table>
       </div>
@@ -2052,7 +2053,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v83 · 19 sep';
+  const APP_VERSION = 'v84 · 19 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -3638,7 +3639,7 @@
     // Facturas guardadas
     agrega('Facturas', (invDocs || []).filter((d) =>
       (d.numero || '').toLowerCase().includes(texto) || (d.cliente || '').toLowerCase().includes(texto) ||
-      (d.items || []).some((it) => (it.job || '').toLowerCase().includes(texto) || (it.location || '').toLowerCase().includes(texto) || (it.work || '').toLowerCase().includes(texto))
+      (d.items || []).some((it) => (it.location || '').toLowerCase().includes(texto) || (it.work || '').toLowerCase().includes(texto))
     ).map((d) => `${d.numero || '(sin número)'} · ${d.cliente || '—'} · ${invFmt(d.total)}`),
       () => { document.querySelector('.gc-tab[data-tab="facturas"]').click(); document.querySelector('.inv-subtab[data-sub="guardadas"]').click(); });
 
@@ -6322,7 +6323,7 @@
           const sel = ids.map((id) => citas.find((c) => c.id === id)).filter(Boolean);
           if (!sel.length) return;
           sel.forEach((c) => {
-            const tr = invCrearFila({ job: c.jobNum || '', location: c.loc || '', work: c.descripcion || '', dia: invDiaDeFecha(c.fecha) });
+            const tr = invCrearFila({ location: c.loc || '', work: c.descripcion || '', dia: invDiaDeFecha(c.fecha) });
             $('inv-tbody').appendChild(tr);
           });
           invRenumerar(); invCalcTotales();
@@ -6812,7 +6813,6 @@
     diaSel.innerHTML = '<option value="">—</option>' + INV_DIAS_SEMANA.map((d) => `<option value="${d}"${item.dia === d ? ' selected' : ''}>${d}</option>`).join('');
     diaTd.appendChild(diaSel); tr.appendChild(diaTd);
 
-    const jobTd=mkTd(); const jobIn=mkIn('inv-job','Job #',item.job); jobTd.appendChild(jobIn); tr.appendChild(jobTd);
     const locTd=mkTd();
     const locDl=document.createElement('datalist'); locDl.className='dl-colonias-row'; locDl.id='dl-col-'+invFilaC;
     locDl.innerHTML = invColonias.map(c=>`<option value="${escapeHtml(c)}">`).join('');
@@ -6825,26 +6825,55 @@
     const wrkIn=mkIn('inv-work','Descripción del trabajo (escribe o selecciona)',item.work);
     wrkIn.setAttribute('list','dl-trab-'+invFilaC); wrkIn.autocomplete='off';
     wrkTd.appendChild(wrkDl); wrkTd.appendChild(wrkIn); tr.appendChild(wrkTd);
+    const tonTd=mkTd(); tonTd.className='r';
+    const tonIn=mkIn('inv-tons','—', item.tons||''); tonIn.inputMode='decimal'; tonIn.style.textAlign='right';
+    tonTd.appendChild(tonIn); tr.appendChild(tonTd);
     const amtTd=mkTd(); amtTd.className='r'; const amtIn=mkIn('inv-amt','0.00',item.amount||''); amtIn.inputMode='decimal'; amtTd.appendChild(amtIn); tr.appendChild(amtTd);
     const delTd=mkTd(); const delBtn=document.createElement('button'); delBtn.className='gc-del'; delBtn.type='button'; delBtn.textContent='✕'; delTd.appendChild(delBtn); tr.appendChild(delTd);
 
-    // Al elegir/escribir un trabajo que tiene precio guardado, se llena el
-    // monto solo. Se respeta lo que ya hayas escrito: si el monto tiene algo,
-    // no lo pisa. Y cambiarlo aquí NO modifica el precio guardado del trabajo.
+    // Cálculo automático del monto según el trabajo elegido:
+    //  - Si el trabajo se cobra POR TONELADA: monto = precio × toneladas.
+    //  - Si es precio fijo: se pone ese precio tal cual.
+    // En ambos casos el monto queda editable: si lo cambias a mano, se respeta
+    // y ya no se vuelve a recalcular solo (para no pisarte lo que escribiste).
+    let montoEditadoAMano = !!item.amount;
+    amtIn.addEventListener('input', () => { montoEditadoAMano = true; });
+
+    function recalcularMonto(forzar) {
+      const t = trbBuscar(wrkIn.value);
+      if (!t) return;
+      const precio = trbPrecio(t);
+      if (!precio) return;
+      if (montoEditadoAMano && !forzar) return;
+      if (trbPorTonelada(t)) {
+        const tons = parseFloat((tonIn.value || '').replace(',', '.'));
+        if (!tons || tons <= 0) return;          // sin toneladas todavía, no calcula
+        amtIn.value = (precio * tons).toFixed(2);
+      } else {
+        amtIn.value = precio.toFixed(2);
+      }
+      invCalcTotales();
+    }
+
+    // Al elegir el trabajo: si es por tonelada, avisa en el campo de Tons.
     wrkIn.addEventListener('change', () => {
       const t = trbBuscar(wrkIn.value);
-      const precio = t ? trbPrecio(t) : 0;
-      if (!precio) return;
-      const actual = (amtIn.value || '').trim();
-      if (actual === '' || parseFloat(actual.replace(',', '.')) === 0) {
-        amtIn.value = precio.toFixed(2);
-        invCalcTotales();
+      if (t && trbPorTonelada(t)) {
+        tonIn.placeholder = 'tons';
+        tonIn.title = `Se cobra ${invFmt(trbPrecio(t))} por tonelada`;
+      } else {
+        tonIn.placeholder = '—';
+        tonIn.title = '';
       }
+      montoEditadoAMano = false;   // cambió el trabajo: recalcular
+      recalcularMonto(true);
     });
+    // Al escribir las toneladas, recalcula
+    tonIn.addEventListener('input', () => { montoEditadoAMano = false; recalcularMonto(true); });
 
     amtIn.addEventListener('input', invCalcTotales);
     delBtn.addEventListener('click', () => { tr.remove(); invRenumerar(); invCalcTotales(); });
-    [jobIn, locIn, wrkIn, amtIn].forEach(i => i.addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();$('inv-btn-guardar').click();} }));
+    [locIn, wrkIn, tonIn, amtIn].forEach(i => i.addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();$('inv-btn-guardar').click();} }));
 
     return tr;
   }
@@ -6857,7 +6886,7 @@
     const tr = invCrearFila();
     $('inv-tbody').appendChild(tr);
     invRenumerar();
-    tr.querySelector('.inv-job').focus();
+    tr.querySelector('.inv-loc').focus();
     invCalcTotales();
   });
 
@@ -6875,7 +6904,7 @@
       return;
     }
     citasSemana.forEach((c) => {
-      const tr = invCrearFila({ job: c.jobNum || '', location: c.loc || '', work: c.descripcion || '', dia: invDiaDeFecha(c.fecha) });
+      const tr = invCrearFila({ location: c.loc || '', work: c.descripcion || '', dia: invDiaDeFecha(c.fecha) });
       $('inv-tbody').appendChild(tr);
     });
     invRenumerar();
@@ -6922,12 +6951,12 @@
     if (!num) { toast('Agrega un número de factura', 'error'); return; }
     const items = [];
     $('inv-tbody').querySelectorAll('tr').forEach(tr => {
-      const job = tr.querySelector('.inv-job').value.trim();
       const loc = tr.querySelector('.inv-loc').value;
       const work = tr.querySelector('.inv-work').value.trim();
       const amt = parseFloat((tr.querySelector('.inv-amt').value||'0').replace(',','.'))||0;
       const dia = tr.querySelector('.inv-dia').value;
-      if (job||loc||work||amt) items.push({job,location:loc,work,amount:amt,dia});
+      const tons = tr.querySelector('.inv-tons').value.trim();
+      if (loc||work||amt||tons) items.push({location:loc,work,amount:amt,dia,tons});
     });
     if (!items.length) { toast('Agrega al menos un trabajo', 'error'); return; }
     const tots = invCalcTotales();
@@ -6974,9 +7003,9 @@
     const rows = (inv.items||[]).map((it,i) => `<tr style="background:${i%2?'#F7F9FC':'#fff'};">
       <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;color:#8A93A6;font-size:11.5px;">${i+1}</td>
       <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;font-size:11.5px;color:#5C6B85;">${escapeHtml(it.dia||'')}</td>
-      <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;">${escapeHtml(it.job||'')}</td>
       <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;">${escapeHtml(it.location||'')}</td>
       <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;">${escapeHtml(it.work||'')}</td>
+      <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;text-align:right;">${escapeHtml(it.tons||'')}</td>
       <td style="padding:9px 8px;border-bottom:1px solid #E6EAF2;text-align:right;font-weight:700;">${invFmt(it.amount)}</td>
     </tr>`).join('');
     // El logo de la FACTURA es el que se sube en Ajustes → Name of Company.
@@ -7006,9 +7035,9 @@
         <thead><tr style="background:#0E1830;">
           <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.62);text-transform:uppercase;letter-spacing:.5px;width:30px;">#</th>
           <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.5px;width:82px;">Day</th>
-          <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.92);text-transform:uppercase;letter-spacing:.5px;width:100px;">Job #</th>
-          <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.92);text-transform:uppercase;letter-spacing:.5px;width:190px;">Job Location</th>
+          <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.92);text-transform:uppercase;letter-spacing:.5px;width:200px;">Job Location</th>
           <th style="padding:11px 8px;text-align:left;font-size:10px;color:rgba(255,255,255,.92);text-transform:uppercase;letter-spacing:.5px;">Work Performed</th>
+          <th style="padding:11px 8px;text-align:right;font-size:10px;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.5px;width:64px;">Tons</th>
           <th style="padding:11px 8px;text-align:right;font-size:10px;color:rgba(255,255,255,.92);text-transform:uppercase;letter-spacing:.5px;width:120px;">Amount Due</th>
         </tr></thead>
         <tbody>${rows}</tbody>
@@ -7039,12 +7068,12 @@
   $('inv-btn-preview').addEventListener('click', () => {
     const items=[];
     $('inv-tbody').querySelectorAll('tr').forEach(tr=>{
-      const job=tr.querySelector('.inv-job').value.trim();
       const loc=tr.querySelector('.inv-loc').value;
       const work=tr.querySelector('.inv-work').value.trim();
       const amt=parseFloat((tr.querySelector('.inv-amt').value||'0').replace(',','.'))||0;
       const dia=tr.querySelector('.inv-dia').value;
-      if(job||loc||work||amt) items.push({job,location:loc,work,amount:amt,dia});
+      const tons=tr.querySelector('.inv-tons').value.trim();
+      if(loc||work||amt||tons) items.push({location:loc,work,amount:amt,dia,tons});
     });
     const tots=invCalcTotales();
     invMostrarVista({numero:$('inv-num').value||'---',fecha:$('inv-fecha').value,cliente:$('inv-cliente').value,clienteDireccion:$('inv-cliente-direccion').value,direccionEmisor:$('inv-direccion-emisor').value,notas:$('inv-notas').value,items,...tots});
@@ -7154,7 +7183,7 @@
     tbody.innerHTML = '';
     const filtradas = invDocs.filter(inv => !buscar ||
       (inv.numero||'').toLowerCase().includes(buscar) || (inv.cliente||'').toLowerCase().includes(buscar) ||
-      (inv.items||[]).some(it=>(it.job||'').toLowerCase().includes(buscar)||(it.location||'').toLowerCase().includes(buscar)||(it.work||'').toLowerCase().includes(buscar))
+      (inv.items||[]).some(it=>(it.location||'').toLowerCase().includes(buscar)||(it.work||'').toLowerCase().includes(buscar))
     ).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'') || (b.creadoEn||'').localeCompare(a.creadoEn||''));
     $('inv-list-empty').style.display = filtradas.length===0?'block':'none';
     $('inv-list-tbl').style.display = filtradas.length===0?'none':'table';
@@ -7266,7 +7295,7 @@
     invDocs.forEach(inv => {
       (inv.items || []).forEach(it => {
         cobros.push({
-          job: it.job || '', location: it.location || '', work: it.work || '',
+          tons: it.tons || '', location: it.location || '', work: it.work || '',
           amount: it.amount || 0, numero: inv.numero || '', cliente: inv.cliente || '',
           fecha: inv.fecha || '', creadoEn: inv.creadoEn || ''
         });
@@ -7274,7 +7303,7 @@
     });
 
     const filtrados = cobros.filter(c => !buscar ||
-      c.job.toLowerCase().includes(buscar) ||
+      String(c.tons || '').toLowerCase().includes(buscar) ||
       c.location.toLowerCase().includes(buscar) ||
       c.work.toLowerCase().includes(buscar) ||
       c.numero.toLowerCase().includes(buscar) ||
@@ -7300,7 +7329,7 @@
     filtrados.forEach(c => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td style="font-family:'IBM Plex Mono',monospace;font-weight:600;">${resalta(c.job) || '—'}</td>
+        <td style="font-family:'IBM Plex Mono',monospace;font-weight:600;text-align:right;">${escapeHtml(c.tons || '') || '—'}</td>
         <td style="font-weight:500;">${resalta(c.location) || '—'}</td>
         <td style="font-size:12.5px;">${resalta(c.work) || '—'}</td>
         <td style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);">${resalta(c.numero)}</td>
@@ -7345,6 +7374,9 @@
   // los dos formatos, para no perder lo que ya estaba guardado.
   function trbNombre(t) { return typeof t === 'string' ? t : (t && t.nombre) || ''; }
   function trbPrecio(t) { return typeof t === 'string' ? 0 : (Number(t && t.precio) || 0); }
+  // Si el trabajo se cobra por tonelada, el precio guardado es POR TONELADA
+  // y en la factura se multiplica por las toneladas de esa casa.
+  function trbPorTonelada(t) { return typeof t === 'string' ? false : !!(t && t.porTon); }
   function trbBuscar(nombre) {
     const clave = String(nombre || '').trim().toLowerCase();
     if (!clave) return null;
@@ -7360,7 +7392,11 @@
       fila.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--border-soft);';
       fila.innerHTML=`
         <span style="flex:1;min-width:0;font-size:13.5px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(trbNombre(t))}</span>
-        <span style="font-size:11px;color:var(--muted);">Precio</span>
+        <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);cursor:pointer;white-space:nowrap;" title="El precio es por tonelada; en la factura se multiplica por las toneladas">
+          <input type="checkbox" class="trb-porton" data-i="${i}" ${trbPorTonelada(t) ? 'checked' : ''} style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;">
+          por tonelada
+        </label>
+        <span style="font-size:11px;color:var(--muted);white-space:nowrap;">${trbPorTonelada(t) ? 'Precio/ton' : 'Precio'}</span>
         <input type="text" inputmode="decimal" class="trb-precio" data-i="${i}" value="${trbPrecio(t) || ''}" placeholder="0.00"
           style="width:96px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:13px;padding:7px 9px;border:1.5px solid var(--border);border-radius:8px;background:#fff;color:var(--ink);">
         <button type="button" class="gc-del trb-del" data-i="${i}" title="Quitar">✕</button>`;
@@ -7371,9 +7407,17 @@
       const inp = fila.querySelector('.trb-precio');
       inp.addEventListener('change', async () => {
         const p = parseFloat((inp.value || '').replace(',', '.')) || 0;
-        invTrabajos[i] = { nombre: trbNombre(invTrabajos[i]), precio: p };
+        const porTon = trbPorTonelada(invTrabajos[i]);
+        invTrabajos[i] = { nombre: trbNombre(invTrabajos[i]), precio: p, porTon };
         await invSaveTrb();
-        toast(p ? `Precio guardado: ${invFmt(p)}` : 'Precio quitado', 'success', 2000);
+        toast(p ? `Precio guardado: ${invFmt(p)}${porTon ? ' por tonelada' : ''}` : 'Precio quitado', 'success', 2200);
+      });
+      const chk = fila.querySelector('.trb-porton');
+      chk.addEventListener('change', async () => {
+        invTrabajos[i] = { nombre: trbNombre(invTrabajos[i]), precio: trbPrecio(invTrabajos[i]), porTon: chk.checked };
+        await invSaveTrb();
+        invRenderTrabajos();
+        toast(chk.checked ? 'Ahora se cobra por tonelada' : 'Ahora es precio fijo', 'success', 2200);
       });
       list.appendChild(fila);
     });
