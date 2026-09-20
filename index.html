@@ -2060,7 +2060,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v88 · 19 sep';
+  const APP_VERSION = 'v90 · 19 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -2230,7 +2230,13 @@
     toast('Se descargó el archivo (este navegador no comparte directo)', 'info', 4000);
   }
 
-  const today = () => new Date().toISOString().slice(0, 10);
+  // Fecha en formato YYYY-MM-DD usando el día LOCAL. No se usa toISOString()
+  // porque convierte a horario de Greenwich y en Nashville (5-6 h atrás) la
+  // fecha se adelanta un día — causaba que al marcar "lunes 15" se guardara 16.
+  const ghFechaLocal = (d) => (d || new Date()).getFullYear() + '-' +
+    String((d || new Date()).getMonth() + 1).padStart(2, '0') + '-' +
+    String((d || new Date()).getDate()).padStart(2, '0');
+  const today = () => ghFechaLocal(new Date());
 
   // ============================================================
   // CONFIGURACIÓN DE NOMBRES (socios + factura) — se guarda en la nube
@@ -2386,7 +2392,7 @@
     const monday = mondayOf(iso);
     const friday = new Date(monday);
     friday.setDate(monday.getDate() + 4);
-    const key = monday.toISOString().slice(0, 10);
+    const key = ghFechaLocal(monday);
     const label = labelSemanaLunesAViernes(monday, friday);
     return { key, label };
   }
@@ -2403,11 +2409,11 @@
   function actualizarSemanaIngreso() {
     const base = new Date();
     base.setDate(base.getDate() + ingresoSemanaOffset * 7);
-    const baseIso = base.toISOString().slice(0, 10);
+    const baseIso = ghFechaLocal(base);
     const monday = mondayOf(baseIso);
     const friday = new Date(monday);
     friday.setDate(monday.getDate() + 4);
-    $('m-fecha').value = friday.toISOString().slice(0, 10);
+    $('m-fecha').value = ghFechaLocal(friday);
     $('ingreso-semana-label').textContent = labelSemanaLunesAViernes(monday, friday);
   }
 
@@ -2755,7 +2761,7 @@
     const hoy = today();
     const semAct = weekInfo(hoy).key;
     const fechaSemPasada = new Date(hoy + 'T00:00:00'); fechaSemPasada.setDate(fechaSemPasada.getDate() - 7);
-    const semAnt = weekInfo(fechaSemPasada.toISOString().slice(0, 10)).key;
+    const semAnt = weekInfo(ghFechaLocal(fechaSemPasada)).key;
 
     const movSem = movimientos.filter(m => weekInfo(m.fecha || hoy).key === semAct);
     const movAnt = movimientos.filter(m => weekInfo(m.fecha || hoy).key === semAnt);
@@ -4224,8 +4230,8 @@
         const mesInicio = (trimestre - 1) * 3;
         const desde = new Date(anio, mesInicio, 1);
         const hasta = new Date(anio, mesInicio + 3, 0);
-        $('rep-desde').value = desde.toISOString().slice(0, 10);
-        $('rep-hasta').value = hasta.toISOString().slice(0, 10);
+        $('rep-desde').value = ghFechaLocal(desde);
+        $('rep-hasta').value = ghFechaLocal(hasta);
         toast(`Rango puesto: Q${trimestre} ${anio}`, 'info');
       });
     });
@@ -6760,7 +6766,7 @@
   // FIN MÓDULO PLANOS
   // ====================================================================
 
-  const invToday = () => new Date().toISOString().slice(0,10);
+  const invToday = () => ghFechaLocal(new Date());
 
   // Sub-tabs de facturas
   document.querySelectorAll('.inv-subtab').forEach(tab => {
@@ -7550,7 +7556,7 @@
   let nomDocs = [];
 
   const nomFmt = n => '$'+(Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const nomToday = () => new Date().toISOString().slice(0,10);
+  const nomToday = () => ghFechaLocal(new Date());
 
   // Los trabajadores de Nómina AHORA viven en Empleados (empleados[]). Busca
   // por nombre completo (o solo nombre, para los que no tienen apellido).
@@ -7603,6 +7609,40 @@
   });
 
   async function nomSaveDocs() { await window.storage.set(NOM_KEY, JSON.stringify(nomDocs)); }
+
+  // Junta recibos repetidos: si quedaron dos o más pagos de la MISMA persona
+  // en la MISMA semana (pasaba al editar antes de esta corrección), se unen en
+  // uno solo sumando los días, sin perder nada.
+  async function nomLimpiarDuplicados() {
+    const porClave = new Map();
+    const fusionados = [];
+    let huboCambios = false;
+    (nomDocs || []).forEach((n) => {
+      const dd = Array.isArray(n.dias) ? n.dias.slice().sort() : [];
+      const ref = dd[0] || (n.creadoEn || '').slice(0, 10);
+      const wk = ref ? nomWeekKey(ref) : '';
+      const clave = (n.trabajador || '') + '|' + wk;
+      if (!wk || !porClave.has(clave)) {
+        porClave.set(clave, n);
+        fusionados.push(n);
+        return;
+      }
+      // Ya había uno: se fusiona en el primero
+      const base = porClave.get(clave);
+      base.dias = [...new Set([...(base.dias || []), ...dd])].sort();
+      base.extraMonto = (Number(base.extraMonto) || 0) + (Number(n.extraMonto) || 0);
+      if (!base.extraDesc && n.extraDesc) base.extraDesc = n.extraDesc;
+      const sueldo = Number(base.sueldoDia) || 0;
+      base.monto = sueldo > 0
+        ? sueldo * base.dias.length + (Number(base.extraMonto) || 0)
+        : (Number(base.monto) || 0) + (Number(n.monto) || 0);
+      huboCambios = true;
+    });
+    if (huboCambios) {
+      nomDocs = fusionados;
+      try { await nomSaveDocs(); } catch (e) {}
+    }
+  }
   function nomRefreshDl() {
     // Solo trabajadores activos aparecen para buscar/seleccionar
     const activos = empleados.filter((e) => e.estado !== 'inactivo');
@@ -7616,13 +7656,20 @@
   let nomRegSemanaOffset = 0; // 0 = semana actual, -1 = semana pasada, +1 = próxima
   let nomGridFilas = []; // [{ nombre, sueldo, dias:[...], monto, montoTocado, pagos:[ids], nota, extraDesc, extraMonto, extraAbierto }]
 
+  // OJO: aquí NO se puede usar toISOString(), porque convierte a horario de
+  // Greenwich y en Nashville (5-6 horas atrás) la fecha se adelanta un día:
+  // tocabas "lunes 15" y se guardaba el 16. Se arma la fecha con el día
+  // local tal cual.
+  function nomFechaLocalISO(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
   function nomGridFechasSemana() {
     const base = new Date();
     base.setDate(base.getDate() + nomRegSemanaOffset * 7);
     const dowLun = (base.getDay() + 6) % 7; // 0 = lunes
     const lunes = new Date(base); lunes.setDate(base.getDate() - dowLun);
     const out = [];
-    for (let i = 0; i < 7; i++) { const d = new Date(lunes); d.setDate(lunes.getDate() + i); out.push(d.toISOString().slice(0, 10)); }
+    for (let i = 0; i < 7; i++) { const d = new Date(lunes); d.setDate(lunes.getDate() + i); out.push(nomFechaLocalISO(d)); }
     return out;
   }
 
@@ -7801,8 +7848,21 @@
     nomGridFilas.forEach((fila) => {
       if (!fila.tocado) return; // nadie tocó esta fila — no hay nada que guardar
       if (fila.dias.length > 0) {
-        const idPrincipal = fila.pagos[0] || (Date.now().toString() + '-' + Math.random().toString(36).slice(2, 7));
-        const original = fila.pagos[0] ? nomDocs.find((n) => n.id === fila.pagos[0]) : null;
+        // Antes de nada: busca CUALQUIER pago que ya exista de esta persona en
+        // esta misma semana, aunque la fila no lo tuviera enlazado (pasaba si
+        // el nombre cambió o si la fecha se había guardado corrida). Así se
+        // actualiza el que ya está en vez de crear uno nuevo y duplicarlo.
+        const semanaDeEstaFila = nomWeekKey(fila.dias.slice().sort()[0]);
+        const yaExistentes = nomDocs.filter((n) => {
+          if (n.trabajador !== fila.nombre) return false;
+          const dd = Array.isArray(n.dias) ? n.dias.slice().sort() : [];
+          const ref = dd[0] || (n.creadoEn || '').slice(0, 10);
+          return ref && nomWeekKey(ref) === semanaDeEstaFila;
+        });
+        const idsExistentes = yaExistentes.map((n) => n.id);
+        const idPrincipal = fila.pagos[0] || idsExistentes[0] ||
+          (Date.now().toString() + '-' + Math.random().toString(36).slice(2, 7));
+        const original = nomDocs.find((n) => n.id === idPrincipal) || null;
         const entrada = {
           id: idPrincipal, trabajador: fila.nombre, dias: [...fila.dias],
           sueldoDia: fila.sueldo, extraDesc: fila.extraDesc || '', extraMonto: fila.extraMonto || 0,
@@ -7811,10 +7871,11 @@
         };
         const idx = nomDocs.findIndex((n) => n.id === idPrincipal);
         if (idx >= 0) { nomDocs[idx] = entrada; actualizados++; } else { nomDocs.push(entrada); creados++; }
-        if (fila.pagos.length > 1) {
-          const extras = fila.pagos.slice(1);
-          nomDocs = nomDocs.filter((n) => !extras.includes(n.id));
-        }
+        // Quita cualquier otro pago repetido de esa persona en esa semana,
+        // para que nunca queden dos recibos de lo mismo.
+        const sobrantes = new Set([...fila.pagos.slice(1), ...idsExistentes]);
+        sobrantes.delete(idPrincipal);
+        if (sobrantes.size) nomDocs = nomDocs.filter((n) => !sobrantes.has(n.id));
       } else if (fila.pagos.length > 0) {
         nomDocs = nomDocs.filter((n) => !fila.pagos.includes(n.id));
         borrados += fila.pagos.length;
@@ -8041,9 +8102,9 @@
       const dt = new Date(d);
       const day = (dt.getDay() + 6) % 7;
       dt.setDate(dt.getDate() - day);
-      const lunes = dt.toISOString().slice(0, 10);
+      const lunes = ghFechaLocal(dt);
       const fin = new Date(dt); fin.setDate(fin.getDate() + 6);
-      return `Semana del ${lunes} al ${fin.toISOString().slice(0, 10)}`;
+      return `Semana del ${lunes} al ${ghFechaLocal(fin)}`;
     }
     return 'Todo';
   }
@@ -8227,6 +8288,7 @@
             window.storage.get(TRAB_NOM_KEY_VIEJO).catch(() => null)
           ]);
           try { nomDocs = JSON.parse(rDocs.value); } catch (e) { nomDocs = []; }
+          await nomLimpiarDuplicados();   // junta recibos repetidos de la misma persona/semana
           try { empleados = JSON.parse(rEmp.value); } catch (e) { /* puede que ya se hayan cargado antes en esta sesión */ }
           // Migración de una sola vez: si había trabajadores en el formato viejo
           // que aún no están en Empleados, se agregan ahí (sin duplicar).
@@ -8259,12 +8321,12 @@
     if (isNaN(d)) return '';
     const day = (d.getDay() + 6) % 7; // lunes=0
     const lunes = new Date(d); lunes.setDate(d.getDate() - day);
-    return lunes.toISOString().slice(0, 10);
+    return ghFechaLocal(lunes);
   }
   function nomWeekRango(weekKey) {
     const lunes = new Date(weekKey + 'T00:00:00');
     const domingo = new Date(lunes); domingo.setDate(lunes.getDate() + 6);
-    return { inicio: weekKey, fin: domingo.toISOString().slice(0, 10) };
+    return { inicio: weekKey, fin: ghFechaLocal(domingo) };
   }
   function nomFechaCortaTexto(fechaStr) {
     const d = new Date(fechaStr + 'T00:00:00');
@@ -8562,12 +8624,12 @@
     if (isNaN(d)) return '';
     const day = (d.getDay() + 6) % 7;
     const lunes = new Date(d); lunes.setDate(d.getDate() - day);
-    return lunes.toISOString().slice(0, 10);
+    return ghFechaLocal(lunes);
   }
   function weekRangoVisor(weekKey) {
     const lunes = new Date(weekKey + 'T00:00:00');
     const domingo = new Date(lunes); domingo.setDate(lunes.getDate() + 6);
-    return { inicio: weekKey, fin: domingo.toISOString().slice(0, 10) };
+    return { inicio: weekKey, fin: ghFechaLocal(domingo) };
   }
   function fechaCortaVisor(fechaStr) {
     const d = new Date(fechaStr + 'T00:00:00');
