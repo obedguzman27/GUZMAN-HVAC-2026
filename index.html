@@ -2054,7 +2054,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v85 · 19 sep';
+  const APP_VERSION = 'v86 · 19 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -6828,7 +6828,9 @@
     wrkTd.appendChild(wrkDl); wrkTd.appendChild(wrkIn); tr.appendChild(wrkTd);
     const tonTd=mkTd(); tonTd.className='r';
     const tonIn=mkIn('inv-tons','—', item.tons||''); tonIn.inputMode='decimal'; tonIn.style.textAlign='right';
-    tonTd.appendChild(tonIn); tr.appendChild(tonTd);
+    const tonPista=document.createElement('div');
+    tonPista.style.cssText='font-size:9.5px;color:var(--muted-soft);margin-top:2px;text-align:right;min-height:11px;';
+    tonTd.appendChild(tonIn); tonTd.appendChild(tonPista); tr.appendChild(tonTd);
     const amtTd=mkTd(); amtTd.className='r'; const amtIn=mkIn('inv-amt','0.00',item.amount||''); amtIn.inputMode='decimal'; amtTd.appendChild(amtIn); tr.appendChild(amtTd);
     const delTd=mkTd(); const delBtn=document.createElement('button'); delBtn.className='gc-del'; delBtn.type='button'; delBtn.textContent='✕'; delTd.appendChild(delBtn); tr.appendChild(delTd);
 
@@ -6856,19 +6858,30 @@
       invCalcTotales();
     }
 
-    // Al elegir el trabajo: si es por tonelada, avisa en el campo de Tons.
-    wrkIn.addEventListener('change', () => {
+    // Muestra debajo del campo de toneladas a cuánto se está cobrando, para
+    // que se vea de inmediato si va a multiplicar o no (y por qué no).
+    function actualizarPistaTons() {
       const t = trbBuscar(wrkIn.value);
-      if (t && trbPorTonelada(t)) {
+      if (!t) { tonPista.textContent = ''; tonIn.placeholder = '—'; return; }
+      if (trbPorTonelada(t)) {
+        const p = trbPrecio(t);
         tonIn.placeholder = 'tons';
-        tonIn.title = `Se cobra ${invFmt(trbPrecio(t))} por tonelada`;
+        tonPista.textContent = p ? `× ${invFmt(p)}/ton` : 'falta precio';
+        tonPista.style.color = p ? 'var(--accent-dk)' : 'var(--ember)';
       } else {
         tonIn.placeholder = '—';
-        tonIn.title = '';
+        tonPista.textContent = 'precio fijo';
+        tonPista.style.color = 'var(--muted-soft)';
       }
+    }
+
+    wrkIn.addEventListener('change', () => {
+      actualizarPistaTons();
       montoEditadoAMano = false;   // cambió el trabajo: recalcular
       recalcularMonto(true);
     });
+    wrkIn.addEventListener('input', actualizarPistaTons);
+    actualizarPistaTons();
     // Al escribir las toneladas, recalcula
     tonIn.addEventListener('input', () => { montoEditadoAMano = false; recalcularMonto(true); invCalcTotales(); });
 
@@ -7389,10 +7402,19 @@
   // Si el trabajo se cobra por tonelada, el precio guardado es POR TONELADA
   // y en la factura se multiplica por las toneladas de esa casa.
   function trbPorTonelada(t) { return typeof t === 'string' ? false : !!(t && t.porTon); }
+  // Busca el trabajo guardado sin ser quisquilloso: ignora mayúsculas,
+  // acentos, guiones y espacios de más. Así "Rough In", "rough-in" y
+  // "ROUGH  IN" encuentran el mismo trabajo y el precio sí se aplica.
+  function trbNormalizar(txt) {
+    return String(txt || '')
+      .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '');
+  }
   function trbBuscar(nombre) {
-    const clave = String(nombre || '').trim().toLowerCase();
+    const clave = trbNormalizar(nombre);
     if (!clave) return null;
-    return (invTrabajos || []).find((t) => trbNombre(t).trim().toLowerCase() === clave) || null;
+    return (invTrabajos || []).find((t) => trbNormalizar(trbNombre(t)) === clave) || null;
   }
 
   function invRenderTrabajos() {
