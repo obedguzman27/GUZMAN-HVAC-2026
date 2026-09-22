@@ -1634,7 +1634,7 @@
           <button type="button" class="gc-save-btn" id="cs-btn-imprimir-ambas" style="padding:8px 18px;font-size:13px;">🖨 Imprimir las dos</button>
         </div>
       </div>
-      <p style="font-size:11.5px;color:var(--muted);margin-bottom:18px;">American Heating &amp; Cooling — New Construction Completion Sheet. Leadman, builder y lote se comparten entre las dos hojas (es la misma casa). <strong>Imprimir las dos</strong> saca Rough-In y Trim-Out en dos páginas: en la ventana de impresión elige <em>Doble cara</em> para que queden al frente y al reverso de la misma hoja.</p>
+      <p style="font-size:11.5px;color:var(--muted);margin-bottom:18px;">American Heating &amp; Cooling — New Construction Completion Sheet. Cada hoja se llena por separado. <strong>Imprimir las dos</strong> saca Rough-In y Trim-Out en dos páginas: en la ventana de impresión elige <em>Doble cara</em> para que queden al frente y al reverso de la misma hoja.</p>
 
       <div class="gc-form-row">
         <div class="gc-field"><label>Date</label><input type="date" id="cs-fecha"></div>
@@ -2126,7 +2126,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v93 · 22 sep';
+  const APP_VERSION = 'v94 · 22 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -6837,7 +6837,6 @@
   // sola como borrador en el teléfono, y se pueden imprimir juntas en dos
   // páginas para frente y vuelta.
   // ====================================================================
-  const CS_COMUN_KEY = 'gh-cs-comun';
   const CS_KEY = (tipo) => 'gh-cs-' + tipo;
   const CS_HOJAS = {
     rough: {
@@ -6941,28 +6940,26 @@
   }
 
   // Lo que se ve en pantalla, separado en lo compartido y lo propio de la hoja
+  // Cada hoja (Rough-In y Trim-Out) es completamente independiente: nada se
+  // comparte entre ellas, ni siquiera Leadman/Builder/Lote — cada una se
+  // llena y se guarda por su cuenta.
   function csLeer() {
     const checks = {};
     document.querySelectorAll('#cs-checklist input[data-cs]').forEach((c) => { checks[c.dataset.cs] = c.checked; });
     const num = (k) => { const el = document.querySelector(`#cs-checklist .cs-num[data-num="${k}"]`); return el ? el.value.trim() : ''; };
     const estadoSel = document.querySelector('input[name="cs-estado"]:checked');
     return {
-      comun: { leadman: $('cs-leadman').value.trim(), builder: $('cs-builder').value.trim(), lote: $('cs-lote').value.trim() },
-      propio: {
-        fecha: $('cs-fecha').value, estado: estadoSel ? estadoSel.value : '',
-        trabajo: $('cs-trabajo').value, tiempo: $('cs-tiempo').value.trim(), material: $('cs-material').value,
-        ahc: $('cs-ahc').checked, ahcFecha: $('cs-ahc-fecha').value, ahcHora: $('cs-ahc-hora').value,
-        salesman: $('cs-salesman').checked, customer: $('cs-customer').checked,
-        lbs: num('lbs'), nitro: num('nitro'), checks
-      }
+      leadman: $('cs-leadman').value.trim(), builder: $('cs-builder').value.trim(), lote: $('cs-lote').value.trim(),
+      fecha: $('cs-fecha').value, estado: estadoSel ? estadoSel.value : '',
+      trabajo: $('cs-trabajo').value, tiempo: $('cs-tiempo').value.trim(), material: $('cs-material').value,
+      ahc: $('cs-ahc').checked, ahcFecha: $('cs-ahc-fecha').value, ahcHora: $('cs-ahc-hora').value,
+      salesman: $('cs-salesman').checked, customer: $('cs-customer').checked,
+      lbs: num('lbs'), nitro: num('nitro'), checks
     };
   }
 
   function csLeerGuardado(tipo) {
-    let comun = {}, propio = {};
-    try { comun = JSON.parse(localStorage.getItem(CS_COMUN_KEY) || '{}') || {}; } catch (e) {}
-    try { propio = JSON.parse(localStorage.getItem(CS_KEY(tipo)) || '{}') || {}; } catch (e) {}
-    return { ...propio, ...comun };
+    try { return JSON.parse(localStorage.getItem(CS_KEY(tipo)) || '{}') || {}; } catch (e) { return {}; }
   }
 
   function csLlenar(d) {
@@ -6987,11 +6984,7 @@
   }
 
   function csGuardarBorrador() {
-    const { comun, propio } = csLeer();
-    try {
-      localStorage.setItem(CS_COMUN_KEY, JSON.stringify(comun));
-      localStorage.setItem(CS_KEY(csTipo), JSON.stringify(propio));
-    } catch (e) {}
+    try { localStorage.setItem(CS_KEY(csTipo), JSON.stringify(csLeer())); } catch (e) {}
   }
 
   function csFechaUS(iso) {
@@ -7123,11 +7116,10 @@
     try {
       const viejo = localStorage.getItem('gh-trimout-borrador');
       if (viejo && !localStorage.getItem(CS_KEY('trim'))) {
-        const d = JSON.parse(viejo) || {};
-        localStorage.setItem(CS_COMUN_KEY, JSON.stringify({ leadman: d.leadman || '', builder: d.builder || '', lote: d.lote || '' }));
-        localStorage.setItem(CS_KEY('trim'), JSON.stringify(d));
+        localStorage.setItem(CS_KEY('trim'), viejo);
       }
       localStorage.removeItem('gh-trimout-borrador');
+      localStorage.removeItem('gh-cs-comun');   // ya no se usa: las hojas son independientes
     } catch (e) {}
 
     csLlenar(csLeerGuardado(csTipo));
@@ -7155,14 +7147,10 @@
     });
 
     $('cs-btn-limpiar').addEventListener('click', async () => {
-      if (!await gcConfirm('¿Limpiar las DOS hojas (Rough-In y Trim-Out) para empezar otra casa?', { okText: 'Limpiar' })) return;
-      try {
-        localStorage.removeItem(CS_COMUN_KEY);
-        localStorage.removeItem(CS_KEY('rough'));
-        localStorage.removeItem(CS_KEY('trim'));
-      } catch (e) {}
+      if (!await gcConfirm(`¿Limpiar la hoja de ${CS_HOJAS[csTipo].nombre} para empezar una nueva?`, { okText: 'Limpiar' })) return;
+      try { localStorage.removeItem(CS_KEY(csTipo)); } catch (e) {}
       csLlenar({});
-      toast('Hojas limpias', 'info', 1500);
+      toast('Hoja limpia', 'info', 1500);
     });
   })();
   // FIN MÓDULO COMPLETION SHEETS
