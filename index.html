@@ -462,6 +462,17 @@
   .inv-subtab.active{background:linear-gradient(120deg,var(--accent),var(--accent-dk));color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.2);}
   .inv-subpanel{display:none;}
   .inv-subpanel.active{display:block;}
+  .cs-tipos{display:flex;gap:0;margin-bottom:18px;border:1.5px solid var(--border);border-radius:999px;overflow:hidden;width:max-content;max-width:100%;}
+  .cs-tipo-btn{padding:9px 22px;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:var(--muted);background:#fff;border:none;cursor:pointer;transition:all .15s var(--ease);}
+  .cs-tipo-btn + .cs-tipo-btn{border-left:1.5px solid var(--border);}
+  .cs-tipo-btn.active{background:linear-gradient(120deg,var(--accent),var(--accent-dk));color:#fff;}
+  .cs-check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);cursor:pointer;margin-bottom:6px;}
+  .cs-check input{width:17px;height:17px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+  .cs-checklist{display:grid;grid-template-columns:1fr 1fr;gap:4px 22px;}
+  .cs-item{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:1px solid var(--border-soft);font-size:12.5px;color:var(--ink);cursor:pointer;line-height:1.4;}
+  .cs-item input[type=checkbox]{width:17px;height:17px;margin-top:1px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+  .cs-item input[type=text]{width:58px;padding:3px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;text-align:center;margin:0 3px;}
+  @media (max-width:720px){ .cs-checklist{grid-template-columns:1fr;} }
   .nom-subtab{flex:1;padding:12px 16px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--muted);background:none;border:none;cursor:pointer;transition:all .16s var(--ease);border-right:1px solid var(--border-soft);}
   .nom-subtab:last-child{border-right:none;}
   .nom-subtab:hover{background:#F5F7FC;color:var(--ink);}
@@ -1518,6 +1529,7 @@
   <div class="inv-subnav">
     <button class="inv-subtab active" data-i18n="nueva_factura" data-sub="nueva">+ Nueva Factura</button>
     <button class="inv-subtab" data-i18n="guardadas" data-sub="guardadas">Guardadas</button>
+    <button class="inv-subtab" data-sub="completion">Completion Sheets</button>
     <button class="inv-subtab" data-i18n="cobros_por_casa" data-sub="cobros">Cobros por casa</button>
     <button class="inv-subtab" data-i18n="clientes" data-sub="clientes">Clientes</button>
     <button class="inv-subtab" data-i18n="trabajos" data-sub="trabajos">Trabajos</button>
@@ -1604,6 +1616,60 @@
           <tbody id="inv-list-tbody"></tbody>
         </table>
       </div>
+    </div>
+  </div>
+
+  <!-- Hoja de terminación (Trim-Out) de American Heating & Cooling -->
+  <div class="inv-subpanel" id="inv-sub-completion">
+    <div class="gc-card">
+      <div class="cs-tipos">
+        <button type="button" class="cs-tipo-btn active" data-cstipo="rough">Rough-In</button>
+        <button type="button" class="cs-tipo-btn" data-cstipo="trim">Trim-Out</button>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:6px;">
+        <p class="gc-card-title" id="cs-titulo" style="margin:0;">Rough-In Completion Sheet</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="gc-action-btn" id="cs-btn-limpiar" style="padding:8px 14px;font-size:12.5px;">Limpiar</button>
+          <button type="button" class="gc-action-btn" id="cs-btn-imprimir" style="padding:8px 14px;font-size:12.5px;">🖨 Imprimir esta</button>
+          <button type="button" class="gc-save-btn" id="cs-btn-imprimir-ambas" style="padding:8px 18px;font-size:13px;">🖨 Imprimir las dos</button>
+        </div>
+      </div>
+      <p style="font-size:11.5px;color:var(--muted);margin-bottom:18px;">American Heating &amp; Cooling — New Construction Completion Sheet. Leadman, builder y lote se comparten entre las dos hojas (es la misma casa). <strong>Imprimir las dos</strong> saca Rough-In y Trim-Out en dos páginas: en la ventana de impresión elige <em>Doble cara</em> para que queden al frente y al reverso de la misma hoja.</p>
+
+      <div class="gc-form-row">
+        <div class="gc-field"><label>Date</label><input type="date" id="cs-fecha"></div>
+        <div class="gc-field"><label>Leadman</label><input type="text" id="cs-leadman" autocomplete="off"></div>
+      </div>
+      <div class="gc-form-row">
+        <div class="gc-field"><label>Builder name</label><input type="text" id="cs-builder" list="dl-clientes" autocomplete="off"></div>
+        <div class="gc-field"><label>Lot# / Subdivision</label><input type="text" id="cs-lote" list="dl-colonias" placeholder="Lote + colonia" autocomplete="off"></div>
+      </div>
+
+      <div style="display:flex;gap:18px;flex-wrap:wrap;margin:6px 0 16px;">
+        <label class="cs-check"><input type="radio" name="cs-estado" value="completo" id="cs-completo"> Job is complete and ready for inspection</label>
+        <label class="cs-check"><input type="radio" name="cs-estado" value="incompleto" id="cs-incompleto"> Job is not complete</label>
+      </div>
+
+      <div class="gc-field" style="margin-bottom:12px;"><label>Additional work to be performed</label>
+        <textarea id="cs-trabajo" rows="4" style="resize:vertical;"></textarea></div>
+      <div class="gc-field" style="margin-bottom:12px;"><label>Time needed</label>
+        <input type="text" id="cs-tiempo" autocomplete="off"></div>
+      <div class="gc-field" style="margin-bottom:16px;"><label>Material needed</label>
+        <textarea id="cs-material" rows="3" style="resize:vertical;"></textarea></div>
+
+      <div style="padding:14px;background:#F5F7FC;border-radius:var(--r-sm);margin-bottom:18px;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+          <label class="cs-check" style="margin:0;"><input type="checkbox" id="cs-ahc"> AHC informed / scheduled for</label>
+          <input type="date" id="cs-ahc-fecha" style="font-family:'Inter',sans-serif;font-size:13px;padding:7px 9px;border:1.5px solid var(--border);border-radius:8px;">
+          <span style="font-size:12.5px;color:var(--muted);">Time</span>
+          <input type="time" id="cs-ahc-hora" style="font-family:'Inter',sans-serif;font-size:13px;padding:7px 9px;border:1.5px solid var(--border);border-radius:8px;">
+        </div>
+        <label class="cs-check"><input type="checkbox" id="cs-salesman"> Salesman informed</label>
+        <label class="cs-check"><input type="checkbox" id="cs-customer"> Customer informed</label>
+      </div>
+
+      <p style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px;">Checklist</p>
+      <div class="cs-checklist" id="cs-checklist"></div>
     </div>
   </div>
 
@@ -2060,7 +2126,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v90 · 19 sep';
+  const APP_VERSION = 'v92 · 22 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -6763,6 +6829,287 @@
       });
     }
   });
+
+  // ====================================================================
+  // MÓDULO: COMPLETION SHEETS (American Heating & Cooling)
+  // Dos hojas: Rough-In y Trim-Out. Leadman, builder y lote se comparten
+  // (es la misma casa); lo demás es propio de cada hoja. Cada una se guarda
+  // sola como borrador en el teléfono, y se pueden imprimir juntas en dos
+  // páginas para frente y vuelta.
+  // ====================================================================
+  const CS_COMUN_KEY = 'gh-cs-comun';
+  const CS_KEY = (tipo) => 'gh-cs-' + tipo;
+  const CS_HOJAS = {
+    rough: {
+      titulo: 'ROUGH-IN', nombre: 'Rough-In',
+      izq: [
+        'All boots checked and are straight and strapped (if needed)',
+        'Duct installed correctly with no crimped flex',
+        'Duct work strapped and not too tightly',
+        'Duct work has proper clearance from roof',
+        'Zone dampers and by-pass installed properly',
+        'Proper clearance in front of unit (30" min.)',
+        'Accessibility clearance (30"H x 24"W unobstructed)',
+        'Furnace or air handler is properly sealed',
+        'Unit has correct size drain pan (3" min. on all sides)',
+        'Copper sweated, strapped and armaflex to unit',
+        'Drains have proper fall, strapped, glue and trapped',
+        'Door on furnace',
+        'Flue connected with proper clearance and support',
+        'Flue cap(s) has proper height from roof deck',
+        'Flue pipe(s) has more vertical rise than horizontal slope'
+      ],
+      der: [
+        'Flue pipe(s) sleeved from contact with insulation',
+        'Notched walls have correct nail plates/framing straps',
+        'Thermostat wire not touching any metal',
+        'Bath fans connected or left so the electrician can connect',
+        'Dryer vent cap installed and sealed; screen removed',
+        "Dryer vent not to be over 25' in length (90°=5', 45°=2.5')",
+        'Gas lines run to proper location and strapped properly',
+        'Gas pipe sleeved when passing through exterior walls',
+        'Gas line has {lbs} pounds of pressure in it',
+        'Dryer vent has 2" or more clearance from inside wall',
+        'Primary drain has armaflex per code',
+        'Line sets stubbed outside the house 18" and sealed',
+        'Any armaflex damage repaired',
+        'Job site clean',
+        'Completed trim list in pack'
+      ]
+    },
+    trim: {
+      titulo: 'TRIM-OUT', nombre: 'Trim-Out',
+      izq: [
+        'All ceiling grilles are installed and squared to wall',
+        'All floor grilles are installed',
+        'All return grilles are level, squared',
+        'All return grilles open and close properly',
+        'All filters are installed',
+        'Grilles are straight with no finger prints or scratches',
+        'All thermostats are installed, level and secured',
+        'Butterfly damper installed (if sealed crawlspace)',
+        'ALL manuals are left in kitchen cabinet drawer',
+        'All vent caps are on straight and sealed',
+        'Interior dryer vent ring is on',
+        'All gas appliances connected to piping',
+        'Gas pressure gauge has {lbs} lbs. of pressure and holding for 30 minutes',
+        'Gas meter connected',
+        'Equipment is completely on pad'
+      ],
+      der: [
+        'Nitrogen in refrigerant system / # of Pounds {nitro}',
+        'Indoor unit checked and finished',
+        'All accessories installed (zoning, air cleaner, etc.)',
+        'Proper clearance from electrical disconnect(s)',
+        'Proper clearance to service side of equipment',
+        'Seal-tite run correctly',
+        'Electrical finished / breakers installed (disconnect)',
+        'Heater kit marked on heat pump applications',
+        'Drains run down to ground and out 18" from foundation',
+        'Condensate pump installed (if needed) with low voltage connected and plug in drain pan',
+        'Flashing installed and sealed on packaged unit',
+        'All penetrations sealed',
+        'Outdoor units completed and level',
+        'Critter-guard installed and sealed',
+        'Locking service port caps installed (City of Franklin, City of Brentwood)'
+      ]
+    }
+  };
+  let csTipo = 'rough';
+
+  function csTextoItem(t, editable, datos) {
+    const campoNum = (k) => editable
+      ? `<input type="text" inputmode="decimal" class="cs-num" data-num="${k}" value="${escapeHtml((datos && datos[k]) || '')}">`
+      : `<span style="display:inline-block;min-width:44px;border-bottom:1px solid #222;text-align:center;">${escapeHtml((datos && datos[k]) || '') || '&nbsp;'}</span>`;
+    return escapeHtml(t).replace('{lbs}', campoNum('lbs')).replace('{nitro}', campoNum('nitro'));
+  }
+
+  function csRenderChecklist(datos) {
+    const cont = $('cs-checklist');
+    if (!cont) return;
+    const hoja = CS_HOJAS[csTipo];
+    const marcados = (datos && datos.checks) || {};
+    const col = (lista, pref) => lista.map((t, i) => `
+      <label class="cs-item"><input type="checkbox" data-cs="${pref}${i}" ${marcados[pref + i] ? 'checked' : ''}>
+        <span>${csTextoItem(t, true, datos)}</span></label>`).join('');
+    cont.innerHTML = `<div>${col(hoja.izq, 'L')}</div><div>${col(hoja.der, 'R')}</div>`;
+    cont.querySelectorAll('.cs-num').forEach((i) => {
+      i.addEventListener('click', (e) => e.preventDefault());   // escribir no marca la casilla
+      i.addEventListener('input', csGuardarBorrador);
+    });
+    cont.querySelectorAll('input[type=checkbox]').forEach((c) => c.addEventListener('change', csGuardarBorrador));
+  }
+
+  // Lo que se ve en pantalla, separado en lo compartido y lo propio de la hoja
+  function csLeer() {
+    const checks = {};
+    document.querySelectorAll('#cs-checklist input[data-cs]').forEach((c) => { checks[c.dataset.cs] = c.checked; });
+    const num = (k) => { const el = document.querySelector(`#cs-checklist .cs-num[data-num="${k}"]`); return el ? el.value.trim() : ''; };
+    const estadoSel = document.querySelector('input[name="cs-estado"]:checked');
+    return {
+      comun: { leadman: $('cs-leadman').value.trim(), builder: $('cs-builder').value.trim(), lote: $('cs-lote').value.trim() },
+      propio: {
+        fecha: $('cs-fecha').value, estado: estadoSel ? estadoSel.value : '',
+        trabajo: $('cs-trabajo').value, tiempo: $('cs-tiempo').value.trim(), material: $('cs-material').value,
+        ahc: $('cs-ahc').checked, ahcFecha: $('cs-ahc-fecha').value, ahcHora: $('cs-ahc-hora').value,
+        salesman: $('cs-salesman').checked, customer: $('cs-customer').checked,
+        lbs: num('lbs'), nitro: num('nitro'), checks
+      }
+    };
+  }
+
+  function csLeerGuardado(tipo) {
+    let comun = {}, propio = {};
+    try { comun = JSON.parse(localStorage.getItem(CS_COMUN_KEY) || '{}') || {}; } catch (e) {}
+    try { propio = JSON.parse(localStorage.getItem(CS_KEY(tipo)) || '{}') || {}; } catch (e) {}
+    return { ...propio, ...comun };
+  }
+
+  function csLlenar(d) {
+    d = d || {};
+    $('cs-titulo').textContent = CS_HOJAS[csTipo].nombre + ' Completion Sheet';
+    document.querySelectorAll('.cs-tipo-btn').forEach((b) => b.classList.toggle('active', b.dataset.cstipo === csTipo));
+    $('cs-fecha').value = d.fecha || today();
+    $('cs-leadman').value = d.leadman || cfgFacturaNombre || '';   // por defecto la empresa
+    $('cs-builder').value = d.builder || '';
+    $('cs-lote').value = d.lote || '';
+    $('cs-completo').checked = d.estado === 'completo';
+    $('cs-incompleto').checked = d.estado === 'incompleto';
+    $('cs-trabajo').value = d.trabajo || '';
+    $('cs-tiempo').value = d.tiempo || '';
+    $('cs-material').value = d.material || '';
+    $('cs-ahc').checked = !!d.ahc;
+    $('cs-ahc-fecha').value = d.ahcFecha || '';
+    $('cs-ahc-hora').value = d.ahcHora || '';
+    $('cs-salesman').checked = !!d.salesman;
+    $('cs-customer').checked = !!d.customer;
+    csRenderChecklist(d);
+  }
+
+  function csGuardarBorrador() {
+    const { comun, propio } = csLeer();
+    try {
+      localStorage.setItem(CS_COMUN_KEY, JSON.stringify(comun));
+      localStorage.setItem(CS_KEY(csTipo), JSON.stringify(propio));
+    } catch (e) {}
+  }
+
+  function csFechaUS(iso) {
+    if (!iso) return '____/____/______';
+    const p = iso.split('-'); return `${p[1]}/${p[2]}/${p[0]}`;
+  }
+  function csHora12(hhmm) {
+    if (!hhmm) return '________';
+    const [h, m] = hhmm.split(':').map(Number);
+    return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
+  }
+
+  function csBuildPrint(d, tipo) {
+    const hoja = CS_HOJAS[tipo];
+    const box = (on) => `<span style="display:inline-block;width:12px;height:12px;border:1.3px solid #222;margin-right:6px;vertical-align:-1px;text-align:center;font-size:10px;line-height:11px;">${on ? '✓' : ''}</span>`;
+    const lineas = (txt, n) => {
+      const partes = String(txt || '').split('\n');
+      let out = '';
+      for (let i = 0; i < n; i++) out += `<div style="border-bottom:1px solid #444;min-height:19px;padding:2px 2px 0;font-size:12px;">${escapeHtml(partes[i] || '')}</div>`;
+      if (partes.length > n) out += `<div style="font-size:12px;padding-top:2px;">${escapeHtml(partes.slice(n).join(' '))}</div>`;
+      return out;
+    };
+    const item = (id, t) => `<tr><td style="width:34px;vertical-align:top;padding:4px 0;"><span style="display:inline-block;width:26px;border-bottom:1px solid #222;text-align:center;font-weight:700;">${d.checks && d.checks[id] ? '✓' : '&nbsp;'}</span></td>
+      <td style="font-size:10.5px;padding:4px 0;vertical-align:top;">${csTextoItem(t, false, d)}</td></tr>`;
+    const col = (lista, pref) => `<table style="width:100%;border-collapse:collapse;">${lista.map((t, i) => item(pref + i, t)).join('')}</table>`;
+    const campo = (txt, ancho) => `<span style="display:inline-block;min-width:${ancho}px;border-bottom:1px solid #222;padding:0 4px;">${escapeHtml(txt || '') || '&nbsp;'}</span>`;
+    return `
+      <div style="font-family:Calibri,Arial,Helvetica,sans-serif;color:#111;">
+        <div style="text-align:center;font-weight:700;font-size:16px;">AMERICAN HEATING &amp; COOLING</div>
+        <div style="text-align:center;font-weight:700;font-size:15px;">NEW CONSTRUCTION COMPLETION SHEET</div>
+        <div style="text-align:center;font-size:17px;font-weight:${tipo === 'rough' ? '700' : '400'};margin-bottom:14px;">${hoja.titulo}</div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px;"><tr>
+          <td style="vertical-align:top;width:55%;line-height:1.75;">
+            DATE ${d.fecha ? campo(csFechaUS(d.fecha), 110) : '____/____/______'}<br>
+            LEADMAN ${campo(d.leadman, 230)}<br>
+            BUILDER NAME ${campo(d.builder, 200)}<br>
+            LOT#/SUBDIVISION ${campo(d.lote, 200)}
+          </td>
+          <td style="vertical-align:top;line-height:1.75;">
+            ${box(d.estado === 'completo')}Job is complete and ready for inspection<br>
+            ${box(d.estado === 'incompleto')}Job is not complete
+          </td></tr></table>
+        <div style="font-size:13px;margin-bottom:2px;">Additional work to be performed:</div>
+        ${lineas(d.trabajo, 6)}
+        <div style="font-size:13px;margin:12px 0 2px;">Time needed: ${campo(d.tiempo, 420)}</div>
+        <div style="font-size:13px;margin:8px 0 2px;">Material needed:</div>
+        ${lineas(d.material, 4)}
+        <div style="font-size:13px;margin-top:14px;line-height:1.8;">
+          ${box(d.ahc)}AHC informed / scheduled for ${d.ahcFecha ? campo(csFechaUS(d.ahcFecha), 100) : '____/____/______'} &nbsp;Time ${campo(d.ahcHora ? csHora12(d.ahcHora) : '', 70)}<br>
+          ${box(d.salesman)}Salesman informed<br>
+          ${box(d.customer)}Customer informed
+        </div>
+        <div style="font-size:15px;margin:10px 0 6px;">CHECKLIST</div>
+        <table style="width:100%;border-collapse:collapse;"><tr>
+          <td style="vertical-align:top;width:50%;padding-right:12px;">${col(hoja.izq, 'L')}</td>
+          <td style="vertical-align:top;width:50%;padding-left:12px;">${col(hoja.der, 'R')}</td>
+        </tr></table>
+      </div>`;
+  }
+
+  function csCambiarTipo(tipo) {
+    if (tipo === csTipo) return;
+    csGuardarBorrador();          // guarda la hoja que estaba en pantalla
+    csTipo = tipo;
+    csLlenar(csLeerGuardado(tipo));
+  }
+
+  (function csIniciar() {
+    if (!$('cs-checklist')) return;
+    // Pasar el borrador de la versión anterior (solo había Trim-Out)
+    try {
+      const viejo = localStorage.getItem('gh-trimout-borrador');
+      if (viejo && !localStorage.getItem(CS_KEY('trim'))) {
+        const d = JSON.parse(viejo) || {};
+        localStorage.setItem(CS_COMUN_KEY, JSON.stringify({ leadman: d.leadman || '', builder: d.builder || '', lote: d.lote || '' }));
+        localStorage.setItem(CS_KEY('trim'), JSON.stringify(d));
+      }
+      localStorage.removeItem('gh-trimout-borrador');
+    } catch (e) {}
+
+    csLlenar(csLeerGuardado(csTipo));
+    ['cs-fecha','cs-leadman','cs-builder','cs-lote','cs-trabajo','cs-tiempo','cs-material','cs-ahc','cs-ahc-fecha','cs-ahc-hora','cs-salesman','cs-customer','cs-completo','cs-incompleto']
+      .forEach((id) => { const el = $(id); if (el) { el.addEventListener('input', csGuardarBorrador); el.addEventListener('change', csGuardarBorrador); } });
+
+    document.querySelectorAll('.cs-tipo-btn').forEach((b) => b.addEventListener('click', () => csCambiarTipo(b.dataset.cstipo)));
+
+    $('cs-btn-imprimir').addEventListener('click', () => {
+      csGuardarBorrador();
+      const d = csLeerGuardado(csTipo);
+      ghImprimirEnVentana(csBuildPrint(d, csTipo), `${CS_HOJAS[csTipo].nombre} ${d.lote || ''}`.trim());
+    });
+
+    // Las dos hojas en dos páginas (Rough-In primero, Trim-Out después), para
+    // imprimir a doble cara: una al frente y otra al reverso de la misma hoja.
+    $('cs-btn-imprimir-ambas').addEventListener('click', () => {
+      csGuardarBorrador();
+      const rough = csLeerGuardado('rough');
+      const trim = csLeerGuardado('trim');
+      const salto = '<div style="page-break-after:always;break-after:page;height:0;"></div>';
+      ghImprimirEnVentana(csBuildPrint(rough, 'rough') + salto + csBuildPrint(trim, 'trim'),
+        `Completion ${rough.lote || trim.lote || ''}`.trim());
+      toast('En la ventana de impresión elige "Doble cara" para frente y vuelta', 'info', 4500);
+    });
+
+    $('cs-btn-limpiar').addEventListener('click', async () => {
+      if (!await gcConfirm('¿Limpiar las DOS hojas (Rough-In y Trim-Out) para empezar otra casa?', { okText: 'Limpiar' })) return;
+      try {
+        localStorage.removeItem(CS_COMUN_KEY);
+        localStorage.removeItem(CS_KEY('rough'));
+        localStorage.removeItem(CS_KEY('trim'));
+      } catch (e) {}
+      csLlenar({});
+      toast('Hojas limpias', 'info', 1500);
+    });
+  })();
+  // FIN MÓDULO COMPLETION SHEETS
+  // ====================================================================
+
   // FIN MÓDULO PLANOS
   // ====================================================================
 
@@ -6777,6 +7124,11 @@
       $('inv-sub-' + tab.dataset.sub).classList.add('active');
       if (tab.dataset.sub === 'guardadas') invRenderLista();
       if (tab.dataset.sub === 'cobros') invRenderCobros();
+      if (tab.dataset.sub === 'completion') {
+        // Leadman = nombre de la empresa si todavía está vacío
+        if ($('cs-leadman') && !$('cs-leadman').value.trim()) $('cs-leadman').value = cfgFacturaNombre || '';
+        if ($('cs-fecha') && !$('cs-fecha').value) $('cs-fecha').value = today();
+      }
       if (tab.dataset.sub === 'colonias') invRenderColonias();
       if (tab.dataset.sub === 'clientes') invRenderClientes();
       if (tab.dataset.sub === 'trabajos') invRenderTrabajos();
