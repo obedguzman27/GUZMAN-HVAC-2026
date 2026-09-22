@@ -2126,7 +2126,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v94 · 22 sep';
+  const APP_VERSION = 'v95 · 22 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -6915,6 +6915,7 @@
     }
   };
   let csTipo = 'rough';
+  let csEstadoAntes = '';   // para poder destocar Job is complete / not complete
 
   function csTextoItem(t, editable, datos) {
     const campoNum = (k) => editable
@@ -6972,6 +6973,7 @@
     $('cs-lote').value = d.lote || '';
     $('cs-completo').checked = d.estado === 'completo';
     $('cs-incompleto').checked = d.estado === 'incompleto';
+    if (typeof csEstadoAntes !== 'undefined') csEstadoAntes = d.estado || '';
     $('cs-trabajo').value = d.trabajo || '';
     $('cs-tiempo').value = d.tiempo || '';
     $('cs-material').value = d.material || '';
@@ -7125,6 +7127,20 @@
     csLlenar(csLeerGuardado(csTipo));
     ['cs-fecha','cs-leadman','cs-builder','cs-lote','cs-trabajo','cs-tiempo','cs-material','cs-ahc','cs-ahc-fecha','cs-ahc-hora','cs-salesman','cs-customer','cs-completo','cs-incompleto']
       .forEach((id) => { const el = $(id); if (el) { el.addEventListener('input', csGuardarBorrador); el.addEventListener('change', csGuardarBorrador); } });
+
+    // "Job is complete" / "Job is not complete" son opcionales: al tocar la
+    // que ya estaba marcada, se destoca (queda sin ninguna elegida).
+    document.querySelectorAll('input[name="cs-estado"]').forEach((r) => {
+      r.addEventListener('click', () => {
+        if (csEstadoAntes === r.value) {
+          r.checked = false;
+          csEstadoAntes = '';
+          csGuardarBorrador();
+        } else {
+          csEstadoAntes = r.value;
+        }
+      });
+    });
 
     document.querySelectorAll('.cs-tipo-btn').forEach((b) => b.addEventListener('click', () => csCambiarTipo(b.dataset.cstipo)));
 
