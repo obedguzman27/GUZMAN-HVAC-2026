@@ -2126,7 +2126,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v95 · 22 sep';
+  const APP_VERSION = 'v96 · 22 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -6967,8 +6967,9 @@
     d = d || {};
     $('cs-titulo').textContent = CS_HOJAS[csTipo].nombre + ' Completion Sheet';
     document.querySelectorAll('.cs-tipo-btn').forEach((b) => b.classList.toggle('active', b.dataset.cstipo === csTipo));
-    $('cs-fecha').value = d.fecha || today();
-    $('cs-leadman').value = d.leadman || cfgFacturaNombre || '';   // por defecto la empresa
+    // Nada se llena solo: cada hoja se escribe a mano, con clic.
+    $('cs-fecha').value = d.fecha || '';
+    $('cs-leadman').value = d.leadman || '';
     $('cs-builder').value = d.builder || '';
     $('cs-lote').value = d.lote || '';
     $('cs-completo').checked = d.estado === 'completo';
@@ -7186,11 +7187,6 @@
       $('inv-sub-' + tab.dataset.sub).classList.add('active');
       if (tab.dataset.sub === 'guardadas') invRenderLista();
       if (tab.dataset.sub === 'cobros') invRenderCobros();
-      if (tab.dataset.sub === 'completion') {
-        // Leadman = nombre de la empresa si todavía está vacío
-        if ($('cs-leadman') && !$('cs-leadman').value.trim()) $('cs-leadman').value = cfgFacturaNombre || '';
-        if ($('cs-fecha') && !$('cs-fecha').value) $('cs-fecha').value = today();
-      }
       if (tab.dataset.sub === 'colonias') invRenderColonias();
       if (tab.dataset.sub === 'clientes') invRenderClientes();
       if (tab.dataset.sub === 'trabajos') invRenderTrabajos();
