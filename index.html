@@ -2126,7 +2126,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v92 · 22 sep';
+  const APP_VERSION = 'v93 · 22 sep';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -7004,51 +7004,109 @@
     return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
   }
 
+  // Estilo de la hoja impresa: medido sobre el PDF original de American
+  // Heating & Cooling (papel carta 8½×11, letra Calibri). Todo en pulgadas y
+  // puntos para que salga del mismo tamaño que el papel de verdad.
+  const CS_PRINT_CSS = `
+    @page { size: letter; margin: 0; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #fff; }
+    body { font-family: 'Carlito', 'Calibri', 'Helvetica Neue', Arial, sans-serif; color: #111;
+           -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pag { width: 8.5in; padding: 0.62in 0.82in 0 0.85in; }
+    .pag + .pag { page-break-before: always; break-before: page; }
+    .t1 { text-align: center; font-weight: 700; font-size: 13.7pt; line-height: 0.23in; }
+    .t3 { text-align: center; font-size: 15.5pt; line-height: 0.27in; margin-bottom: 0.05in; }
+    .t3.b { font-weight: 700; }
+    .enc { display: flex; }
+    .enc .izq { width: 3.65in; }
+    .enc .der { padding-left: 0; }
+    .fila { height: 0.207in; line-height: 0.207in; white-space: nowrap; font-size: 12.5pt; }
+    .der .fila { font-size: 11pt; }
+    .campo { display: inline-block; border-bottom: 1px solid #111; line-height: 1.05; padding: 0 3px;
+             font-size: 11pt; vertical-align: baseline; overflow: hidden; white-space: nowrap; }
+    .caja { display: inline-block; width: 0.11in; height: 0.11in; border: 1px solid #111; margin-right: 0.06in;
+            vertical-align: -0.01in; text-align: center; font-size: 8pt; line-height: 0.1in; }
+    .etq { font-size: 12pt; height: 0.12in; line-height: 0.12in; margin-top: 0.07in; }
+    .linea { height: 0.2in; border-bottom: 1px solid #333; font-size: 10.5pt; line-height: 0.2in;
+             padding: 0 2px; white-space: nowrap; overflow: hidden; }
+    .tiempo { font-size: 12pt; height: 0.2in; line-height: 0.2in; margin-top: 0.08in; white-space: nowrap; }
+    .avisos { margin-top: 0.07in; }
+    .avisos .fila { font-size: 12pt; height: 0.215in; line-height: 0.215in; }
+    .chk-tit { font-size: 13.4pt; height: 0.26in; line-height: 0.26in; }
+    .chk { display: flex; }
+    .chk .col { width: 3.72in; }
+    .chk .col + .col { width: 3.11in; }
+    .it { display: flex; align-items: flex-start; min-height: 0.243in; font-size: 8.7pt; line-height: 1.15; }
+    .it .rl { flex: 0 0 0.22in; height: 0.13in; border-bottom: 1px solid #111; margin-right: 0.25in;
+              text-align: center; font-weight: 700; font-size: 9pt; line-height: 0.12in; }
+    .col + .col .it .rl { margin-right: 0.08in; }
+    .it .tx { flex: 1; padding-top: 0.005in; }
+    .num { display: inline-block; min-width: 0.5in; border-bottom: 1px solid #111; text-align: center; }
+  `;
+
+  function csDocumento(paginas, titulo) {
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHtml(titulo || 'Completion Sheet')}</title>
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link href="https://fonts.googleapis.com/css2?family=Carlito:wght@400;700&display=block" rel="stylesheet">
+      <style>${CS_PRINT_CSS}</style></head><body>${paginas.join('')}</body></html>`;
+  }
+
   function csBuildPrint(d, tipo) {
     const hoja = CS_HOJAS[tipo];
-    const box = (on) => `<span style="display:inline-block;width:12px;height:12px;border:1.3px solid #222;margin-right:6px;vertical-align:-1px;text-align:center;font-size:10px;line-height:11px;">${on ? '✓' : ''}</span>`;
+    const caja = (on) => `<span class="caja">${on ? '✓' : ''}</span>`;
+    const campo = (txt, ancho) => `<span class="campo" style="width:${ancho}in;">${escapeHtml(txt || '') || '&nbsp;'}</span>`;
+    const fecha = (iso) => {
+      if (!iso) return `${campo('', 0.3)}/${campo('', 0.3)}/${campo('', 0.42)}`;
+      const p = iso.split('-');
+      return `${campo(p[1], 0.3)}/${campo(p[2], 0.3)}/${campo(p[0], 0.42)}`;
+    };
     const lineas = (txt, n) => {
       const partes = String(txt || '').split('\n');
       let out = '';
-      for (let i = 0; i < n; i++) out += `<div style="border-bottom:1px solid #444;min-height:19px;padding:2px 2px 0;font-size:12px;">${escapeHtml(partes[i] || '')}</div>`;
-      if (partes.length > n) out += `<div style="font-size:12px;padding-top:2px;">${escapeHtml(partes.slice(n).join(' '))}</div>`;
+      for (let i = 0; i < n; i++) {
+        const t = i === n - 1 ? partes.slice(i).join('  ') : (partes[i] || '');
+        out += `<div class="linea">${escapeHtml(t)}</div>`;
+      }
       return out;
     };
-    const item = (id, t) => `<tr><td style="width:34px;vertical-align:top;padding:4px 0;"><span style="display:inline-block;width:26px;border-bottom:1px solid #222;text-align:center;font-weight:700;">${d.checks && d.checks[id] ? '✓' : '&nbsp;'}</span></td>
-      <td style="font-size:10.5px;padding:4px 0;vertical-align:top;">${csTextoItem(t, false, d)}</td></tr>`;
-    const col = (lista, pref) => `<table style="width:100%;border-collapse:collapse;">${lista.map((t, i) => item(pref + i, t)).join('')}</table>`;
-    const campo = (txt, ancho) => `<span style="display:inline-block;min-width:${ancho}px;border-bottom:1px solid #222;padding:0 4px;">${escapeHtml(txt || '') || '&nbsp;'}</span>`;
+    const num = (k) => `<span class="num">${escapeHtml(d[k] || '') || '&nbsp;'}</span>`;
+    const texto = (t) => escapeHtml(t).replace('{lbs}', num('lbs')).replace('{nitro}', num('nitro'));
+    const col = (lista, pref) => lista.map((t, i) =>
+      `<div class="it"><span class="rl">${d.checks && d.checks[pref + i] ? '✓' : ''}</span><span class="tx">${texto(t)}</span></div>`).join('');
+
     return `
-      <div style="font-family:Calibri,Arial,Helvetica,sans-serif;color:#111;">
-        <div style="text-align:center;font-weight:700;font-size:16px;">AMERICAN HEATING &amp; COOLING</div>
-        <div style="text-align:center;font-weight:700;font-size:15px;">NEW CONSTRUCTION COMPLETION SHEET</div>
-        <div style="text-align:center;font-size:17px;font-weight:${tipo === 'rough' ? '700' : '400'};margin-bottom:14px;">${hoja.titulo}</div>
-        <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px;"><tr>
-          <td style="vertical-align:top;width:55%;line-height:1.75;">
-            DATE ${d.fecha ? campo(csFechaUS(d.fecha), 110) : '____/____/______'}<br>
-            LEADMAN ${campo(d.leadman, 230)}<br>
-            BUILDER NAME ${campo(d.builder, 200)}<br>
-            LOT#/SUBDIVISION ${campo(d.lote, 200)}
-          </td>
-          <td style="vertical-align:top;line-height:1.75;">
-            ${box(d.estado === 'completo')}Job is complete and ready for inspection<br>
-            ${box(d.estado === 'incompleto')}Job is not complete
-          </td></tr></table>
-        <div style="font-size:13px;margin-bottom:2px;">Additional work to be performed:</div>
-        ${lineas(d.trabajo, 6)}
-        <div style="font-size:13px;margin:12px 0 2px;">Time needed: ${campo(d.tiempo, 420)}</div>
-        <div style="font-size:13px;margin:8px 0 2px;">Material needed:</div>
-        ${lineas(d.material, 4)}
-        <div style="font-size:13px;margin-top:14px;line-height:1.8;">
-          ${box(d.ahc)}AHC informed / scheduled for ${d.ahcFecha ? campo(csFechaUS(d.ahcFecha), 100) : '____/____/______'} &nbsp;Time ${campo(d.ahcHora ? csHora12(d.ahcHora) : '', 70)}<br>
-          ${box(d.salesman)}Salesman informed<br>
-          ${box(d.customer)}Customer informed
+      <div class="pag">
+        <div class="t1">AMERICAN HEATING &amp; COOLING</div>
+        <div class="t1">NEW CONSTRUCTION COMPLETION SHEET</div>
+        <div class="t3${tipo === 'rough' ? ' b' : ''}">${hoja.titulo}</div>
+        <div class="enc">
+          <div class="izq">
+            <div class="fila">DATE ${fecha(d.fecha)}</div>
+            <div class="fila">LEADMAN ${campo(d.leadman, 2.35)}</div>
+            <div class="fila">BUILDER NAME ${campo(d.builder, 2.0)}</div>
+            <div class="fila">LOT#/SUBDIVISION ${campo(d.lote, 1.75)}</div>
+          </div>
+          <div class="der">
+            <div class="fila">${caja(d.estado === 'completo')}Job is complete and ready for inspection</div>
+            <div class="fila">${caja(d.estado === 'incompleto')}Job is not complete</div>
+          </div>
         </div>
-        <div style="font-size:15px;margin:10px 0 6px;">CHECKLIST</div>
-        <table style="width:100%;border-collapse:collapse;"><tr>
-          <td style="vertical-align:top;width:50%;padding-right:12px;">${col(hoja.izq, 'L')}</td>
-          <td style="vertical-align:top;width:50%;padding-left:12px;">${col(hoja.der, 'R')}</td>
-        </tr></table>
+        <div class="etq">Additional work to be performed:</div>
+        ${lineas(d.trabajo, 7)}
+        <div class="tiempo">Time needed: ${campo(d.tiempo, 3.95)}</div>
+        <div class="etq" style="margin-top:0.15in;">Material needed:</div>
+        ${lineas(d.material, 5)}
+        <div class="avisos">
+          <div class="fila">${caja(d.ahc)}AHC informed / scheduled for ${d.ahcFecha ? fecha(d.ahcFecha) : fecha('')} &nbsp;Time ${campo(d.ahcHora ? csHora12(d.ahcHora) : '', 0.55)}</div>
+          <div class="fila">${caja(d.salesman)}Salesman informed</div>
+          <div class="fila">${caja(d.customer)}Customer informed</div>
+        </div>
+        <div class="chk-tit">CHECKLIST</div>
+        <div class="chk">
+          <div class="col">${col(hoja.izq, 'L')}</div>
+          <div class="col">${col(hoja.der, 'R')}</div>
+        </div>
       </div>`;
   }
 
@@ -7081,7 +7139,8 @@
     $('cs-btn-imprimir').addEventListener('click', () => {
       csGuardarBorrador();
       const d = csLeerGuardado(csTipo);
-      ghImprimirEnVentana(csBuildPrint(d, csTipo), `${CS_HOJAS[csTipo].nombre} ${d.lote || ''}`.trim());
+      const titulo = `${CS_HOJAS[csTipo].nombre} ${d.lote || ''}`.trim();
+      ghImprimirEnVentana('', titulo, csDocumento([csBuildPrint(d, csTipo)], titulo));
     });
 
     // Las dos hojas en dos páginas (Rough-In primero, Trim-Out después), para
@@ -7090,9 +7149,8 @@
       csGuardarBorrador();
       const rough = csLeerGuardado('rough');
       const trim = csLeerGuardado('trim');
-      const salto = '<div style="page-break-after:always;break-after:page;height:0;"></div>';
-      ghImprimirEnVentana(csBuildPrint(rough, 'rough') + salto + csBuildPrint(trim, 'trim'),
-        `Completion ${rough.lote || trim.lote || ''}`.trim());
+      const titulo = `Completion ${rough.lote || trim.lote || ''}`.trim();
+      ghImprimirEnVentana('', titulo, csDocumento([csBuildPrint(rough, 'rough'), csBuildPrint(trim, 'trim')], titulo));
       toast('En la ventana de impresión elige "Doble cara" para frente y vuelta', 'info', 4500);
     });
 
@@ -7491,8 +7549,10 @@
 
   // Imprime en una ventana aparte, con su propio estilo — no depende del CSS
   // de la app ni de #print-area, que es lo que causaba la hoja en blanco.
-  function ghImprimirEnVentana(htmlCuerpo, titulo) {
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHtml(titulo || 'Invoice')}</title>
+  function ghImprimirEnVentana(htmlCuerpo, titulo, docCompleto) {
+    // docCompleto: documento HTML ya armado con su propio estilo (ej. las
+    // Completion Sheets, que deben salir idénticas al papel original).
+    const html = docCompleto || `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHtml(titulo || 'Invoice')}</title>
       <style>
         @page { margin: 14mm; }
         body { font-family: Arial, Helvetica, sans-serif; color:#1a1a1a; margin:0; padding:24px; max-width:820px; }
@@ -7530,7 +7590,13 @@
     doc.write(html);
     doc.close();
 
-    const lanzar = () => {
+    const lanzar = async () => {
+      // Espera a que la letra termine de cargar (máx. 2 s); si no, sale con
+      // otra letra y cambian los tamaños.
+      try {
+        const fd = frame.contentWindow.document.fonts;
+        if (fd && fd.ready) await Promise.race([fd.ready, new Promise((r) => setTimeout(r, 2000))]);
+      } catch (e) {}
       try {
         frame.contentWindow.focus();
         frame.contentWindow.print();
