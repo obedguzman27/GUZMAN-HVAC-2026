@@ -3514,7 +3514,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v132 · 10 oct';
+  const APP_VERSION = 'v133 · 10 oct';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -6984,20 +6984,21 @@
     if (!Array.isArray(guardadas)) { try { guardadas = JSON.parse(localStorage.getItem('gh-cuentas-cache') || 'null'); } catch (e) {} }
     else { try { localStorage.setItem('gh-cuentas-cache', JSON.stringify(guardadas)); } catch (e) {} }
     const pr = Array.isArray(guardadas) ? guardadas.find((c) => c && c.codigo === 'principal') : null;
-    ajPrincipal = { codigo: 'principal', nombre: (pr && pr.nombre) || 'Principal (información original)', oculta: !!(pr && (pr.oculta || pr.borrada)), borrada: !!(pr && pr.borrada) };
-    if (!ajPrincipal.oculta) nuevas.push({ codigo: 'principal', nombre: ajPrincipal.nombre });
+    ajPrincipal = { codigo: 'principal', nombre: (pr && pr.nombre) || 'Principal (información original)', oculta: !!(pr && (pr.oculta || pr.borrada)), borrada: !!(pr && pr.borrada), escondida: !!(pr && pr.escondida) };
+    // "escondida" = no sale en el selector de Principal ni en Nómina (sigue existiendo y se ve en Ajustes)
+    if (!ajPrincipal.oculta) nuevas.push({ codigo: 'principal', nombre: ajPrincipal.nombre, ...(ajPrincipal.escondida ? { escondida: true } : {}) });
     if (Array.isArray(guardadas)) guardadas.forEach((c) => {
-      if (c && c.codigo && c.codigo !== 'principal' && !nuevas.some((x) => x.codigo === c.codigo)) nuevas.push({ codigo: c.codigo, nombre: c.nombre || c.codigo });
+      if (c && c.codigo && c.codigo !== 'principal' && !nuevas.some((x) => x.codigo === c.codigo)) nuevas.push({ codigo: c.codigo, nombre: c.nombre || c.codigo, ...(c.escondida ? { escondida: true } : {}) });
     });
     ajCuentas = nuevas;
     return ajCuentas;
   }
   async function ajGuardarCuentas() {
     const enLista = ajCuentas.find((c) => c.codigo === 'principal');
-    if (enLista) ajPrincipal.nombre = enLista.nombre;
+    if (enLista) { ajPrincipal.nombre = enLista.nombre; ajPrincipal.escondida = !!enLista.escondida; }
     ajPrincipal.oculta = !enLista;
     const vistos = new Set(['principal']);
-    const guardar = [{ codigo: 'principal', nombre: ajPrincipal.nombre, oculta: ajPrincipal.oculta || !!ajPrincipal.borrada, ...(ajPrincipal.borrada ? { borrada: true } : {}) },
+    const guardar = [{ codigo: 'principal', nombre: ajPrincipal.nombre, oculta: ajPrincipal.oculta || !!ajPrincipal.borrada, ...(ajPrincipal.borrada ? { borrada: true } : {}), ...(ajPrincipal.escondida ? { escondida: true } : {}) },
       ...ajCuentas.filter((c) => c.codigo !== 'principal' && !vistos.has(c.codigo) && vistos.add(c.codigo))];
     await window.storage.set('__cuentas_lista', JSON.stringify(guardar));
     try { localStorage.setItem('gh-cuentas-cache', JSON.stringify(guardar)); } catch (e) {}
@@ -7016,13 +7017,25 @@
     const actual = (window.GH_GET_CUENTA && window.GH_GET_CUENTA()) || 'principal';
     cont.innerHTML = ajCuentas.map((c) => `
       <div class="aj-bd-fila" data-codigo="${escapeHtml(c.codigo)}" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
-        <div class="aj-bd-nombre" style="flex:1;min-width:0;"><span style="font-weight:600;">${escapeHtml(c.nombre)}</span> <span style="font-size:11px;color:var(--muted);">(${escapeHtml(c.codigo)})${c.codigo === actual ? ' · <strong style="color:var(--accent-dk);">en uso</strong>' : ''}</span></div>
-        <div style="display:flex;gap:6px;flex-shrink:0;">
+        <div class="aj-bd-nombre" style="flex:1;min-width:0;${c.escondida ? 'opacity:.6;' : ''}"><span style="font-weight:600;">${escapeHtml(c.nombre)}</span> <span style="font-size:11px;color:var(--muted);">(${escapeHtml(c.codigo)})${c.codigo === actual ? ' · <strong style="color:var(--accent-dk);">en uso</strong>' : ''}${c.escondida ? ' · oculta' : ''}</span></div>
+        <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;">
+          <button type="button" class="gc-action-btn aj-bd-ocultar" data-codigo="${escapeHtml(c.codigo)}" title="${c.escondida ? 'Que vuelva a salir en Principal y en Nómina' : 'Que no salga en Principal ni en Nómina'}" style="padding:4px 10px;font-size:12px;">${c.escondida ? 'Mostrar' : 'Ocultar'}</button>
           <button type="button" class="gc-action-btn aj-bd-ren" data-codigo="${escapeHtml(c.codigo)}" style="padding:4px 10px;font-size:12px;">✎ Nombre</button>
           <button class="gc-del aj-bd-del" data-codigo="${escapeHtml(c.codigo)}">✕</button>
         </div>
       </div>`).join('') + (ajPrincipal.oculta && !ajPrincipal.borrada ? `
       <p style="font-size:11.5px;color:var(--muted);margin-top:10px;">"${escapeHtml(ajPrincipal.nombre)}" está quitada de la lista. <button type="button" class="gc-action-btn" id="aj-bd-reponer" style="padding:3px 10px;font-size:11.5px;">Volver a mostrarla</button></p>` : '');
+    // Ocultar / mostrar: la base no se borra, solo deja de salir en Principal y en Nómina
+    cont.querySelectorAll('.aj-bd-ocultar').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const cu = ajCuentas.find((c) => c.codigo === btn.dataset.codigo); if (!cu) return;
+        if (cu.escondida) delete cu.escondida; else cu.escondida = true;
+        try { await ajGuardarCuentas(); } catch (e) { toast('No se pudo guardar', 'error'); return; }
+        ajRenderBD();
+        try { ghBDHeroPintar(); } catch (e) {}
+        toast(cu.escondida ? `"${cu.nombre}" ya no sale en Principal ni en Nómina` : `"${cu.nombre}" vuelve a salir`, 'success');
+      });
+    });
     // Cambiar el nombre (el código interno no cambia, así los datos siguen en su lugar)
     cont.querySelectorAll('.aj-bd-ren').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -7127,7 +7140,7 @@
     if (!wrap || !sel) return;
     if (!ghBDHeroEsAdmin()) { wrap.style.display = 'none'; return; }
     const actual = window.GH_GET_CUENTA();
-    const lista = (ajCuentas || []).map((c) => ({ codigo: c.codigo, nombre: c.nombre }));
+    const lista = (ajCuentas || []).filter((c) => !c.escondida || c.codigo === actual).map((c) => ({ codigo: c.codigo, nombre: c.nombre }));
     // Si la base actual no está en la lista (p. ej. fue quitada), igual se muestra
     if (!lista.some((c) => c.codigo === actual)) lista.unshift({ codigo: actual, nombre: ajNombreDe(actual) });
     sel.innerHTML = lista.map((c) => `<option value="${escapeHtml(c.codigo)}"${c.codigo === actual ? ' selected' : ''}>${escapeHtml(c.nombre)}</option>`).join('');
@@ -12624,6 +12637,7 @@
     let cuentas = [];
     try { cuentas = await ajCargarCuentas(); } catch (e) { cuentas = []; }
     const actual = window.GH_GET_CUENTA() || 'principal';
+    cuentas = cuentas.filter((c) => !c.escondida || c.codigo === actual);
     chqBasesInfo = cuentas.map((c) => ({ codigo: c.codigo, nombre: c.nombre }));
     if (!chqBasesInfo.some((c) => c.codigo === actual)) chqBasesInfo.unshift({ codigo: actual, nombre: 'Esta base' });
     const leer = async (codigo, key) => { try { const v = await window.GH_LEER_DE_CUENTA(codigo, key); return v ? JSON.parse(v) : null; } catch (e) { return null; } };
@@ -13058,6 +13072,9 @@
       const r = await window.storage.get('__cuentas_lista');
       listaNombres = JSON.parse(r.value) || [];
     } catch (e) {}
+    const ocultas = new Set((listaNombres || []).filter((c) => c && c.escondida).map((c) => c.codigo));
+    const visibles = cuentas.filter((c) => !ocultas.has(c));
+    if (visibles.length) cuentas = visibles;
     const nombreDe = (codigo) => {
       const enc = listaNombres.find((c) => c.codigo === codigo);
       if (enc && enc.nombre) return enc.nombre;
