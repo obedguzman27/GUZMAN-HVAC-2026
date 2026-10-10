@@ -3518,7 +3518,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v134 · 10 oct';
+  const APP_VERSION = 'v135 · 10 oct';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -12988,18 +12988,19 @@
   .guia { position: absolute; left: 0.1in; width: 8.3in; box-sizing: border-box; border: 1px dashed #777; }
   .guia span { position: absolute; left: 6px; bottom: 4px; font-size: 8pt; color: #777; }
   .lbl { position: absolute; font-size: 7pt; color: #888; }
-  .talon { position: absolute; left: 0.5in; width: 7.5in; font-size: 10pt; }
-  .t-head { display: flex; justify-content: space-between; font-weight: bold; border-bottom: 1.5px solid #000; padding-bottom: 4px; margin-bottom: 6px; }
+  /* Talón: todo en "em", así se achica junto cuando no cabe (ver script al final) */
+  .talon { position: absolute; left: 0.5in; width: 7.5in; height: 3.15in; overflow: hidden; font-size: 10pt; }
+  .t-head { display: flex; justify-content: space-between; font-weight: bold; border-bottom: 1.5px solid #000; padding-bottom: .35em; margin-bottom: .5em; }
   .t-main, .t-det { border-collapse: collapse; width: 100%; }
-  .t-main td, .t-det td { padding: 2px 0; vertical-align: top; }
+  .t-main td, .t-det td { padding: .15em 0; vertical-align: top; }
   .t-main td.k { width: 1.1in; color: #444; }
-  .t-det { margin-top: 6px; border-top: 1px solid #bbb; }
-  .t-det td.r { text-align: right; white-space: nowrap; }
-  .t-det td.dia { padding-left: 14px; }
-  .t-det.multi td { padding: 3px 0; border-bottom: 1px solid #e2e2e2; font-size: 9.5pt; }
-  .t-det .dias { font-size: 8.5pt; color: #333; padding-left: 12px; margin-top: 1px; }
-  .t-det .src { font-size: 8.5pt; color: #555; font-weight: normal; }
-  .t-total { margin-top: 8px; font-weight: bold; font-size: 12pt; text-align: right; }
+  .t-det { margin-top: .5em; border-top: 1px solid #bbb; }
+  .t-det td.r { text-align: right; white-space: nowrap; padding-left: 1em; }
+  .t-det td.dia { padding-left: 1.4em; }
+  .t-det.multi td { padding: .25em 0; border-bottom: 1px solid #e2e2e2; font-size: .95em; }
+  .t-det .dias { font-size: .88em; color: #333; padding-left: 1.2em; margin-top: .1em; }
+  .t-det .src { font-size: .88em; color: #555; font-weight: normal; }
+  .t-total { margin-top: .6em; font-weight: bold; font-size: 1.2em; text-align: right; }
 </style></head><body><div class="pg">
   ${guia}
   <div class="f" style="${pos('fecha')}">${escapeHtml(chqFechaUS(c.fecha))}</div>
@@ -13008,7 +13009,17 @@
   <div class="f" style="${pos('a')}">${escapeHtml(c.a)}</div>
   ${c.memo ? `<div class="f memo" style="${pos('memo')}">${escapeHtml(c.memo)}</div>` : ''}
   ${talones ? chqTalonHTML(c, 3.85 + dy, (chqPagosDeCheque(c).length > 1 || (c.ganancias && c.ganancias.length)) ? 'Payee copy' : 'Employee copy') + chqTalonHTML(c, 7.6 + dy, 'Company copy') : ''}
-</div></body></html>`;
+</div>
+<script>
+  // Si el talón no cabe en su espacio, se achica la letra poco a poco hasta que quepa
+  (function () {
+    document.querySelectorAll('.talon').forEach(function (t) {
+      var fs = 10;
+      t.style.fontSize = fs + 'pt';
+      while (t.scrollHeight > t.clientHeight + 1 && fs > 5) { fs -= 0.25; t.style.fontSize = fs + 'pt'; }
+    });
+  })();
+<\/script></body></html>`;
   }
 
   function chqValidar(c) {
