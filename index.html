@@ -3518,7 +3518,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v136 · 10 oct';
+  const APP_VERSION = 'v137 · 10 oct';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -12675,11 +12675,24 @@
           String(a.ajusteSocioNombre || '').trim().toLowerCase() === nombre.toLowerCase()))
           .reduce((t, a) => t + (a.ajusteDir === 'restar' ? -1 : 1) * (Number(a.monto) || 0), 0);
       }
-      const ganancia = Math.round(((Number(p.total) || 0) - ajuste) * 100) / 100;
+      const r2 = (n) => Math.round(n * 100) / 100;
+      const ganancia = r2((Number(p.total) || 0) - ajuste);
       if (!(ganancia > 0)) return;
+      // Separado: su parte, su % sobre la parte (taxas de ganancia) y su % sobre
+      // los sueldos que se le pasaron (taxas de payroll).
+      const parte = Number(p.base);
+      const bono = Number(p.bono) || 0;
+      let pct = Number(p.bonoPct);
+      if (!isFinite(pct) || p.bonoPct == null) pct = (parte + ajuste) > 0 ? (bono / (parte + ajuste)) * 100 : 0;
+      let det = null;
+      if (isFinite(parte) && p.base != null) {
+        const taxPay = r2(ajuste > 0 ? ajuste * pct / 100 : 0);
+        const taxGan = r2(ganancia - parte - taxPay);
+        det = { parte: r2(parte), taxGan, taxPay, pct: r2(pct) };
+      }
       const id = base + '|' + inv.key + '|' + nombre.toLowerCase() + '|' + estado;
       if (chqGanancias.some((g) => g.id === id)) return;
-      chqGanancias.push({ id, base, baseNombre, semana: inv.key, label: inv.label || '', nombre, ganancia, estado });
+      chqGanancias.push({ id, base, baseNombre, semana: inv.key, label: inv.label || '', nombre, ganancia, det, estado });
     });
   }
   function chqCargarGananciasPropias() {
@@ -12802,7 +12815,8 @@
         <input type="checkbox" class="chq-gan" value="${escapeHtml(g.id)}" ${marcadas.has(g.id) ? 'checked' : ''} style="width:18px;height:18px;">
         <span style="flex:1;">${escapeHtml(g.baseNombre)} · semana ${escapeHtml(nomEtiquetaSemana(g.semana))}${g.estado === 'abierta' ? ' <span style="font-size:11px;color:var(--muted);">(sin guardar)</span>' : ''}</span>
         <strong>${nomFmt(g.ganancia)}</strong>
-      </label>`).join('');
+      </label>
+      ${g.det ? `<div style="font-size:12px;color:var(--muted);padding:0 0 8px 28px;margin-top:-4px;">Ganancia ${nomFmt(g.det.parte)} · Taxas de ganancia ${nomFmt(g.det.taxGan)} · Taxas de payroll ${nomFmt(g.det.taxPay)}</div>` : ''}`).join('');
     $('chq-gan-lista').querySelectorAll('.chq-gan').forEach((cb) => cb.addEventListener('change', chqRecalcularMonto));
   }
   function chqGananciasMarcadas() {
@@ -12899,7 +12913,7 @@
       numero: parseInt($('chq-numero').value, 10) || chqSiguienteNumero(),
       nomIds: chqPagosMarcados().map((n) => n.id),
       pagosSnap: chqPagosMarcados().map((n) => ({ id: n.id, trabajador: n.trabajador, dias: n.dias, sueldoDia: n.sueldoDia || 0, extraDesc: n.extraDesc || '', extraMonto: n.extraMonto || 0, monto: n.monto, base: n._baseNombre || '' })),
-      ganancias: chqGananciasMarcadas().map((g) => ({ base: g.baseNombre, semana: g.semana, ganancia: g.ganancia }))
+      ganancias: chqGananciasMarcadas().map((g) => ({ base: g.baseNombre, semana: g.semana, ganancia: g.ganancia, det: g.det || null }))
     };
   }
 
@@ -12949,7 +12963,14 @@
         return `<tr><td><strong>${escapeHtml(n.trabajador || '')}</strong> — ${cuantos} day${cuantos === 1 ? '' : 's'}${Number(n.sueldoDia) ? ' × ' + nomFmt(n.sueldoDia) : ''}${extra}${baseDe(n) ? ` <span class="src">· ${escapeHtml(baseDe(n))}</span>` : ''}
           ${diasTxt ? `<div class="dias">${escapeHtml(diasTxt)}</div>` : ''}</td><td class="r">${nomFmt(n.monto)}</td></tr>`;
       });
-      const filasGan = gan.map((g) => `<tr><td><strong>Profit share</strong> — ${escapeHtml(g.base || '')} · week ${escapeHtml(chqSemanaIngles(g.semana))}</td><td class="r">${nomFmt(g.ganancia)}</td></tr>`);
+      const filasGan = gan.map((g) => {
+        const enc = `${escapeHtml(g.base || '')} · week ${escapeHtml(chqSemanaIngles(g.semana))}`;
+        if (!g.det) return `<tr><td><strong>Profit share</strong> — ${enc}</td><td class="r">${nomFmt(g.ganancia)}</td></tr>`;
+        const pct = g.det.pct ? ` (${Number(g.det.pct).toFixed(g.det.pct % 1 ? 2 : 0)}%)` : '';
+        return `<tr><td><strong>${enc}</strong>
+            <div class="dias">Profit ${nomFmt(g.det.parte)} · Profit tax${pct} ${nomFmt(g.det.taxGan)} · Payroll tax${pct} ${nomFmt(g.det.taxPay)}</div></td>
+          <td class="r">${nomFmt(g.ganancia)}</td></tr>`;
+      });
       const tit = pagos.length ? `<tr><td><strong>Payroll — ${pagos.length} worker${pagos.length === 1 ? '' : 's'}</strong></td><td class="r"></td></tr>` : '';
       const titGan = gan.length ? `<tr><td><strong>Partnership profit (after expenses)</strong></td><td class="r"></td></tr>` : '';
       detalle = `<table class="t-det multi">${tit}${filas.join('')}${titGan}${filasGan.join('')}</table>`;
