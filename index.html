@@ -2782,7 +2782,7 @@
         </div>
         <div id="chq-pagos-lista" style="display:none;margin-top:10px;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:6px 12px;"></div>
         <div id="chq-gan-wrap" style="display:none;margin-top:10px;">
-          <label style="font-size:12px;font-weight:600;color:var(--muted);">Ganancia de socio (después de gastos)</label>
+          <label style="font-size:12px;font-weight:600;color:var(--muted);">Ganancia de socio (después de gastos, sin los ajustes)</label>
           <div id="chq-gan-lista" style="margin-top:6px;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:6px 12px;"></div>
         </div>
         <p class="gh-ayuda" style="font-size:11.5px;color:var(--muted);margin-top:6px;">Marca uno para pagarle a ese trabajador, o varios para hacer un solo cheque (por ejemplo a CRA HVAC) con el sueldo de todos. La cantidad se suma sola.</p>
@@ -3518,7 +3518,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v135 · 10 oct';
+  const APP_VERSION = 'v136 · 10 oct';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -12666,10 +12666,16 @@
     pagos.forEach((p) => {
       if (!p || p.esEmpresa || p.id === 'empresa' || !p.nombre) return;
       const nombre = String(p.nombre).trim();
-      const nomina = (inv.ajusteItems || []).filter((a) => a && a.nominaSemana &&
-        String(a.ajusteSocioNombre || '').trim().toLowerCase() === nombre.toLowerCase())
-        .reduce((t, a) => t + (a.ajusteDir === 'restar' ? -1 : 1) * (Number(a.monto) || 0), 0);
-      const ganancia = Math.round(((Number(p.total) || 0) - nomina) * 100) / 100;
+      // Ganancia = lo que le toca al socio SIN ningún ajuste (los ajustes son el
+      // sueldo de los trabajadores que ya van por separado en el cheque). Su %
+      // (incluido el 10% de los trabajadores) sí cuenta como ganancia.
+      let ajuste = Number(p.ajuste);
+      if (!isFinite(ajuste) || p.ajuste == null) {
+        ajuste = (inv.ajusteItems || []).filter((a) => a && (a.ajusteSocioId === p.id ||
+          String(a.ajusteSocioNombre || '').trim().toLowerCase() === nombre.toLowerCase()))
+          .reduce((t, a) => t + (a.ajusteDir === 'restar' ? -1 : 1) * (Number(a.monto) || 0), 0);
+      }
+      const ganancia = Math.round(((Number(p.total) || 0) - ajuste) * 100) / 100;
       if (!(ganancia > 0)) return;
       const id = base + '|' + inv.key + '|' + nombre.toLowerCase() + '|' + estado;
       if (chqGanancias.some((g) => g.id === id)) return;
