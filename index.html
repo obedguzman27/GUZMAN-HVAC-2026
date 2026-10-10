@@ -2781,6 +2781,10 @@
           <button type="button" class="gc-action-btn" id="chq-btn-toda-semana" style="display:none;">Marcar todos</button>
         </div>
         <div id="chq-pagos-lista" style="display:none;margin-top:10px;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:6px 12px;"></div>
+        <div id="chq-gan-wrap" style="display:none;margin-top:10px;">
+          <label style="font-size:12px;font-weight:600;color:var(--muted);">Ganancia de socio (después de gastos)</label>
+          <div id="chq-gan-lista" style="margin-top:6px;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:6px 12px;"></div>
+        </div>
         <p class="gh-ayuda" style="font-size:11.5px;color:var(--muted);margin-top:6px;">Marca uno para pagarle a ese trabajador, o varios para hacer un solo cheque (por ejemplo a CRA HVAC) con el sueldo de todos. La cantidad se suma sola.</p>
       </div>
       <div class="gc-form-row">
@@ -3514,7 +3518,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v133 · 10 oct';
+  const APP_VERSION = 'v134 · 10 oct';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -11837,6 +11841,22 @@
       sel.addEventListener('change', async () => {
         const emp = empleados.find((e) => e.id === sel.dataset.id);
         if (!emp) return;
+        if (sel.value === '__otro__') {
+          // Escribir a quién (ej. CRA HVAC en una base donde no es socio): solo gasto, sin %
+          const cel = sel.parentElement;
+          cel.innerHTML = `<div style="display:flex;gap:6px;"><input type="text" class="trab-pagar-otro" placeholder="Ej. CRA HVAC" autocomplete="off" style="flex:1;min-width:0;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:16px;"><button type="button" class="gc-save-btn" style="padding:6px 12px;font-size:12.5px;">Guardar</button></div>`;
+          const inp = cel.querySelector('input'); inp.focus();
+          const ok = async () => {
+            const nombre = inp.value.replace(/\s+/g, ' ').trim();
+            if (!nombre) { nomRenderTrabajadores(); return; }
+            emp.pagarA = 'nombre:' + nombre;
+            try { await saveEmpleados(); toast(`${empNombreCompleto(emp)}: se le paga a ${nombre} (sin %)`); } catch (e) { toast('No se pudo guardar', 'error'); }
+            nomRenderTrabajadores();
+          };
+          cel.querySelector('button').addEventListener('click', ok);
+          inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') ok(); if (e.key === 'Escape') nomRenderTrabajadores(); });
+          return;
+        }
         emp.pagarA = sel.value;
         try { await saveEmpleados(); toast(sel.value ? `${empNombreCompleto(emp)}: se le paga a ${sel.options[sel.selectedIndex].text}` : `${empNombreCompleto(emp)}: se le paga directo`); }
         catch (e) { toast('No se pudo guardar', 'error'); }
@@ -12423,7 +12443,8 @@
     const socios = nomSociosParaPago().map((x) => op('socio:' + x.id, x.nombre + ' (socio)'));
     const otros = empleados.filter((e) => e.estado !== 'inactivo' && e.id !== emp.id)
       .map((e) => op('trab:' + e.id, empNombreCompleto(e)));
-    return op('', 'Directo (a él)') + socios.join('') + otros.join('');
+    const libre = actual.startsWith('nombre:') ? op(actual, actual.slice(7) + ' (sin %)') : '';
+    return op('', 'Directo (a él)') + socios.join('') + otros.join('') + libre + '<option value="__otro__">Otro nombre… (sin %)</option>';
   }
   // Quién cobra el pago de un trabajador → { key, nombre, tipo: 'socio' | 'trab', socioId, bonoPct }
   function nomReceptorDe(nombreTrab, ctx) {
@@ -12438,6 +12459,9 @@
       const socio = (ctx ? ctx.socios : nomSociosParaPago()).find((x) => x.id === pa.slice(6));
       if (socio) return { key: pa, nombre: socio.nombre, tipo: 'socio', socioId: socio.id, bonoPct: Number(socio.bonoPct) || 0 };
     }
+    if (pa.startsWith('nombre:') && pa.slice(7).trim()) {
+      return { key: 'nombre:' + pa.slice(7).trim().toLowerCase(), nombre: pa.slice(7).trim(), tipo: 'otro' };
+    }
     if (pa.startsWith('trab:')) {
       const t = emps.find((e) => e.id === pa.slice(5) && e.estado !== 'inactivo');
       if (t) return { key: 'trab:' + t.id, nombre: empNombreCompleto(t), tipo: 'trab' };
@@ -12449,14 +12473,14 @@
     const grupos = new Map();
     (docs || nomDocs || []).filter((n) => chqSemanaDe(n) === weekKey && Number(n.monto) > 0).forEach((n) => {
       const r = nomReceptorDe(n.trabajador, n._ctx);
-      const clave = r.tipo + ':' + String(r.nombre || '').trim().toLowerCase();
+      const clave = String(r.nombre || '').trim().toLowerCase();
       if (!grupos.has(clave)) grupos.set(clave, Object.assign({}, r, { pagos: [], total: 0 }));
       const g = grupos.get(clave);
       g.pagos.push(n);
       g.total += Number(n.monto) || 0;
     });
     return [...grupos.values()].map((g) => Object.assign(g, { total: Math.round(g.total * 100) / 100 }))
-      .sort((a, b) => (a.tipo === b.tipo ? a.nombre.localeCompare(b.nombre) : (a.tipo === 'socio' ? -1 : 1)));
+      .sort((a, b) => ((a.tipo === 'socio') === (b.tipo === 'socio') ? a.nombre.localeCompare(b.nombre) : (a.tipo === 'socio' ? -1 : 1)));
   }
   function nomSemanasConPagos() {
     const set = new Set();
@@ -12495,7 +12519,9 @@
       const quienes = g.pagos.map((n) => `${escapeHtml(n.trabajador || '')} (${nomCuentaDias(n.dias)} d)`).join(', ');
       const pct = g.tipo === 'socio' ? g.bonoPct : 0;
       let nota = '';
-      if (g.tipo === 'socio') {
+      if (g.tipo === 'otro') {
+        nota = `<div style="font-size:12px;color:var(--muted);margin-top:3px;">Gasto de nómina, sin % (no es socio en esta base)</div>`;
+      } else if (g.tipo === 'socio') {
         nota = pct > 0
           ? `<div style="font-size:12px;color:var(--teal);margin-top:3px;">Gasto + ajuste a ${escapeHtml(g.nombre)} · su ${pct}%: ${nomFmt(g.total * pct / 100)} (de las taxas)</div>`
           : `<div style="font-size:12px;color:var(--ember);margin-top:3px;">${escapeHtml(g.nombre)} tiene 0% en Ajustes → Socios. Ponle 10% para que gane su porcentaje.</div>`;
@@ -12630,9 +12656,43 @@
   // se apuntaron en otra base). Se lee sin cambiar de base.
   let chqOtras = [];        // pagos de otras bases, con id "base|id" y su contexto
   let chqBasesInfo = [];    // [{ codigo, nombre }]
+  // Ganancias de socio: lo que le toca a cada socio en un invoice, SIN contar
+  // la nómina que se le pasó como ajuste (esa ya va por trabajador en el cheque).
+  let chqGanancias = [];
+  function chqAgregarGanancias(inv, base, baseNombre, estado) {
+    if (!inv || !inv.key) return;
+    let pagos = [];
+    try { pagos = invPagosNormalizados(inv); } catch (e) { pagos = Array.isArray(inv.pagos) ? inv.pagos : []; }
+    pagos.forEach((p) => {
+      if (!p || p.esEmpresa || p.id === 'empresa' || !p.nombre) return;
+      const nombre = String(p.nombre).trim();
+      const nomina = (inv.ajusteItems || []).filter((a) => a && a.nominaSemana &&
+        String(a.ajusteSocioNombre || '').trim().toLowerCase() === nombre.toLowerCase())
+        .reduce((t, a) => t + (a.ajusteDir === 'restar' ? -1 : 1) * (Number(a.monto) || 0), 0);
+      const ganancia = Math.round(((Number(p.total) || 0) - nomina) * 100) / 100;
+      if (!(ganancia > 0)) return;
+      const id = base + '|' + inv.key + '|' + nombre.toLowerCase() + '|' + estado;
+      if (chqGanancias.some((g) => g.id === id)) return;
+      chqGanancias.push({ id, base, baseNombre, semana: inv.key, label: inv.label || '', nombre, ganancia, estado });
+    });
+  }
+  function chqCargarGananciasPropias() {
+    const actual = (typeof window.GH_GET_CUENTA === 'function' && window.GH_GET_CUENTA()) || 'principal';
+    const nombreBase = chqNombreBase(actual);
+    chqGanancias = chqGanancias.filter((g) => g.base !== actual);
+    (invoicesGuardados || []).forEach((inv) => chqAgregarGanancias(inv, actual, nombreBase, 'guardado'));
+    try { calcularSemanas().forEach((sem) => chqAgregarGanancias(sem, actual, nombreBase, 'abierta')); } catch (e) {}
+  }
+  function chqNombreBase(codigo) {
+    const b = (chqBasesInfo || []).find((x) => x.codigo === codigo);
+    if (b && b.nombre) return b.nombre;
+    try { const n = ajNombreDe(codigo); if (n) return n; } catch (e) {}
+    return codigo === 'principal' ? 'Principal' : codigo;
+  }
   async function chqCargarOtrasBases() {
     chqOtras = [];
     chqBasesInfo = [];
+    chqGanancias = [];
     if (typeof window.GH_LEER_DE_CUENTA !== 'function' || typeof window.GH_GET_CUENTA !== 'function') return;
     let cuentas = [];
     try { cuentas = await ajCargarCuentas(); } catch (e) { cuentas = []; }
@@ -12642,7 +12702,8 @@
     if (!chqBasesInfo.some((c) => c.codigo === actual)) chqBasesInfo.unshift({ codigo: actual, nombre: 'Esta base' });
     const leer = async (codigo, key) => { try { const v = await window.GH_LEER_DE_CUENTA(codigo, key); return v ? JSON.parse(v) : null; } catch (e) { return null; } };
     await Promise.all(cuentas.filter((c) => c.codigo !== actual).map(async (c) => {
-      const [docs, emps, cfg] = await Promise.all([leer(c.codigo, 'gh-nomina'), leer(c.codigo, 'empleados'), leer(c.codigo, 'kontaly-config')]);
+      const [docs, emps, cfg, invs] = await Promise.all([leer(c.codigo, 'gh-nomina'), leer(c.codigo, 'empleados'), leer(c.codigo, 'kontaly-config'), leer(c.codigo, KEY_INVOICES)]);
+      if (Array.isArray(invs)) invs.forEach((inv) => chqAgregarGanancias(inv, c.codigo, c.nombre, 'guardado'));
       if (!Array.isArray(docs) || !docs.length) return;
       const ctx = {
         empleados: Array.isArray(emps) ? emps : [],
@@ -12653,7 +12714,7 @@
   }
   function chqFuente() {
     const actual = (typeof window.GH_GET_CUENTA === 'function' && window.GH_GET_CUENTA()) || 'principal';
-    const propios = (nomDocs || []).map((n) => Object.assign({}, n, { _base: actual }));
+    const propios = (nomDocs || []).map((n) => Object.assign({}, n, { _base: actual, _baseNombre: chqNombreBase(actual) }));
     const sel = $('chq-base').value || 'todas';
     const todos = propios.concat(chqOtras);
     return sel === 'todas' ? todos : todos.filter((n) => n._base === sel);
@@ -12718,8 +12779,36 @@
         cont.querySelectorAll('.chq-pago').forEach((cb) => { cb.checked = ids.has(cb.value); });
         chqAplicarPagos();
         $('chq-a').value = g.nombre;
+        chqRenderGanancias();
+        chqRecalcularMonto();
       }));
     }
+  }
+  function chqRenderGanancias() {
+    const quien = $('chq-a').value.trim().toLowerCase();
+    const sel = $('chq-base').value || 'todas';
+    const marcadas = new Set([...document.querySelectorAll('#chq-gan-lista .chq-gan:checked')].map((cb) => cb.value));
+    const lista = quien ? chqGanancias.filter((g) => g.nombre.toLowerCase() === quien && (sel === 'todas' || g.base === sel))
+      .sort((a, b) => b.semana.localeCompare(a.semana)).slice(0, 12) : [];
+    $('chq-gan-wrap').style.display = lista.length ? 'block' : 'none';
+    $('chq-gan-lista').innerHTML = lista.map((g) => `
+      <label style="display:flex;align-items:center;gap:10px;padding:7px 0;cursor:pointer;font-size:13.5px;">
+        <input type="checkbox" class="chq-gan" value="${escapeHtml(g.id)}" ${marcadas.has(g.id) ? 'checked' : ''} style="width:18px;height:18px;">
+        <span style="flex:1;">${escapeHtml(g.baseNombre)} · semana ${escapeHtml(nomEtiquetaSemana(g.semana))}${g.estado === 'abierta' ? ' <span style="font-size:11px;color:var(--muted);">(sin guardar)</span>' : ''}</span>
+        <strong>${nomFmt(g.ganancia)}</strong>
+      </label>`).join('');
+    $('chq-gan-lista').querySelectorAll('.chq-gan').forEach((cb) => cb.addEventListener('change', chqRecalcularMonto));
+  }
+  function chqGananciasMarcadas() {
+    const ids = new Set([...document.querySelectorAll('#chq-gan-lista .chq-gan:checked')].map((cb) => cb.value));
+    return chqGanancias.filter((g) => ids.has(g.id));
+  }
+  function chqRecalcularMonto() {
+    const t = chqPagosMarcados().reduce((s, n) => s + (Number(n.monto) || 0), 0) +
+      chqGananciasMarcadas().reduce((s, g) => s + g.ganancia, 0);
+    if (t > 0) $('chq-monto').value = (Math.round(t * 100) / 100).toFixed(2);
+    if (!$('chq-memo').value.trim()) $('chq-memo').value = 'WORK';
+    chqActualizarLetras();
   }
   function chqPagosMarcados() {
     return [...document.querySelectorAll('#chq-pagos-lista .chq-pago:checked')]
@@ -12729,15 +12818,13 @@
   // con varios deja el nombre para que escribas a quién (ej. CRA HVAC).
   function chqAplicarPagos() {
     const pagos = chqPagosMarcados();
-    if (!pagos.length) return;
-    const total = pagos.reduce((t, n) => t + (Number(n.monto) || 0), 0);
-    $('chq-monto').value = (Math.round(total * 100) / 100).toFixed(2);
+    if (!pagos.length) { chqRecalcularMonto(); return; }
     const a = $('chq-a');
     const nombresPagos = chqFuente().map((n) => n.trabajador);
     if (pagos.length === 1) { if (!a.value.trim() || nombresPagos.includes(a.value.trim())) a.value = pagos[0].trabajador || ''; }
     else if (nombresPagos.includes(a.value.trim())) { a.value = ''; a.focus(); }
-    if (!$('chq-memo').value.trim()) $('chq-memo').value = 'WORK';
-    chqActualizarLetras();
+    chqRenderGanancias();
+    chqRecalcularMonto();
   }
 
   function chqActualizarLetras() {
@@ -12748,8 +12835,10 @@
   async function chqRender() {
     if (!chqCargado) await chqCargar();
     chqLlenarBases();
+    chqCargarGananciasPropias();
     chqLlenarSelectNomina();
-    chqCargarOtrasBases().then(() => { chqLlenarBases(); chqLlenarSelectNomina(); }).catch(() => {});
+    chqRenderGanancias();
+    chqCargarOtrasBases().then(() => { chqLlenarBases(); chqCargarGananciasPropias(); chqLlenarSelectNomina(); chqRenderGanancias(); }).catch(() => {});
     if (!$('chq-fecha').value) $('chq-fecha').value = nomToday();
     if (!$('chq-numero').value) $('chq-numero').value = chqSiguienteNumero();
     $('chq-off-x').value = chqCfg.offX || 0;
@@ -12803,7 +12892,8 @@
       memo: $('chq-memo').value.trim(),
       numero: parseInt($('chq-numero').value, 10) || chqSiguienteNumero(),
       nomIds: chqPagosMarcados().map((n) => n.id),
-      pagosSnap: chqPagosMarcados().map((n) => ({ id: n.id, trabajador: n.trabajador, dias: n.dias, sueldoDia: n.sueldoDia || 0, extraDesc: n.extraDesc || '', extraMonto: n.extraMonto || 0, monto: n.monto }))
+      pagosSnap: chqPagosMarcados().map((n) => ({ id: n.id, trabajador: n.trabajador, dias: n.dias, sueldoDia: n.sueldoDia || 0, extraDesc: n.extraDesc || '', extraMonto: n.extraMonto || 0, monto: n.monto, base: n._baseNombre || '' })),
+      ganancias: chqGananciasMarcadas().map((g) => ({ base: g.baseNombre, semana: g.semana, ganancia: g.ganancia }))
     };
   }
 
@@ -12822,19 +12912,26 @@
     const ids = Array.isArray(c.nomIds) ? c.nomIds : (c.nomId ? [c.nomId] : []);
     return ids.map((id) => (nomDocs || []).find((x) => x.id === id)).filter(Boolean);
   }
+  function chqSemanaIngles(key) {
+    const r = nomWeekRango(key);
+    const f = (iso) => new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return `${f(r.inicio)} – ${f(r.fin)}`;
+  }
   function chqTalonHTML(c, top, titulo) {
     const pagos = chqPagosDeCheque(c);
+    const gan = Array.isArray(c.ganancias) ? c.ganancias : [];
+    const baseDe = (n) => n.base || n._baseNombre || '';
     let detalle = '';
-    if (pagos.length === 1) {
+    if (pagos.length === 1 && !gan.length) {
       const n = pagos[0];
       const dias = (Array.isArray(n.dias) ? n.dias.slice() : []).sort();
       const cuantos = nomCuentaDias(n.dias); // pagos viejos guardaban solo el número de días
       const lineas = dias.map((d) => `<tr><td class="dia">${escapeHtml(chqDiaEnIngles(d))}</td><td class="r"></td></tr>`);
-      const filas = [`<tr><td><strong>Days worked: ${cuantos}</strong></td><td class="r"></td></tr>`, ...lineas];
+      const filas = [`<tr><td><strong>Days worked: ${cuantos}</strong>${baseDe(n) ? ` <span class="src">· ${escapeHtml(baseDe(n))}</span>` : ''}</td><td class="r"></td></tr>`, ...lineas];
       if (Number(n.sueldoDia) && cuantos) filas.push(`<tr><td>Daily rate: ${nomFmt(n.sueldoDia)} × ${cuantos}</td><td class="r">${nomFmt(Number(n.sueldoDia) * cuantos)}</td></tr>`);
       if (Number(n.extraMonto)) filas.push(`<tr><td>Extra${n.extraDesc ? ': ' + escapeHtml(n.extraDesc) : ''}</td><td class="r">${nomFmt(n.extraMonto)}</td></tr>`);
       detalle = `<table class="t-det">${filas.join('')}</table>`;
-    } else if (pagos.length > 1) {
+    } else if (pagos.length || gan.length) {
       const filas = pagos.map((n) => {
         const dias = (Array.isArray(n.dias) ? n.dias.slice() : []).sort();
         const cuantos = nomCuentaDias(n.dias);
@@ -12843,10 +12940,13 @@
           return isNaN(f) ? d : f.toLocaleDateString('en-US', { weekday: 'long', month: 'numeric', day: 'numeric' });
         }).join(', ');
         const extra = Number(n.extraMonto) ? ` · Extra${n.extraDesc ? ' (' + escapeHtml(n.extraDesc) + ')' : ''}: ${nomFmt(n.extraMonto)}` : '';
-        return `<tr><td><strong>${escapeHtml(n.trabajador || '')}</strong> — ${cuantos} day${cuantos === 1 ? '' : 's'}${Number(n.sueldoDia) ? ' × ' + nomFmt(n.sueldoDia) : ''}${extra}
+        return `<tr><td><strong>${escapeHtml(n.trabajador || '')}</strong> — ${cuantos} day${cuantos === 1 ? '' : 's'}${Number(n.sueldoDia) ? ' × ' + nomFmt(n.sueldoDia) : ''}${extra}${baseDe(n) ? ` <span class="src">· ${escapeHtml(baseDe(n))}</span>` : ''}
           ${diasTxt ? `<div class="dias">${escapeHtml(diasTxt)}</div>` : ''}</td><td class="r">${nomFmt(n.monto)}</td></tr>`;
       });
-      detalle = `<table class="t-det multi"><tr><td><strong>Payroll — ${pagos.length} workers</strong></td><td class="r"></td></tr>${filas.join('')}</table>`;
+      const filasGan = gan.map((g) => `<tr><td><strong>Profit share</strong> — ${escapeHtml(g.base || '')} · week ${escapeHtml(chqSemanaIngles(g.semana))}</td><td class="r">${nomFmt(g.ganancia)}</td></tr>`);
+      const tit = pagos.length ? `<tr><td><strong>Payroll — ${pagos.length} worker${pagos.length === 1 ? '' : 's'}</strong></td><td class="r"></td></tr>` : '';
+      const titGan = gan.length ? `<tr><td><strong>Partnership profit (after expenses)</strong></td><td class="r"></td></tr>` : '';
+      detalle = `<table class="t-det multi">${tit}${filas.join('')}${titGan}${filasGan.join('')}</table>`;
     }
     return `<div class="talon" style="top:${top}in;">
       <div class="t-head"><span>${escapeHtml(cfgFacturaNombre || 'GUZMAN HVAC')}</span><span>${titulo} · Check #${escapeHtml(String(c.numero))}</span></div>
@@ -12898,6 +12998,7 @@
   .t-det td.dia { padding-left: 14px; }
   .t-det.multi td { padding: 3px 0; border-bottom: 1px solid #e2e2e2; font-size: 9.5pt; }
   .t-det .dias { font-size: 8.5pt; color: #333; padding-left: 12px; margin-top: 1px; }
+  .t-det .src { font-size: 8.5pt; color: #555; font-weight: normal; }
   .t-total { margin-top: 8px; font-weight: bold; font-size: 12pt; text-align: right; }
 </style></head><body><div class="pg">
   ${guia}
@@ -12906,7 +13007,7 @@
   <div class="f letras" style="${pos('letras')}">${escapeHtml(letras)} ${relleno}</div>
   <div class="f" style="${pos('a')}">${escapeHtml(c.a)}</div>
   ${c.memo ? `<div class="f memo" style="${pos('memo')}">${escapeHtml(c.memo)}</div>` : ''}
-  ${talones ? chqTalonHTML(c, 3.85 + dy, chqPagosDeCheque(c).length > 1 ? 'Payee copy' : 'Employee copy') + chqTalonHTML(c, 7.6 + dy, 'Company copy') : ''}
+  ${talones ? chqTalonHTML(c, 3.85 + dy, (chqPagosDeCheque(c).length > 1 || (c.ganancias && c.ganancias.length)) ? 'Payee copy' : 'Employee copy') + chqTalonHTML(c, 7.6 + dy, 'Company copy') : ''}
 </div></body></html>`;
   }
 
@@ -12917,12 +13018,14 @@
   }
 
   $('chq-semana').addEventListener('change', chqRenderPagosSemana);
-  $('chq-base').addEventListener('change', chqLlenarSelectNomina);
+  $('chq-base').addEventListener('change', () => { chqLlenarSelectNomina(); chqRenderGanancias(); });
   $('chq-btn-toda-semana').addEventListener('click', () => {
     document.querySelectorAll('#chq-pagos-lista .chq-pago').forEach((cb) => { cb.checked = true; });
     chqAplicarPagos();
   });
   $('chq-monto').addEventListener('input', chqActualizarLetras);
+  $('chq-a').addEventListener('input', chqRenderGanancias);
+  $('chq-a').addEventListener('change', chqRenderGanancias);
 
   $('chq-btn-prueba').addEventListener('click', () => {
     const c = chqDatosFormulario();
@@ -12947,7 +13050,8 @@
     catch (e) { toast('No se pudo guardar el cheque', 'error'); }
     ghImprimirEnVentana('', `Cheque ${c.numero}`, chqDocumento(c, false));
     // Deja el formulario listo para el siguiente
-    document.querySelectorAll('#chq-pagos-lista .chq-pago').forEach((cb) => { cb.checked = false; });
+    document.querySelectorAll('#chq-pagos-lista .chq-pago, #chq-gan-lista .chq-gan').forEach((cb) => { cb.checked = false; });
+    $('chq-gan-wrap').style.display = 'none';
     $('chq-a').value = ''; $('chq-monto').value = ''; $('chq-memo').value = 'WORK';
     $('chq-numero').value = chqSiguienteNumero();
     chqActualizarLetras();
