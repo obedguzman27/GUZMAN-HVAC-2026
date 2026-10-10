@@ -3563,7 +3563,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v139 · 10 oct';
+  const APP_VERSION = 'v140 · 10 oct';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -13217,15 +13217,23 @@
     const filas = Array.isArray(datos) ? datos : (datos && Array.isArray(datos.cheques) ? datos.cheques : null);
     if (!filas) { toast('El archivo no trae cheques', 'error'); return; }
     if (!chqCargado) await chqCargar();
-    let nuevos = 0, repetidos = 0;
+    let nuevos = 0, repetidos = 0, completados = 0;
     filas.forEach((r, i) => {
       const z = r.metodo === 'zelle';
       const monto = Math.round((Number(r.monto) || 0) * 100) / 100;
       if (!(monto > 0) || !r.fecha) return;
       const ya = z
-        ? chqLista.some((x) => x.metodo === 'zelle' && ((r.conf && x.conf === r.conf) || (!r.conf && x.fecha === r.fecha && Number(x.monto) === monto && (x.a || '') === (r.a || ''))))
-        : chqLista.some((x) => x.metodo !== 'zelle' && Number(x.numero) === Number(r.numero));
-      if (ya) { repetidos++; return; }
+        ? chqLista.find((x) => x.metodo === 'zelle' && ((r.conf && x.conf === r.conf) || (!r.conf && x.fecha === r.fecha && Number(x.monto) === monto && (x.a || '') === (r.a || ''))))
+        : chqLista.find((x) => x.metodo !== 'zelle' && Number(x.numero) === Number(r.numero));
+      if (ya) {
+        // Si ya estaba pero sin nombre, se le pone el nombre (y el memo) del archivo
+        if (!(ya.a || '').trim() && (r.a || '').trim()) {
+          ya.a = r.a.trim();
+          if (!(ya.memo || '').trim() && r.memo) ya.memo = r.memo;
+          completados++;
+        } else repetidos++;
+        return;
+      }
       chqLista.push({ id: Date.now().toString() + '-' + i + '-' + Math.random().toString(36).slice(2, 6), metodo: z ? 'zelle' : 'cheque',
         numero: z ? null : Number(r.numero) || null, conf: r.conf || '', fecha: r.fecha, a: r.a || '', monto, memo: r.memo || '',
         manual: true, importado: true, creadoEn: new Date().toISOString() });
@@ -13234,7 +13242,7 @@
     try { await chqGuardarLista(); } catch (err) { toast('No se pudo guardar', 'error'); return; }
     $('chq-numero').value = chqSiguienteNumero();
     chqRenderLista();
-    toast(`${nuevos} agregado(s)${repetidos ? ` · ${repetidos} ya estaban` : ''}`, 'success', 4000);
+    toast(`${nuevos} agregado(s)${completados ? ` · ${completados} con nombre puesto` : ''}${repetidos ? ` · ${repetidos} ya estaban` : ''}`, 'success', 5000);
   });
   $('chq-m-cancelar').addEventListener('click', () => { chqEditandoId = null; $('chq-manual').style.display = 'none'; });
   $('chq-m-guardar').addEventListener('click', chqGuardarManual);
