@@ -2838,6 +2838,7 @@
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button type="button" class="gc-action-btn" id="chq-btn-importar">⬆ Importar archivo</button>
           <button type="button" class="gc-action-btn" id="chq-btn-manual">+ Agregar cheque a mano</button>
+          <button type="button" class="gc-action-btn" id="chq-btn-borrar-todo" style="color:var(--ember);border-color:var(--ember);">🗑 Borrar todo</button>
           <input type="file" id="chq-file" accept=".json,application/json" hidden>
         </div>
       </div>
@@ -3563,7 +3564,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v140 · 10 oct';
+  const APP_VERSION = 'v141 · 10 oct';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -13203,6 +13204,18 @@
   $('chq-ver').addEventListener('change', chqRenderLista);
   $('chq-btn-manual').addEventListener('click', () => chqAbrirManual(null));
   $('chq-m-tipo').addEventListener('change', chqTipoManual);
+  // Borrar TODO el registro (cheques y Zelle) de esta base de datos
+  $('chq-btn-borrar-todo').addEventListener('click', async () => {
+    if (!chqCargado) await chqCargar();
+    if (!chqLista.length) { toast('El registro ya está vacío', 'info'); return; }
+    const nZ = chqLista.filter((c) => c.metodo === 'zelle').length, nC = chqLista.length - nZ;
+    if (!await gcConfirm(`¿Borrar TODO el registro?\n\n${nC} cheque(s) y ${nZ} Zelle de esta base de datos se borran para siempre.`, { okText: 'Borrar todo', danger: true })) return;
+    if (!await gcConfirm('¿Seguro? Esto no se puede deshacer.', { okText: 'Sí, borrar todo', danger: true })) return;
+    chqLista = [];
+    try { await chqGuardarLista(); toast('Registro de cheques borrado', 'success'); } catch (e) { toast('No se pudo borrar', 'error'); return; }
+    $('chq-numero').value = chqSiguienteNumero();
+    chqRenderLista();
+  });
   $('chq-tipo').addEventListener('change', chqRenderLista);
   $('chq-sin-nombre').addEventListener('change', chqRenderLista);
   // Importar cheques/Zelle de un archivo (ej. lo sacado del banco). No repite:
