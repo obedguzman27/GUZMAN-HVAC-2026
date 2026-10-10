@@ -2833,8 +2833,39 @@
     </div>
 
     <div class="gc-card">
-      <p class="gc-card-title">Cheques emitidos</p>
-      <div class="gc-empty" id="chq-empty">Todavía no has impreso cheques.</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+        <p class="gc-card-title" style="margin:0;">Registro de cheques</p>
+        <button type="button" class="gc-action-btn" id="chq-btn-manual">+ Agregar cheque a mano</button>
+      </div>
+      <div id="chq-manual" style="display:none;margin-bottom:14px;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:12px;background:var(--surface-2);">
+        <p style="font-weight:700;font-size:13.5px;margin:0 0 8px;" id="chq-manual-titulo">Agregar cheque a mano (no se imprime)</p>
+        <div class="gc-form-row">
+          <div class="gc-field"><label>Número</label><input type="number" id="chq-m-num" step="1" min="1" inputmode="numeric"></div>
+          <div class="gc-field"><label>Fecha</label><input type="date" id="chq-m-fecha"></div>
+          <div class="gc-field"><label>Cantidad ($)</label><input type="number" id="chq-m-monto" step="0.01" min="0" inputmode="decimal"></div>
+        </div>
+        <div class="gc-form-row">
+          <div class="gc-field"><label>Páguese a</label><input type="text" id="chq-m-a" list="dl-chq-a" autocomplete="off"></div>
+          <div class="gc-field"><label>Memo</label><input type="text" id="chq-m-memo" autocomplete="off"></div>
+          <div class="gc-field" style="justify-content:flex-end;"><label>&nbsp;</label>
+            <div style="display:flex;gap:8px;">
+              <button type="button" class="gc-action-btn" id="chq-m-cancelar">Cancelar</button>
+              <button type="button" class="gc-save-btn" id="chq-m-guardar">Guardar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+        <input type="text" id="chq-buscar" placeholder="Buscar por nombre, número o memo…" autocomplete="off" style="flex:2;min-width:200px;font-size:14px;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--card);color:var(--ink);">
+        <select id="chq-anio" style="flex:1;min-width:120px;"></select>
+        <select id="chq-ver" style="flex:1;min-width:140px;">
+          <option value="vigentes">Sin los anulados</option>
+          <option value="todos">Todos</option>
+          <option value="anulados">Solo anulados</option>
+        </select>
+      </div>
+      <div id="chq-resumen" style="margin-bottom:14px;"></div>
+      <div class="gc-empty" id="chq-empty">Todavía no hay cheques.</div>
       <div style="overflow-x:auto;">
         <table class="inv-list-t" id="chq-tbl" style="display:none;">
           <thead><tr><th>#</th><th>Fecha</th><th>Páguese a</th><th class="num">Cantidad</th><th>Memo</th><th></th></tr></thead>
@@ -3518,7 +3549,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // Versión visible de la app — súbela cada vez que haya cambios para confirmar que cargó la nueva
-  const APP_VERSION = 'v137 · 10 oct';
+  const APP_VERSION = 'v138 · 10 oct';
   (function mostrarVersion() {
     const b = document.getElementById('app-version-badge');
     if (b) b.textContent = APP_VERSION;
@@ -12868,40 +12899,120 @@
     chqRenderLista();
   }
 
+  // ---- Registro de cheques: buscar, total por persona, borrar, editar, agregar a mano ----
+  let chqEditandoId = null;
   function chqRenderLista() {
     const tbody = $('chq-tbody');
-    const lista = chqLista.slice().sort((a, b) => (Number(b.numero) || 0) - (Number(a.numero) || 0));
+    // Años que hay en el registro (y el actual)
+    const anios = [...new Set(chqLista.map((c) => String(c.fecha || '').slice(0, 4)).filter(Boolean).concat([String(new Date().getFullYear())]))].sort().reverse();
+    const selA = $('chq-anio'), anioPrev = selA.value || String(new Date().getFullYear());
+    selA.innerHTML = '<option value="">Todos los años</option>' + anios.map((a) => `<option value="${a}">${a}</option>`).join('');
+    selA.value = anios.includes(anioPrev) || anioPrev === '' ? anioPrev : '';
+    const q = $('chq-buscar').value.trim().toLowerCase();
+    const anio = selA.value, ver = $('chq-ver').value;
+    const lista = chqLista.filter((c) => {
+      if (anio && String(c.fecha || '').slice(0, 4) !== anio) return false;
+      if (ver === 'vigentes' && c.anulado) return false;
+      if (ver === 'anulados' && !c.anulado) return false;
+      if (!q) return true;
+      return String(c.numero).includes(q) || (c.a || '').toLowerCase().includes(q) || (c.memo || '').toLowerCase().includes(q);
+    }).sort((a, b) => (b.fecha || '').localeCompare(a.fecha || '') || (Number(b.numero) || 0) - (Number(a.numero) || 0));
+
+    // Total por persona (sin anulados)
+    const porPersona = new Map();
+    lista.filter((c) => !c.anulado).forEach((c) => {
+      const k = (c.a || '').trim().toLowerCase();
+      if (!porPersona.has(k)) porPersona.set(k, { nombre: (c.a || '').trim() || '—', n: 0, total: 0 });
+      const g = porPersona.get(k); g.n++; g.total += Number(c.monto) || 0;
+    });
+    const grupos = [...porPersona.values()].sort((a, b) => b.total - a.total);
+    const granTotal = grupos.reduce((t, g) => t + g.total, 0);
+    $('chq-resumen').innerHTML = grupos.length ? `
+      <div style="border:1.5px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;">Total por persona${anio ? ' · ' + anio : ''}</div>
+        ${grupos.map((g) => `<div class="chq-persona" data-n="${escapeHtml(g.nombre)}" style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--border-soft);cursor:pointer;">
+          <span>${escapeHtml(g.nombre)} <span style="font-size:12px;color:var(--muted);">· ${g.n} cheque${g.n === 1 ? '' : 's'}</span></span><strong style="white-space:nowrap;">${nomFmt(g.total)}</strong></div>`).join('')}
+        <div style="display:flex;justify-content:space-between;padding-top:8px;font-weight:700;"><span>Total</span><span>${nomFmt(granTotal)}</span></div>
+      </div>` : '';
+    $('chq-resumen').querySelectorAll('.chq-persona').forEach((d) => d.addEventListener('click', () => { $('chq-buscar').value = d.dataset.n; chqRenderLista(); }));
+
     $('chq-empty').style.display = lista.length ? 'none' : 'block';
+    $('chq-empty').textContent = chqLista.length ? 'No hay cheques con esa búsqueda.' : 'Todavía no hay cheques.';
     $('chq-tbl').style.display = lista.length ? 'table' : 'none';
     tbody.innerHTML = lista.map((c) => `
       <tr${c.anulado ? ' style="opacity:.5;text-decoration:line-through;"' : ''}>
         <td style="font-weight:600;">${escapeHtml(String(c.numero))}</td>
         <td>${escapeHtml(chqFechaUS(c.fecha))}</td>
-        <td>${escapeHtml(c.a || '')}${c.anulado ? ' <span style="font-size:11px;">(anulado)</span>' : ''}</td>
+        <td>${escapeHtml(c.a || '')}${c.anulado ? ' <span style="font-size:11px;">(anulado)</span>' : ''}${c.manual ? ' <span style="font-size:11px;color:var(--muted);">(a mano)</span>' : ''}</td>
         <td class="num" style="font-weight:700;">${nomFmt(c.monto)}</td>
         <td style="font-size:12.5px;color:var(--muted);">${escapeHtml(c.memo || '')}</td>
         <td style="white-space:nowrap;">
           <button class="gc-action-btn chq-reimp" data-id="${escapeHtml(c.id)}" style="padding:4px 10px;font-size:11.5px;">Reimprimir</button>
-          ${c.anulado ? '' : `<button class="gc-del chq-anular" data-id="${escapeHtml(c.id)}" title="Anular" style="margin-left:3px;">✕</button>`}
+          <button class="gc-action-btn chq-editar" data-id="${escapeHtml(c.id)}" title="Editar" style="padding:4px 10px;font-size:11.5px;margin-left:3px;">✎</button>
+          ${c.anulado ? `<button class="gc-action-btn chq-reactivar" data-id="${escapeHtml(c.id)}" style="padding:4px 10px;font-size:11.5px;margin-left:3px;">Quitar anulado</button>`
+                      : `<button class="gc-action-btn chq-anular" data-id="${escapeHtml(c.id)}" style="padding:4px 10px;font-size:11.5px;margin-left:3px;">Anular</button>`}
+          <button class="gc-del chq-borrar" data-id="${escapeHtml(c.id)}" title="Borrar para siempre" style="margin-left:3px;">✕</button>
         </td>
       </tr>`).join('');
+    const buscar = (id) => chqLista.find((x) => x.id === id);
     tbody.querySelectorAll('.chq-reimp').forEach((b) => b.addEventListener('click', () => {
-      const c = chqLista.find((x) => x.id === b.dataset.id);
+      const c = buscar(b.dataset.id);
       if (c) ghImprimirEnVentana('', `Cheque ${c.numero}`, chqDocumento(c, false));
     }));
-    tbody.querySelectorAll('.chq-anular').forEach((b) => b.addEventListener('click', async () => {
-      const c = chqLista.find((x) => x.id === b.dataset.id);
-      if (!c) return;
-      if (b.dataset.confirmar !== '1') {
-        b.dataset.confirmar = '1';
-        b.textContent = '¿Anular?';
-        setTimeout(() => { if (b.isConnected) { b.dataset.confirmar = ''; b.textContent = '✕'; } }, 4000);
-        return;
-      }
-      c.anulado = true;
-      try { await chqGuardarLista(); toast(`Cheque #${c.numero} anulado`); } catch (e) { toast('No se pudo guardar', 'error'); }
+    tbody.querySelectorAll('.chq-editar').forEach((b) => b.addEventListener('click', () => { const c = buscar(b.dataset.id); if (c) chqAbrirManual(c); }));
+    tbody.querySelectorAll('.chq-anular, .chq-reactivar').forEach((b) => b.addEventListener('click', async () => {
+      const c = buscar(b.dataset.id); if (!c) return;
+      c.anulado = b.classList.contains('chq-anular');
+      try { await chqGuardarLista(); toast(c.anulado ? `Cheque #${c.numero} anulado` : `Cheque #${c.numero} activo otra vez`); } catch (e) { toast('No se pudo guardar', 'error'); }
       chqRenderLista();
     }));
+    tbody.querySelectorAll('.chq-borrar').forEach((b) => b.addEventListener('click', async () => {
+      const c = buscar(b.dataset.id); if (!c) return;
+      if (!await gcConfirm(`¿Borrar el cheque #${c.numero} de ${c.a || '—'} (${nomFmt(c.monto)})?\n\nSe quita del registro para siempre.`, { okText: 'Borrar', danger: true })) return;
+      chqLista = chqLista.filter((x) => x.id !== c.id);
+      // Si era el último número usado, ese número se puede volver a usar
+      const num = Number(c.numero) || 0;
+      if (num && !chqLista.some((x) => (Number(x.numero) || 0) >= num) && (Number(chqCfg.siguiente) || 0) > num) chqCfg.siguiente = num;
+      try { await chqGuardarLista(); await chqGuardarCfg(); toast(`Cheque #${c.numero} borrado`); } catch (e) { toast('No se pudo borrar', 'error'); }
+      $('chq-numero').value = chqSiguienteNumero();
+      chqRenderLista();
+    }));
+  }
+  // Agregar a mano (cheques que ya se escribieron este año) o editar uno
+  function chqAbrirManual(c) {
+    chqEditandoId = c ? c.id : null;
+    $('chq-manual-titulo').textContent = c ? `Editar cheque #${c.numero}` : 'Agregar cheque a mano (no se imprime)';
+    $('chq-m-num').value = c ? c.numero : '';
+    $('chq-m-fecha').value = c ? (c.fecha || '') : nomToday();
+    $('chq-m-monto').value = c ? (Number(c.monto) || 0).toFixed(2) : '';
+    $('chq-m-a').value = c ? (c.a || '') : '';
+    $('chq-m-memo').value = c ? (c.memo || '') : 'WORK';
+    $('chq-manual').style.display = 'block';
+    (c ? $('chq-m-monto') : $('chq-m-num')).focus();
+  }
+  async function chqGuardarManual() {
+    const numero = parseInt($('chq-m-num').value, 10);
+    const monto = Math.round((parseFloat($('chq-m-monto').value) || 0) * 100) / 100;
+    const a = $('chq-m-a').value.replace(/\s+/g, ' ').trim();
+    if (!numero) { toast('Escribe el número del cheque', 'error'); $('chq-m-num').focus(); return; }
+    if (!a) { toast('Escribe a quién se le pagó', 'error'); $('chq-m-a').focus(); return; }
+    if (!(monto > 0)) { toast('Escribe la cantidad', 'error'); $('chq-m-monto').focus(); return; }
+    const repetido = chqLista.find((x) => Number(x.numero) === numero && x.id !== chqEditandoId && !x.anulado);
+    if (repetido && !await gcConfirm(`Ya hay un cheque #${numero} (${repetido.a}). ¿Guardarlo de todos modos?`, { okText: 'Guardar' })) return;
+    const datos = { numero, fecha: $('chq-m-fecha').value || nomToday(), a, monto, memo: $('chq-m-memo').value.trim() };
+    if (chqEditandoId) {
+      const c = chqLista.find((x) => x.id === chqEditandoId);
+      if (c) Object.assign(c, datos);
+    } else {
+      chqLista.push(Object.assign({ id: Date.now().toString() + '-' + Math.random().toString(36).slice(2, 7), manual: true, creadoEn: new Date().toISOString() }, datos));
+    }
+    try { await chqGuardarLista(); toast(chqEditandoId ? `Cheque #${numero} actualizado` : `Cheque #${numero} agregado`); } catch (e) { toast('No se pudo guardar', 'error'); return; }
+    const editado = !!chqEditandoId;
+    chqEditandoId = null;
+    if (editado) { $('chq-manual').style.display = 'none'; }
+    else { $('chq-m-num').value = numero + 1; $('chq-m-monto').value = ''; $('chq-m-a').value = ''; $('chq-m-a').focus(); }
+    $('chq-numero').value = chqSiguienteNumero();
+    chqRenderLista();
   }
 
   function chqDatosFormulario() {
@@ -13056,6 +13167,13 @@
   }
 
   $('chq-semana').addEventListener('change', chqRenderPagosSemana);
+  $('chq-buscar').addEventListener('input', chqRenderLista);
+  $('chq-anio').addEventListener('change', chqRenderLista);
+  $('chq-ver').addEventListener('change', chqRenderLista);
+  $('chq-btn-manual').addEventListener('click', () => chqAbrirManual(null));
+  $('chq-m-cancelar').addEventListener('click', () => { chqEditandoId = null; $('chq-manual').style.display = 'none'; });
+  $('chq-m-guardar').addEventListener('click', chqGuardarManual);
+  ['chq-m-num', 'chq-m-fecha', 'chq-m-monto', 'chq-m-a', 'chq-m-memo'].forEach((id) => $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); chqGuardarManual(); } }));
   $('chq-base').addEventListener('change', () => { chqLlenarSelectNomina(); chqRenderGanancias(); });
   $('chq-btn-toda-semana').addEventListener('click', () => {
     document.querySelectorAll('#chq-pagos-lista .chq-pago').forEach((cb) => { cb.checked = true; });
